@@ -6,12 +6,12 @@
 --
 
 local ngx = ngx or {}
+--local Logger = require("config").logger
+
 local Serv = {}
 
--- run server, http_callback(req, response)
-function Serv:run(ipport, http_callback)
-    -- ignore ipport, which defined in config/nginx.conf
-    ipport = nil
+-- run server, http_callback(config, req, response)
+function Serv:run(config, http_callback)
     -- construct req
     local req = {
         method = ngx.req.get_method(),

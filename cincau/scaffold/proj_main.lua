@@ -6,7 +6,7 @@
 --
 
 require("base.scratch")
-local config = require("config/proj_config")
+local config = require("app.config")
 local server = require("server")
 
 -- server:run(...) in protected mode
@@ -18,7 +18,7 @@ xpcall(
     end,
     --- args with self, ...
     server,
-    config.ipport,
+    config,
     function(req, response)
         response.body = "hello cincau ~"
         table.dump(req)

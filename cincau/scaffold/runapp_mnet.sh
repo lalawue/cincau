@@ -15,7 +15,7 @@ start_server()
     CORE_PATH=/usr/local/cincau
 
     # package.path
-    export LUA_PATH="?.lua;$PROJ_PATH/?.lua;$CORE_PATH/?.lua"
+    export LUA_PATH="?.lua;$PROJ_PATH/app/?.lua;$CORE_PATH/?.lua"
 
     # package.cpath
     if [ "$(uname)" = "Darwin" ]; then
@@ -28,7 +28,7 @@ start_server()
 
     # running app
     echo "start cincau web framework"
-    luajit $PROJ_PATH/main.lua $* & > /dev/null
+    luajit $PROJ_PATH/app/main.lua $* & > /dev/null
     CINCAU_PID=$!
     sleep 1
     kill -0 $CINCAU_PID

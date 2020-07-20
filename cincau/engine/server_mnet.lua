@@ -7,7 +7,6 @@
 
 local NetCore = require("vendor.lib.ffi_mnet")
 local HttpParser = require("vendor.lib.ffi_hyperparser")
-local Logger = require("config.proj_config").logger
 
 local Serv = {}
 
@@ -68,7 +67,6 @@ local function _onClientEventCallback(chann, event_name, _)
                 output_content = output_content .. string.format("%X", string.len(response.body)) .. "\r\n"
                 output_content = output_content .. response.body .. "\r\n"
                 output_content = output_content .. "0\r\n\r\n"
-                io.write(output_content)
                 -- send
                 chann:send(output_content)
             end
@@ -78,14 +76,15 @@ local function _onClientEventCallback(chann, event_name, _)
     end
 end
 
--- run server, http_callback(req, response)
-function Serv:run(ipport, http_callback)
-    local addr = NetCore.parseIpPort(ipport)
+-- run server, http_callback(config, req, response)
+function Serv:run(config, http_callback)
+    local logger = config.logger
+    local addr = NetCore.parseIpPort(config.ipport)
     if type(addr.ip) ~= "string" or type(addr.port) ~= "number" then
-        Logger.err("invalid ipport")
+        logger.err("invalid ipport")
         return
     else
-        Logger.info("listen on %s:%d", addr.ip, addr.port)
+        logger.info("listen on %s:%d", addr.ip, addr.port)
     end
     NetCore.init()
     self.svr_tcp = NetCore.openChann("tcp")
@@ -93,6 +92,7 @@ function Serv:run(ipport, http_callback)
     self.svr_tcp:setCallback(
         function(_, event_name, accept)
             if event_name == "event_accept" and accept ~= nil then
+                accept._logger = logger
                 accept._left_data = ""
                 accept._http_callback = http_callback
                 accept._http_parser = HttpParser.createParser("REQUEST")

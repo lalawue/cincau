@@ -72,8 +72,8 @@ end
 
 -- mnet config
 local function _createEngineMnet(core_dir, proj_dir)
-    local proj_config = readAndReplace(core_dir .. "/scaffold/projconfig_mnet.lua")
-    local to_path = proj_dir .. "/config/proj_config.lua"
+    local proj_config = readAndReplace(core_dir .. "/scaffold/config_mnet.lua")
+    local to_path = proj_dir .. "/app/config.lua"
     print("engine config -> " .. to_path)
     writeToFile(to_path, proj_config)
 end
@@ -86,8 +86,8 @@ local function _createEngineNginx(core_dir, proj_dir)
     print("nginx config -> " .. path)
     writeToFile(path, nginx_config)
     -- nginx proj config
-    local proj_config = readAndReplace(core_dir .. "/scaffold/projconfig_nginx.lua")
-    path = proj_dir .. "/config/proj_config.lua"
+    local proj_config = readAndReplace(core_dir .. "/scaffold/config_nginx.lua")
+    path = proj_dir .. "/app/config.lua"
     print("engine config -> " .. path)
     writeToFile(path, proj_config)
 end
@@ -97,10 +97,18 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     if not _check_params(core_dir, proj_dir, engine_type) then
         return false
     end
+    package.path = package.path .. string.format(";%s/?.lua;", core_dir)
+    print(package.path)
+    local logger = require("base.logger")
     -- create dirs
     mkDir(proj_dir)
-    local dir_tbl = {"config", "controllers", "models", "views", "logs", "static", "tmp"}
-    for _, v in ipairs(dir_tbl) do
+    local app_tbl = {"controllers", "models", "views", "static"}
+    for _, v in ipairs(app_tbl) do
+        local dir_path = proj_dir .. "/app/" .. v
+        mkDir(dir_path)
+    end
+    local proj_tbl = {"config", "tmp", logger.getOutputDir()}
+    for _, v in ipairs(proj_tbl) do
         local dir_path = proj_dir .. "/" .. v
         mkDir(dir_path)
     end
@@ -119,9 +127,9 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
         _createEngineNginx(core_dir, proj_dir)
         copyFile(scaffold_dir .. "/mime.types", proj_dir .. "/config/mime.types")
     end
-    copyFile(engine_path, proj_dir .. "/server.lua")
+    copyFile(engine_path, proj_dir .. "/app/server.lua")
     copyFile(runapp_path, proj_dir .. "/run_app.sh")
-    copyFile(scaffold_dir .. "/proj_main.lua", proj_dir .. "/main.lua")
+    copyFile(scaffold_dir .. "/proj_main.lua", proj_dir .. "/app/main.lua")
     return true
 end
 

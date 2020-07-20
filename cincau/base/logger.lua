@@ -6,7 +6,9 @@
 --
 
 local _M = {
+    _fp = nil,
     _level = 2, -- default info level
+    _dir = "logs/",
     ERR = 0,
     WARN = 1,
     INFO = 2,
@@ -20,6 +22,10 @@ _M._level_msg = {
     [_M.DEBUG] = "[DEBUG]"
 }
 
+function _M.getOutputDir()
+    return _M._dir
+end
+
 function _M.setLevel(level)
     level = math.max(_M.ERR, level)
     level = math.min(_M.DEBUG, level)
@@ -27,7 +33,7 @@ function _M.setLevel(level)
 end
 
 function _M.validLevel(level)
-    if level < _M.ERR or level > _M._level  then
+    if level < _M.ERR or level > _M._level then
         return false
     end
     return true
@@ -35,7 +41,13 @@ end
 
 function _M.printf(level, fmt, ...)
     if _M.validLevel(level) and type(fmt) == "string" then
-        print(_M._level_msg[level] .. " " .. string.format(fmt, ...))
+        local msg = _M._level_msg[level] .. " " .. string.format(fmt, ...)
+        print(msg)
+        if _M._fp == nil then
+            _M._fp = io.open(_M._dir .. "cincau_mnet.log", "wb")
+        end
+        _M._fp:write(msg .. "\n")
+        _M._fp:flush()
     end
 end
 
