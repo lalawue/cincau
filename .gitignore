@@ -1,1 +1,2 @@
-lib/vendor/*/
+vendor/*
+cincau/vendor/*

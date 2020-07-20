@@ -15,15 +15,16 @@ start_server()
     CORE_PATH=/usr/local/cincau
 
     # package.path
-    export LUA_PATH="?.lua;$PROJ_PATH/app/?.lua;$CORE_PATH/?.lua"
+    local VD_PATH=$CORE_PATH/vendor
+    export LUA_PATH="?.lua;$PROJ_PATH/app/?.lua;$CORE_PATH/?.lua;$VD_PATH/?.lua"
 
     # package.cpath
     if [ "$(uname)" = "Darwin" ]; then
-        export DYLD_LIBRARY_PATH=$CORE_PATH/vendor/lib
-        export LUA_CPATH=$CORE_PATH/vendor/lib/lib?.dylib
+        export DYLD_LIBRARY_PATH=$VD_PATH
+        export LUA_CPATH=$VD_PATH/?.dylib
     else
-        export LD_LIBRARY_PATH=$CORE_PATH/vendor/lib
-        export LUA_CPATH=$CORE_PATH/vendor/lib/lib?.so
+        export LD_LIBRARY_PATH=$VD_PATH
+        export LUA_CPATH=$VD_PATH/?.so
     fi
 
     # running app

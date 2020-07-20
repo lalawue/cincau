@@ -5,8 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local NetCore = require("vendor.lib.ffi_mnet")
-local HttpParser = require("vendor.lib.ffi_hyperparser")
+local NetCore = require("ffi_mnet")
+local HttpParser = require("ffi_hyperparser")
 
 local Serv = {}
 
