@@ -50,11 +50,27 @@ local function _onClientEventCallback(chann, event_name, _)
                 }
                 local response = {
                     header = {
-                        ["X-Powered-By"] = "cincau framework",
+                        ["X-Powered-By"] = "cincau framework"
                     },
                     body = ""
                 }
                 chann._http_callback(req, response)
+                -- FIXME: construct response to client
+                response.header["Server"] = "mnet"
+                response.header["Content-Type"] = "text/plain"
+                response.header["Transfer-Encoding"] = "chunked"
+                local output_content = "HTTP/1.1 200 OK\r\n"
+                for k, v in pairs(response.header) do
+                    output_content = output_content .. string.format("%s: %s\r\n", k, v)
+                end
+                output_content = output_content .. "\r\n"
+                -- body
+                output_content = output_content .. string.format("%X", string.len(response.body)) .. "\r\n"
+                output_content = output_content .. response.body .. "\r\n"
+                output_content = output_content .. "0\r\n\r\n"
+                io.write(output_content)
+                -- send
+                chann:send(output_content)
             end
         end
     elseif event_name == "event_disconnect" then
@@ -62,7 +78,7 @@ local function _onClientEventCallback(chann, event_name, _)
     end
 end
 
--- run server, http_callback(method, path, header, content)
+-- run server, http_callback(req, response)
 function Serv:run(ipport, http_callback)
     local addr = NetCore.parseIpPort(ipport)
     if type(addr.ip) ~= "string" or type(addr.port) ~= "number" then

@@ -51,7 +51,9 @@ stop_server()
 
 reload_server()
 {
-    echo "cincau web framework dosn't support mnet engine reload"
+    stop_server
+    sleep 1
+    start_server
     exit 0
 }
 

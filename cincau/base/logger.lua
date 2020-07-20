@@ -5,7 +5,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local M = {
+local _M = {
     _level = 2, -- default info level
     ERR = 0,
     WARN = 1,
@@ -13,40 +13,46 @@ local M = {
     DEBUG = 3
 }
 
-local _level_msg = {
-    [M.ERR] = "[ERR]",
-    [M.WARN] = "[WARN]",
-    [M.INFO] = "[INFO]",
-    [M.DEBUG] = "[DEBUG]"
+_M._level_msg = {
+    [_M.ERR] = "[ERR]",
+    [_M.WARN] = "[WARN]",
+    [_M.INFO] = "[INFO]",
+    [_M.DEBUG] = "[DEBUG]"
 }
 
-function M.setLevel(level)
-    level = math.max(M.ERR, level)
-    level = math.min(M.DEBUG, level)
-    M._level = level
+function _M.setLevel(level)
+    level = math.max(_M.ERR, level)
+    level = math.min(_M.DEBUG, level)
+    _M._level = level
 end
 
-function M.printf(level, fmt, ...)
-    if level < M.ERR or level > M._level or type(fmt) ~= "string" then
-        return
+function _M.validLevel(level)
+    if level < _M.ERR or level > _M._level  then
+        return false
     end
-    print(_level_msg[level] .. " " .. string.format(fmt, ...))
+    return true
 end
 
-function M.err(fmt, ...)
-    M.printf(M.ERR, fmt, ...)
+function _M.printf(level, fmt, ...)
+    if _M.validLevel(level) and type(fmt) == "string" then
+        print(_M._level_msg[level] .. " " .. string.format(fmt, ...))
+    end
 end
 
-function M.warn(fmt, ...)
-    M.printf(M.WARN, fmt, ...)
+function _M.err(fmt, ...)
+    _M.printf(_M.ERR, fmt, ...)
 end
 
-function M.info(fmt, ...)
-    M.printf(M.INFO, fmt, ...)
+function _M.warn(fmt, ...)
+    _M.printf(_M.WARN, fmt, ...)
 end
 
-function M.debug(fmt, ...)
-    M.printf(M.DEBUG, fmt, ...)
+function _M.info(fmt, ...)
+    _M.printf(_M.INFO, fmt, ...)
 end
 
-return M
+function _M.debug(fmt, ...)
+    _M.printf(_M.DEBUG, fmt, ...)
+end
+
+return _M

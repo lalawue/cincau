@@ -20,6 +20,7 @@ xpcall(
     server,
     config.ipport,
     function(req, response)
+        response.body = "hello cincau ~"
         table.dump(req)
         table.dump(response)
     end
