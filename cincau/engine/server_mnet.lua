@@ -42,7 +42,19 @@ local function _onClientEventCallback(chann, event_name, _)
                 http_tbl.contents = nil
             end
             if chann._http_callback then
-                chann._http_callback(http_tbl.method, http_tbl.url, http_tbl.header, content)
+                local req = {
+                    method = http_tbl.method,
+                    path = http_tbl.url,
+                    header = http_tbl.header,
+                    body = content or ""
+                }
+                local response = {
+                    header = {
+                        ["X-Powered-By"] = "cincau framework",
+                    },
+                    body = ""
+                }
+                chann._http_callback(req, response)
             end
         end
     elseif event_name == "event_disconnect" then

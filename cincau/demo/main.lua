@@ -19,9 +19,8 @@ xpcall(
     --- args with self, ...
     server,
     config.ipport,
-    function(method, path, header, content)
-        print(method)
-        print(path)
-        table.dump(header)
+    function(req, response)
+        table.dump(req)
+        table.dump(response)
     end
 )
