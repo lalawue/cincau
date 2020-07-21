@@ -8,6 +8,7 @@
 local NetCore = require("ffi_mnet")
 local HttpParser = require("ffi_hyperparser")
 local Request = require("engine.request_core")
+local Response = require("engine.response_core")
 
 local Serv = {}
 
@@ -18,6 +19,14 @@ local function _clientDestroy(chann)
     chann._left_data = ""
     chann._router = nil
 end
+
+local _option = {
+    en_chunked_length = true, -- append chunked body length
+    fn_chunked_callback = nil,
+    fn_set_header = nil, -- construct header
+    fn_set_status = nil
+}
+_option.__index = _option
 
 -- receive client data then parse to http method, path, header, content
 local function _onClientEventCallback(chann, event_name, _)
@@ -44,31 +53,16 @@ local function _onClientEventCallback(chann, event_name, _)
             if chann._http_callback then
                 -- create req
                 local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content)
-                --req:dumpPath(chann._config.logger)
                 -- create response
-                local response = {
-                    header = {
-                        ["X-Powered-By"] = "cincau framework"
-                    },
-                    body = ""
-                }
+                local option = setmetatable({}, _option)
+                option.fn_chunked_callback = function(data)
+                    chann:send(data)
+                end
+                local response = Response.new(option)
                 -- callback
                 chann._http_callback(chann._config, req, response)
-                -- FIXME: construct response to client
-                response.header["Server"] = "mnet"
-                response.header["Content-Type"] = "text/plain"
-                response.header["Transfer-Encoding"] = "chunked"
-                local output_content = "HTTP/1.1 200 OK\r\n"
-                for k, v in pairs(response.header) do
-                    output_content = output_content .. string.format("%s: %s\r\n", k, v)
-                end
-                output_content = output_content .. "\r\n"
-                -- body
-                output_content = output_content .. string.format("%X", string.len(response.body)) .. "\r\n"
-                output_content = output_content .. response.body .. "\r\n"
-                output_content = output_content .. "0\r\n\r\n"
-                -- send
-                chann:send(output_content)
+                -- finish response
+                response:finishResponse()
             end
         end
     elseif event_name == "event_disconnect" then

@@ -20,8 +20,8 @@ xpcall(
     server,
     config,
     function(config, req, response)
-        response.body = "hello cincau ~"
-        table.dump(req)
-        table.dump(response)
+        response:setHeader("Content-Type", "text/plain")
+        response:makeHeader()
+        response:appendBody("hello cincau ~")
     end
 )

@@ -7,9 +7,24 @@
 
 local ngx = ngx or {}
 local Request = require("engine.request_core")
---local Logger = require("config").logger
+local Response = require("engine.response_core")
 
+-- Serv instance
 local Serv = {}
+
+local _option = {
+    en_output_header = false, -- construct header by nginx
+    en_chunked_length = false, -- chunked body length by nginx
+    fn_chunked_callback = function(data)
+        ngx.say(data)
+    end,
+    fn_set_header = function (key, value)
+        ngx.header[key] = value
+    end,
+    fn_set_status = function(status_code)
+        ngx.status = status_code
+    end
+}
 
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
@@ -17,23 +32,12 @@ function Serv:run(config, http_callback)
     local nreq = ngx.req
     local nvar = ngx.var
     local req = Request.new(nreq.get_method(), nvar.request_uri, nreq.get_headers(), nreq.get_body_data())
-    --req:dumpPath(config.logger)
     -- create response
-    local response = {
-        header = {
-            ["X-Powered-By"] = "cincau framework"
-        },
-        body = ""
-    }
+    local response = Response.new(_option)
     -- callback
     http_callback(config, req, response)
-    -- FIXME: construct response to client
-    for k, v in pairs(response.header) do
-        ngx.header[k] = v
-    end
-    if string.len(response.body) > 0 then
-        ngx.say(response.body)
-    end
+    -- finish response
+    response:finishResponse()
 end
 
 return Serv
