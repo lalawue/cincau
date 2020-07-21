@@ -6,7 +6,7 @@
 --
 
 require("base.scratch")
-local config = require("app.config")
+local config = require("config") -- app/config
 local server = require("server")
 
 -- server:run(...) in protected mode

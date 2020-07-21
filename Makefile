@@ -1,14 +1,6 @@
 #
 # use gmake in FreeBSD
 
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S), Darwin)
-	SUFFIX=dylib
-else
-	SUFFIX=so
-endif
-
 all:
 	@echo "Installation:"
 	@echo "\t1. make [mnet|nginx] \t\t\t\t # compile required library"
