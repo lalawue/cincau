@@ -7,6 +7,7 @@
 
 local NetCore = require("ffi_mnet")
 local HttpParser = require("ffi_hyperparser")
+local Request = require("engine.request_core")
 
 local Serv = {}
 
@@ -41,19 +42,18 @@ local function _onClientEventCallback(chann, event_name, _)
                 http_tbl.contents = nil
             end
             if chann._http_callback then
-                local req = {
-                    method = http_tbl.method,
-                    path = http_tbl.url,
-                    header = http_tbl.header,
-                    body = content or ""
-                }
+                -- create req
+                local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content)
+                --req:dumpPath(chann._config.logger)
+                -- create response
                 local response = {
                     header = {
                         ["X-Powered-By"] = "cincau framework"
                     },
                     body = ""
                 }
-                chann._http_callback(req, response)
+                -- callback
+                chann._http_callback(chann._config, req, response)
                 -- FIXME: construct response to client
                 response.header["Server"] = "mnet"
                 response.header["Content-Type"] = "text/plain"
@@ -92,7 +92,7 @@ function Serv:run(config, http_callback)
     self.svr_tcp:setCallback(
         function(_, event_name, accept)
             if event_name == "event_accept" and accept ~= nil then
-                accept._logger = logger
+                accept._config = config
                 accept._left_data = ""
                 accept._http_callback = http_callback
                 accept._http_parser = HttpParser.createParser("REQUEST")

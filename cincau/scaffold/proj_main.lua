@@ -19,7 +19,7 @@ xpcall(
     --- args with self, ...
     server,
     config,
-    function(req, response)
+    function(config, req, response)
         response.body = "hello cincau ~"
         table.dump(req)
         table.dump(response)

@@ -6,19 +6,19 @@
 --
 
 local ngx = ngx or {}
+local Request = require("engine.request_core")
 --local Logger = require("config").logger
 
 local Serv = {}
 
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
-    -- construct req
-    local req = {
-        method = ngx.req.get_method(),
-        path = ngx.var.uri,
-        header = ngx.req.get_headers(),
-        body = ngx.req.get_body_data()
-    }
+    -- create req
+    local nreq = ngx.req
+    local nvar = ngx.var
+    local req = Request.new(nreq.get_method(), nvar.request_uri, nreq.get_headers(), nreq.get_body_data())
+    --req:dumpPath(config.logger)
+    -- create response
     local response = {
         header = {
             ["X-Powered-By"] = "cincau framework"
@@ -26,7 +26,7 @@ function Serv:run(config, http_callback)
         body = ""
     }
     -- callback
-    http_callback(req, response)
+    http_callback(config, req, response)
     -- FIXME: construct response to client
     for k, v in pairs(response.header) do
         ngx.header[k] = v
