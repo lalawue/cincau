@@ -20,13 +20,14 @@ local function _clientDestroy(chann)
     chann._router = nil
 end
 
-local _option = {
+-- response option
+local _response_option = {
     en_chunked_length = true, -- append chunked body length
     fn_chunked_callback = nil,
     fn_set_header = nil, -- construct header
     fn_set_status = nil
 }
-_option.__index = _option
+_response_option.__index = _response_option
 
 -- receive client data then parse to http method, path, header, content
 local function _onClientEventCallback(chann, event_name, _)
@@ -54,7 +55,7 @@ local function _onClientEventCallback(chann, event_name, _)
                 -- create req
                 local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content)
                 -- create response
-                local option = setmetatable({}, _option)
+                local option = setmetatable({}, _response_option)
                 option.fn_chunked_callback = function(data)
                     chann:send(data)
                 end

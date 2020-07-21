@@ -12,7 +12,8 @@ local Response = require("engine.response_core")
 -- Serv instance
 local Serv = {}
 
-local _option = {
+-- response option
+local _response_option = {
     en_output_header = false, -- construct header by nginx
     en_chunked_length = false, -- chunked body length by nginx
     fn_chunked_callback = function(data)
@@ -33,7 +34,7 @@ function Serv:run(config, http_callback)
     local nvar = ngx.var
     local req = Request.new(nreq.get_method(), nvar.request_uri, nreq.get_headers(), nreq.get_body_data())
     -- create response
-    local response = Response.new(_option)
+    local response = Response.new(_response_option)
     -- callback
     http_callback(config, req, response)
     -- finish response
