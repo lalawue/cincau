@@ -8,6 +8,9 @@
 require("base.scratch")
 local config = require("config") -- app/config
 local server = require("server")
+local router = require("router")
+
+local logger = config.logger
 
 -- server:run(...) in protected mode
 xpcall(
@@ -20,8 +23,11 @@ xpcall(
     server,
     config,
     function(config, req, response)
-        response:setHeader("Content-Type", "text/plain")
-        response:makeHeader()
-        response:appendBody("hello cincau ~")
+        local func, params = router:resolve(req.method, req.path)
+        if func then
+            func(config, req, response, params)
+        else
+            logger.err("router failed to resolve method:%s path:%s", req.method, req.path)
+        end
     end
 )

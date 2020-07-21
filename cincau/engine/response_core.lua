@@ -69,7 +69,7 @@ function _M:setHeader(key, value)
 end
 
 -- makeup header before appendBody
-function _M:makeHeader()
+local function _makeHeader(self)
     if self.opt.fn_set_header or self._has_make_header then
         return
     end
@@ -98,7 +98,7 @@ function _M:appendBody(data)
     if type(data) ~= "string" then
         return
     end
-    self:makeHeader()
+    _makeHeader(self)
     local opt = self.opt
     local http = self.http
     if http.status_code == 500 then
@@ -116,6 +116,7 @@ function _M:appendBody(data)
 end
 
 function _M:finishResponse()
+    _makeHeader(self)
     if self.opt.en_chunked_length then
         self.opt.fn_chunked_callback("0\r\n\r\n")
     end

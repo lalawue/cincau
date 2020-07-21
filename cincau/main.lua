@@ -130,6 +130,7 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     copyFile(engine_path, proj_dir .. "/app/server.lua")
     copyFile(runapp_path, proj_dir .. "/run_app.sh")
     copyFile(scaffold_dir .. "/proj_main.lua", proj_dir .. "/app/main.lua")
+    copyFile(scaffold_dir .. "/proj_router.lua", proj_dir .. "/app/router.lua")
     return true
 end
 
