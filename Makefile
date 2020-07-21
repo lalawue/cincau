@@ -9,10 +9,6 @@ else
 	SUFFIX=so
 endif
 
-export MNET_DIR=vendor/m_net
-export HP_DIR=vendor/hyperparser
-export VD_DIR=cincau/vendor
-
 all:
 	@echo "Installation:"
 	@echo "\t1. make [mnet|nginx] \t\t\t\t # compile required library"
@@ -20,15 +16,7 @@ all:
 	@echo "\t3. cincau /tmp/demo [mnet|nginx] \t\t # create demo project"
 
 mnet:
-	mkdir -p $(VD_DIR)
-	if [ ! -d "$(MNET_DIR)" ]; then git clone --depth 1 https://github.com/lalawue/m_net.git $(MNET_DIR) ; fi
-	if [ ! -d "$(HP_DIR)" ]; then git clone --depth 1 https://github.com/lalawue/hyperparser $(HP_DIR) ; fi
-	make lib -C $(MNET_DIR)
-	make -C $(HP_DIR)
-	cp -f $(MNET_DIR)/build/libmnet.* $(VD_DIR)/libmnet.$(SUFFIX)
-	cp -f $(MNET_DIR)/extension/luajit/ffi_mnet.lua $(VD_DIR)
-	cp -f $(HP_DIR)/hyperparser.* $(VD_DIR)/libhyperparser.$(SUFFIX)
-	cp -f $(HP_DIR)/ffi_hyperparser.lua $(VD_DIR)
+	sh build_vendor.sh
 
 nginx:
 	@echo "not implement, to be continue"
