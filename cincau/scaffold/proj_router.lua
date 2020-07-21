@@ -5,24 +5,31 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+-- master controller will cache all using instance controllers
+--
+local master_ctrl = require("controller_core")
+
+master_ctrl:register(
+    {
+        "ctrl_index",
+        "ctrl_hello"
+    }
+)
+
 local r = require("router_core").new()
 
 -- get root
 r:get(
     "/",
     function(config, req, response, params)
-        print("match root", config, req, response)
-        response:setHeader("Content-Type", "text/plain") -- set header before appendBody
-        response:appendBody("hello cincau ~")
+        master_ctrl:process("ctrl_index", config, req, response, params)
     end
 )
 
 r:get(
     "/hello/:name/",
     function(config, req, response, params)
-        print("match hello ", params.name)
-        response:setHeader("Content-Type", "text/plain")
-        response:appendBody("hello cincau world ~")
+        master_ctrl:process("ctrl_hello", config, req, response, params)
     end
 )
 
