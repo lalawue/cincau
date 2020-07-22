@@ -60,11 +60,6 @@ function _M:mtag2htag(line, mtag, htag, last_mtag)
         line = _format("<%s>", htag) .. line .. _format("</%s>", htag)
     end
     local li = _md_tbl[#_md_tbl]
-    if mtag == li then
-        local s, e = line:find("(%s-#)")
-        local blank = line:sub(s, e - 1)
-        line = line:gsub("(%s-#)", string.rep("&nbsp;", blank:len() * 2.1) .. "#")
-    end
     if mtag == li and last_mtag ~= li then
         line = "<ul>" .. line
     elseif mtag ~= li and last_mtag == li then
