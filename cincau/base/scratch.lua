@@ -75,7 +75,6 @@ if table.clone == nil then
     end
 end
 
--- is empty
 if table.isempty == nil then
     function table.isempty(t)
         return type(t) == "table" and _G.next(t) == nil
@@ -98,6 +97,23 @@ if table.isarray == nil then
     end
 end
 
+local function _startwith(s1, s2, is_reverse)
+    if type(s1) ~= "string" or type(s2) ~= "string" then
+        return false
+    end
+    local t1 = is_reverse and s1:reverse() or s1
+    local t2 = is_reverse and s2:reverse() or s2
+    return t1:find(t2) == 1
+end
+
+function string.startwith(s1, s2)
+    return _startwith(s1, s2, false)
+end
+
+function string.endwith(s1, s2)
+    return _startwith(s1, s2, true)
+end
+
 -- io
 --
 
@@ -106,4 +122,30 @@ io.printf = function(fmt, ...)
         os.exit(0)
     end
     print(string.format(fmt, ...))
+end
+
+-- language
+--
+
+Lang = {}
+
+-- validate input parameter is valid type described in type_desc, only 1 depth
+local _type_string = {
+    ["I"] = "nil",
+    ["N"] = "number",
+    ["S"] = "string",
+    ["B"] = "boolean",
+    ["T"] = "table",
+    ["F"] = "function",
+    ["D"] = "thread",
+    ["U"] = "userdata"
+}
+function Lang.valid(type_desc, ...)
+    for i = 1, type_desc:len(), 1 do
+        local val = select(i, ...)
+        if type(val) ~= _type_string[type_desc:sub(i, i)] then
+            return false
+        end
+    end
+    return true
 end

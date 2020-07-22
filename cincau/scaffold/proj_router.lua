@@ -9,6 +9,7 @@
 --
 local master_ctrl = require("controller_core")
 
+-- list using controller
 master_ctrl:register(
     {
         "ctrl_index",

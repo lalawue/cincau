@@ -5,14 +5,22 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+local render = require("view_core")
 local _M = require("controller_core").newInstance()
 
--- output index
+-- register using template
+render:register(
+    {
+        "view_index"
+    }
+)
+
+-- output index page
 function _M:process(config, req, response, params)
-    local logger = config.logger
-    logger.err("match root controller, %s, %s, %s, %s", config, req, response, params)
     response:setHeader("Content-Type", "text/plain") -- set header before appendBody
-    response:appendBody("hello cincau ~")
+    local page = render:render("view_index", {  name = "cincao",
+    features = { "mini", "fast", "high configurable"}})
+    response:appendBody(page)
 end
 
 return _M

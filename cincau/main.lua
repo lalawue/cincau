@@ -9,6 +9,8 @@
 -- generate demo project
 --
 
+local core_dir, proj_dir, engine_type = ...
+
 -- check input params
 local function _check_params(core_dir, proj_dir, engine_type)
     if core_dir == nil or proj_dir == nil or engine_type == nil then
@@ -133,8 +135,10 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     copyFile(scaffold_dir .. "/proj_router.lua", proj_dir .. "/app/router.lua")
     copyFile(scaffold_dir .. "/ctrl_index.lua", proj_dir .. "/app/controllers/ctrl_index.lua")
     copyFile(scaffold_dir .. "/ctrl_hello.lua", proj_dir .. "/app/controllers/ctrl_hello.lua")
+    copyFile(scaffold_dir .. "/view_index.etlua", proj_dir .. "/app/views/view_index.etlua")
+    copyFile(scaffold_dir .. "/view_hello.etlua", proj_dir .. "/app/viewx/view_hello.etlua")
     return true
 end
 
 -- start creation
-_createProjectSkeleton(...)
+_createProjectSkeleton(core_dir, proj_dir, engine_type)

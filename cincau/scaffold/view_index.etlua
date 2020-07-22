@@ -1,0 +1,5 @@
+  Hello <%= name %>,
+  Here are your features:
+  <% for i, f in pairs(features) do %>
+   * <%= f -%>
+  <% end %>

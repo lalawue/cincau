@@ -32,19 +32,18 @@ function _M:register(tbl)
     assert(type(tbl) == "table", "invalid register parameter type")
     assert(#tbl > 0, "invalid register table size")
     for _, v in ipairs(tbl) do
-        self._controllers[tostring(v)] = 1 -- non nil
+        self._controllers[tostring(v)] = 1 -- keep non nil
     end
 end
 
 function _M:process(name, ...)
-    assert(type(name) == "string", "invalid process parameter")
+    assert(type(name) == "string", "invalid controller name")
     local ctrl = self._controllers[name]
-    assert(ctrl, "have not register")
     if type(ctrl) ~= "table" then
         -- assume all controller business under controllers dir
         ctrl = require("controllers." .. name)
-        assert(type(ctrl) == "table", "invalid controller")
-        assert(type(ctrl.process) == "function", "no process function")
+        assert(type(ctrl) == "table", "controller not exist")
+        assert(type(ctrl.process) == "function", "no process function interface")
         self._controllers[name] = ctrl
     end
     -- process data
