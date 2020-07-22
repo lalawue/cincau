@@ -13,41 +13,41 @@ local _M = {
 }
 _M.__index = _M
 
-function _M.instance()
-    local ctrl = setmetatable({}, _M)
-    ctrl._controllers = nil -- instance no _controllers
-    return ctrl
+-- controller instance
+--
+
+local _ctrl = {
+    process = function()
+    end
+}
+
+function _M.newInstance()
+    return setmetatable({}, _ctrl)
 end
 
-function _M:register(name)
-    assert(self.__index == self, "controller instance can not register")
-    if type(name) == "string" then
-        -- non nil
-        self._controllers[name] = 1
-    end
-    if type(name) == "table" then
-        for _, v in ipairs(name) do
-            -- non nil
-            self._controllers[tostring(v)] = 1
-        end
+-- master controller interface
+--
+
+function _M:register(tbl)
+    assert(type(tbl) == "table", "invalid register parameter type")
+    assert(#tbl > 0, "invalid register table size")
+    for _, v in ipairs(tbl) do
+        self._controllers[tostring(v)] = 1 -- non nil
     end
 end
 
 function _M:process(name, ...)
-    if self.__index ~= self then
-        -- instance only process data
-        return
-    end
+    assert(type(name) == "string", "invalid process parameter")
     local ctrl = self._controllers[name]
     assert(ctrl, "have not register")
     if type(ctrl) ~= "table" then
         -- assume all controller business under controllers dir
         ctrl = require("controllers." .. name)
+        assert(type(ctrl) == "table", "invalid controller")
+        assert(type(ctrl.process) == "function", "no process function")
         self._controllers[name] = ctrl
     end
-    assert(type(ctrl) == "table", "invalid controller")
-    assert(type(ctrl.process) == "function", "no process function")
-    -- name controller process data
+    -- process data
     ctrl:process(...)
 end
 

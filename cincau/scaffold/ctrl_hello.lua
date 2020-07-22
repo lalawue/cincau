@@ -5,7 +5,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local _M = require("controller_core").instance()
+local _M = require("controller_core").newInstance()
 
 -- output hello
 function _M:process(config, req, response, params)

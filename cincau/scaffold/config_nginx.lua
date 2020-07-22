@@ -5,9 +5,13 @@ local ngx = ngx or {}
 local _logger = require("base.logger")
 local _serpent = require("base.serpent")
 
--- redefine table.dump
+-- redefine
 table.dump = function(tbl)
     ngx.log(ngx.ERR, _serpent.block(tbl))
+end
+
+io.printf = function(fmt, ...)
+    ngx.log(ngx.ERR, string.format(fmt, ...))
 end
 
 -- redefine logger printf
@@ -19,5 +23,5 @@ end
 
 return {
     ipport = "", -- defined by config/nginx.conf
-    logger = _logger,
+    logger = _logger
 }
