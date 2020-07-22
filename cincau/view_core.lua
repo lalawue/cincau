@@ -35,7 +35,7 @@ function _M:render(name, value_tbl, option)
         if type(content) == "string" then
             tmpl = CoreEtlua.compile(content)
             assert(type(tmpl) == "function", "failed to compile template")
-            if not option or not option.debug_framework then
+            if option == nil or option.debug_on then
                 self._templates[name] = tmpl
             end
         else

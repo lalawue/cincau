@@ -45,7 +45,7 @@ function _M:process(name, option, ...)
         ctrl = require("controllers." .. name)
         assert(type(ctrl) == "table", "controller not exist")
         assert(type(ctrl.process) == "function", "no process function interface")
-        if not option or not option.debug_framework then
+        if option == nil or option.debug_on then
             self._controllers[name] = ctrl
         end
     end
