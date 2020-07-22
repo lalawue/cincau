@@ -13,7 +13,7 @@ local master_ctrl = require("controller_core")
 master_ctrl:register(
     {
         "ctrl_index",
-        "ctrl_hello"
+        "ctrl_doc"
     }
 )
 
@@ -28,9 +28,9 @@ r:get(
 )
 
 r:get(
-    "/hello/:name/",
+    "/doc/:name/",
     function(config, req, response, params)
-        master_ctrl:process("ctrl_hello", config, req, response, params)
+        master_ctrl:process("ctrl_doc", config, req, response, params)
     end
 )
 

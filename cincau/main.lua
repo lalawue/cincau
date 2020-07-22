@@ -50,6 +50,10 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     print("---")
     local app_dir = proj_dir .. "/app/"
     _mkDir(app_dir)
+    -- copy engine
+    local engine_dir = core_dir .. "/engine/" .. engine_type
+    _copyFile(engine_dir .. "/server.lua", app_dir .. "/server.lua")
+    -- copy others
     _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
     local app_tbl = {"models", "static"}
     for _, v in ipairs(app_tbl) do
@@ -79,9 +83,6 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
         _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
     end
-    -- copy engine
-    local engine_dir = core_dir .. "/engine/" .. engine_type
-    _copyFile(engine_dir .. "/server.lua", proj_dir .. "/server.lua")
     -- create app dir
     _createAppSkeleton(core_dir, proj_dir, engine_type)
 end

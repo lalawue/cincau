@@ -1,5 +1,36 @@
-  Hello <%= name %>,
-  Here are your features:
-  <% for i, f in pairs(features) do %>
-   * <%= f -%>
-  <% end %>
+  <html>
+    <head>
+        <style type="text/css">
+            html {
+                width: 100%;
+                background-color: #E8E8D3;
+            }
+            h1 {
+                text-align: center;
+                margin-top: 2.2in;
+                margin-bottom: .2in;
+                font-size: 3em;
+                font-weight: bold;
+            }
+            ul {
+                float: right;
+                position: relative;
+                left: -45%;
+                text-align: left;
+            }
+            p {
+                margin-top: 1.2in;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <h1><%= title %></h1>
+        <ul>
+            <% for i, f in pairs(features) do %>
+                <li><%= f -%></li>
+            <% end %>
+        </ul>
+        <p><%- footer %></p>
+    </body>
+  </html>

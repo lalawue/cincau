@@ -23,5 +23,6 @@ end
 
 return {
     ipport = "", -- defined by config/nginx.conf
-    logger = _logger
+    logger = _logger,
+    debug_framework = false -- did not cache
 }

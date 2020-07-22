@@ -12,6 +12,7 @@ local FileManager = require("base.file_manager")
 local CoreEtlua = require("render.etlua")
 
 local _M = {
+    _config = nil, -- global config
     _templates = {} -- compiled templates
 }
 _M.__index = {}
@@ -26,7 +27,7 @@ function _M:register(tbl)
 end
 
 -- render interface
-function _M:render(name, tbl)
+function _M:render(name, value_tbl, option)
     assert(type(name) == "string", "invalid view name")
     local tmpl = self._templates[name]
     if type(tmpl) ~= "function" then
@@ -34,13 +35,15 @@ function _M:render(name, tbl)
         if type(content) == "string" then
             tmpl = CoreEtlua.compile(content)
             assert(type(tmpl) == "function", "failed to compile template")
-            self._templates[name] = tmpl
+            if not option or not option.debug_framework then
+                self._templates[name] = tmpl
+            end
         else
             assert(false, "failed to find template")
         end
     end
     -- return template string
-    return tmpl(tbl)
+    return tmpl(value_tbl)
 end
 
 return _M

@@ -11,22 +11,20 @@ local _M = require("controller_core").newInstance()
 -- register using template
 render:register(
     {
-        "view_index"
+        "view_doc"
     }
 )
 
--- output index page
+-- output param.name defined in router.lua
 function _M:process(config, req, response, params)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- render page content
     local page_content =
         render:render(
-        "view_index",
+        "view_doc",
         {
-            title = "Cincao web framework",
-            features = {"minilist", "fast", "high configurable"},
-            footer = 'get <a href="doc/Cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>'
+            name = params.name .. " documents"
         },
         config -- for debug purpose
     )
