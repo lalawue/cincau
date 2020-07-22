@@ -15,7 +15,7 @@ _M.__index = {}
 
 -- load model
 function _M:loadModel()
-    local content = FileManager.readFile("app/static/cincau_doc.md")
+    local content = FileManager.readFile("app/static/README.md")
     local paragraphs = {}
     for _, v in ipairs(content:split("\n")) do
         if v:len() > 0 then

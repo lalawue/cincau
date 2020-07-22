@@ -26,7 +26,7 @@ function _M:process(config, req, response, params)
         {
             title = "Cincao web framework",
             features = {"minilist", "fast", "high configurable"},
-            footer = 'get <a href="doc/Cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>'
+            footer = 'get <a href="doc/cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>'
         },
         config -- for debug purpose
     )

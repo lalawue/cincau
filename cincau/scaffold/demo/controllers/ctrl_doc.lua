@@ -31,13 +31,17 @@ function _M:process(config, req, response, params)
         render:render(
         "view_doc",
         {
-            name = params.name .. " documents",
+            name = self:upperCaseFirstChar(params.name) .. " documents",
             paragraphs = model:getParagraphs()
         },
         config -- for debug purpose
     )
     -- append body as chunked data
     response:appendBody(page_content)
+end
+
+function _M:upperCaseFirstChar(str)
+    return str:sub(1, 1):upper() .. str:sub(2)
 end
 
 return _M
