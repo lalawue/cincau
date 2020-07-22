@@ -63,7 +63,9 @@ function _M:setStatus(status_code)
 end
 
 function _M:setHeader(key, value)
-    if not self.opt.fn_set_header then
+    if self.opt.fn_set_header then
+        self.opt.fn_set_header(key, value)
+    else
         self.http.header[key] = value
     end
 end
