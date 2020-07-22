@@ -6,6 +6,8 @@
 --
 
 local render = require("view_core")
+local model = require("models.model_doc")
+
 local _M = require("controller_core").newInstance()
 
 -- register using template
@@ -14,6 +16,11 @@ render:register(
         "view_doc"
     }
 )
+
+-- only run once
+function _M:init()
+    model:loadModel()
+end
 
 -- output param.name defined in router.lua
 function _M:process(config, req, response, params)
@@ -24,7 +31,8 @@ function _M:process(config, req, response, params)
         render:render(
         "view_doc",
         {
-            name = params.name .. " documents"
+            name = params.name .. " documents",
+            paragraphs = model:getParagraphs()
         },
         config -- for debug purpose
     )

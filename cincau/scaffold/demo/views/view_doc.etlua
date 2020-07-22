@@ -13,15 +13,28 @@
                 font-size: 3em;
                 font-weight: bold;
             }
+            h2,h3 {
+                text-align: left;
+                margin-left: .5in;
+            }
             p {
                 margin-left: .5in;
                 margin-right: .5in;                
+            }
+            ul {
+                margin-left: .3in;
+            }
+            span {
+                position: relative;
+                left: -45%;
             }
         </style>
     </head>
     <body>
         <h1><%= name %></h1>
         <hr />
-        <p>to be continued ...</p>
+        <% for _, line in pairs(paragraphs) do %>
+            <%- line %>
+        <% end %>
     </body>
   </html>

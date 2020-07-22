@@ -55,10 +55,6 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     _copyFile(engine_dir .. "/server.lua", app_dir .. "/server.lua")
     -- copy others
     _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
-    local app_tbl = {"models", "static"}
-    for _, v in ipairs(app_tbl) do
-        _mkDir(app_dir .. v)
-    end
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
 end
@@ -70,8 +66,7 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     end
     -- create proj dirs
     print("--")
-    local config_dir = "/config"
-    local proj_tbl = {config_dir, "/tmp", "/" .. Logger.getOutputDir()}
+    local proj_tbl = {"/tmp", "/" .. Logger.getOutputDir()}
     for _, v in ipairs(proj_tbl) do
         _mkDir(proj_dir .. v)
     end
@@ -79,7 +74,8 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/run_app.sh", proj_dir .. "/run_app.sh")
     if engine_type == "nginx" then
-        local conf_dir = proj_dir .. config_dir
+        local conf_dir = proj_dir .. "/config"
+        _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
         _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
     end

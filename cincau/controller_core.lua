@@ -17,6 +17,8 @@ _M.__index = _M
 --
 
 local _ctrl = {
+    init = function()
+    end,
     process = function()
     end
 }
@@ -36,7 +38,11 @@ function _M:register(tbl)
     end
 end
 
-function _M:process(name, option, ...)
+local function _noDebug(config)
+    return (config == nil) or (not config.debug_on)
+end
+
+function _M:process(name, config, ...)
     assert(type(name) == "string", "invalid controller name")
     local ctrl = self._controllers[name]
     assert(ctrl, "please register controller first")
@@ -45,12 +51,15 @@ function _M:process(name, option, ...)
         ctrl = require("controllers." .. name)
         assert(type(ctrl) == "table", "controller not exist")
         assert(type(ctrl.process) == "function", "no process function interface")
-        if option == nil or option.debug_on then
+        if type(ctrl.init) == "function" then
+            ctrl:init()
+        end
+        if _noDebug(config) then
             self._controllers[name] = ctrl
         end
     end
     -- process data
-    ctrl:process(option, ...)
+    ctrl:process(config, ...)
 end
 
 return _M

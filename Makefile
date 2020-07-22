@@ -5,7 +5,7 @@ all:
 	@echo "Installation:"
 	@echo "\t1. make [mnet|nginx] \t\t\t\t # compile required library"
 	@echo "\t2. make install \t\t\t\t # to /usr/local/cincau"
-	@echo "\t3. cincau /tmp/demo [mnet|nginx] \t\t # create demo project"
+	@echo "\t3. cincau /tmp/demo [mnet|nginx] \t\t # create demo project to /tmp/demo"
 
 mnet:
 	sh build_vendor.sh
