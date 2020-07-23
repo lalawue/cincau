@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <script>
+            if ( window.history.replaceState ) {
+                window.history.replaceState( null, null, window.location.href );
+            }
+        </script>
+        <style type="text/css">
+            html {
+                width: 100%;
+                background-color: #E8E8D3;
+            }
+            h1 {
+                text-align: left;
+                margin-top: 0.5in;
+                margin-bottom: .2in;
+                margin-left: .5in;
+                font-size: 3em;
+                font-weight: bold;
+            }
+            p {
+                margin-left: .5in;
+                margin-right: .5in;
+            }
+            form#input {
+                margin-left: .5in;
+                margin-right: .5in;                
+            }
+            form#line {
+                margin: 0 0 0 0;
+                padding: 0 0 0 0;
+            }
+            ul {
+                margin-left: .3in;
+                width: 80%;
+            }
+            li {
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Playground</h1>
+        <hr />
+        <p>try input something:</p>
+        <form id="input" action="" method="POST">
+            text: <input type="text" name="input" placeholder="" />
+            <input type="submit" value="submit" />
+        </form>
+        <hr />
+        <ul>
+            <% for _, str in pairs(inputs) do %>
+                <li>text: <%- str -%><form id="line" action="" method="POST"><input type="submit" name="<%- str -%>" value="delete" /></form></li>
+            <% end %>
+        </ul>
+    </body>
+</html>

@@ -6,27 +6,36 @@
 --
 
 local render = require("view_core")
+local model = require("models.model_playground")
+
 local _M = require("controller_core").newInstance()
 
 -- register using template
 render:register(
     {
-        "view_index"
+        "view_playground"
     }
 )
 
--- output index page
 function _M:process(config, req, response, params)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
+    -- if POST, input text
+    if req.method == "POST" then
+        for k, v in pairs(req.post_args) do
+            if k == "input" then
+                model:pushInput(v)
+            elseif v == "delete" then
+                model:deleteInput(k)
+            end
+        end
+    end
     -- render page content
     local page_content =
         render:render(
-        "view_index",
+        "view_playground",
         {
-            title = "Cincau web framework",
-            features = {"minimalist", "fast", "high configurable", "for LuaJIT", "on mnet or openresty (nginx)"},
-            footer = 'get <a href="doc/cincau">documents</a>, try <a href="playground">playground</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>.'
+            inputs = model:allInputs()
         },
         config -- for debug purpose
     )

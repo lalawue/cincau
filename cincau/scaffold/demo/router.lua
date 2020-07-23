@@ -13,7 +13,8 @@ local master_ctrl = require("controller_core")
 master_ctrl:register(
     {
         "ctrl_index",
-        "ctrl_doc"
+        "ctrl_doc",
+        "ctrl_playground"
     }
 )
 
@@ -33,5 +34,12 @@ r:get(
         master_ctrl:process("ctrl_doc", config, req, response, params)
     end
 )
+
+local function _playground(config, req, response, params)
+    master_ctrl:process("ctrl_playground", config, req, response, params)
+end
+
+r:get("/playground", _playground)
+r:post("/playground", _playground)
 
 return r
