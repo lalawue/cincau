@@ -8,19 +8,19 @@
             h1 {
                 text-align: center;
                 margin-top: 2.2in;
-                margin-bottom: .2in;
+                margin-bottom: .3in;
                 font-size: 3em;
                 font-weight: bold;
             }
             ul {
                 float: right;
                 position: relative;
-                left: -45%;
+                left: -40%;
                 text-align: left;
             }
-            p {
-                margin-top: 1.2in;
-                text-align: center;
+            .footer {
+                margin-top: 1.70in;
+                margin-left: 41.5%;
             }
         </style>
     </head>
@@ -31,6 +31,6 @@
                 <li><%- f -%></li>
             <% end %>
         </ul>
-        <p><%- footer %></p>
+        <div class="footer"><%- footer -%></div>
     </body>
   </html>

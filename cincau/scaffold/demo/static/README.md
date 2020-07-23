@@ -1,7 +1,7 @@
 
 # About
 
-cincau was a minimallist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/cn/) ([nginx](https://www.nginx.com)).
+cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/cn/) ([nginx](https://www.nginx.com)).
 
 ## Install
 
@@ -57,5 +57,11 @@ $ cincau.sh /tmp/demo [mnet|nginx]
 ```
 
 located in /tmp/demo.
+
+## Database
+
+as a minimalist web framework, default provide sqlite3 connection library [ffi_sqlite3.lua](https://github.com/lalawue/cincau/blob/master/cincau/db/ffi_lsqlite3.lua).
+
+that may be enough for a small web site.
 
 EOF

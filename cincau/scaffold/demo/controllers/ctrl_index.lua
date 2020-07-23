@@ -24,9 +24,9 @@ function _M:process(config, req, response, params)
         render:render(
         "view_index",
         {
-            title = "Cincao web framework",
-            features = {"minimallist", "fast", "high configurable"},
-            footer = 'get <a href="doc/cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>'
+            title = "Cincau web framework",
+            features = {"minimalist", "fast", "high configurable", "for LuaJIT", "on mnet or openresty (nginx)"},
+            footer = 'get <a href="doc/cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>.'
         },
         config -- for debug purpose
     )

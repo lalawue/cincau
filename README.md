@@ -47,6 +47,7 @@ cincau using MVC (model view controller) pattern, each client request going thro
 - http server parse raw data into http method, path, headers and body content
 - router match http path to proper controller to process
 - controller is the center of business logic, using model data and view template to generate output page
+- using template library [etlua](https://github.com/leafo/etlua), using by [Lapis](https://github.com/leafo/lapis)
 - response to client
 
 more refers to demo project generate by 
@@ -56,5 +57,11 @@ $ cincau.sh /tmp/demo [mnet|nginx]
 ```
 
 located in /tmp/demo.
+
+## Database
+
+as a minimallist web framework, default provide sqlite3 connection library [ffi_sqlite3.lua](https://github.com/lalawue/cincau/blob/master/cincau/db/ffi_lsqlite3.lua).
+
+that may be enough for a small web site.
 
 EOF
