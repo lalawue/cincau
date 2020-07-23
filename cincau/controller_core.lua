@@ -17,11 +17,13 @@ _M.__index = _M
 --
 
 local _ctrl = {
+    _inited = false,
     init = function()
     end,
     process = function()
     end
 }
+_ctrl.__index = _ctrl
 
 function _M.newInstance()
     return setmetatable({}, _ctrl)
@@ -31,14 +33,18 @@ end
 --
 
 function _M:register(tbl)
-    assert(type(tbl) == "table", "invalid register parameter type")
+    assert(type(tbl) == "table", "invalid register type")
     assert(#tbl > 0, "invalid register table size")
     for _, v in ipairs(tbl) do
         self._controllers[tostring(v)] = 1 -- keep non nil
     end
 end
 
-local function _noDebug(config)
+local function _debugOn(config)
+    return config and config.debug_on
+end
+
+local function _debugOff(config)
     return (config == nil) or (not config.debug_on)
 end
 
@@ -50,11 +56,11 @@ function _M:process(name, config, ...)
         -- assume all controller business under controllers dir
         ctrl = require("controllers." .. name)
         assert(type(ctrl) == "table", "controller not exist")
-        assert(type(ctrl.process) == "function", "no process function interface")
-        if type(ctrl.init) == "function" then
-            ctrl:init()
+        if not ctrl._inited or _debugOn(config) then
+            ctrl._inited = true
+            ctrl:init(config)
         end
-        if _noDebug(config) then
+        if _debugOff(config) then
             self._controllers[name] = ctrl
         end
     end

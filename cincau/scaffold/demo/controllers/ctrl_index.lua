@@ -25,7 +25,7 @@ function _M:process(config, req, response, params)
         "view_index",
         {
             title = "Cincao web framework",
-            features = {"minilist", "fast", "high configurable"},
+            features = {"minimallist", "fast", "high configurable"},
             footer = 'get <a href="doc/cincau">documents</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>'
         },
         config -- for debug purpose

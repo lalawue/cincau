@@ -14,20 +14,31 @@
                 font-weight: bold;
             }
             h2,h3 {
-                text-align: left;
                 margin-left: .5in;
+                text-align: left;
+            }
+            h4 {
+                margin-top: .2in;
+                margin-bottom: .1in;
+                margin-left: .5in;
+                text-align: left;
             }
             p {
                 margin-left: .5in;
-                margin-right: .5in;                
+                margin-right: .5in;
             }
             ul {
                 margin-left: .3in;
-                list-style-type: decimal;
             }
-            span {
-                position: relative;
-                left: -45%;
+            pre {
+                margin-left: .5in;
+                margin-right: 1.0in;
+                padding-top: 1em;
+                padding-left: 1em;
+                padding-bottom: 1em;
+                overflow: auto;
+                color: #FFFFFF;
+                background-color: #444444;
             }
         </style>
     </head>

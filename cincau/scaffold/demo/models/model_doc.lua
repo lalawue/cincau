@@ -25,11 +25,12 @@ function _M:loadModel()
     self._paragraphs = self:md2html(paragraphs)
 end
 
-local _md_tbl = {"^##", "^#", "^%-"}
-local _h5_tbl = {"h3", "h2", "li"}
+local _md_tbl = {"^# ", "^## ", "^### ", "^```", "^%-"}
+local _h5_tbl = {"h2", "h3", "h4", "pre", "li"}
 
--- replace line start with '#' to 'h1', '##' to 'h2', '-' to '<li>', '' to '<p>'
+-- replace line start with '#' to 'h1', ...
 function _M:md2html(paragraphs)
+    local in_mtag = false
     local last_mtag = ""
     for pi, line in ipairs(paragraphs) do
         local mtag = ""
@@ -37,38 +38,68 @@ function _M:md2html(paragraphs)
         for i, v in ipairs(_md_tbl) do
             if line:startwith(v) then
                 mtag = v
-                line = self:mtag2htag(line, mtag, _h5_tbl[i], last_mtag)
+                line, in_mtag = self:mtag2htag(line, mtag, _h5_tbl[i], last_mtag, in_mtag)
+                last_mtag = mtag
                 break
             end
         end
         -- no mtag begin
         if line:len() > 0 and mtag:len() <= 0 then
-            line = self:mtag2htag(line, mtag, "p", last_mtag)
+            line, in_mtag = self:mtag2htag(line, mtag, "p", last_mtag, in_mtag)
         end
         -- store value
-        last_mtag = mtag
         paragraphs[pi] = line
     end
-    return paragraphs
+    -- replace link and tidy pre tag
+    return self:htagReplace(paragraphs)
 end
 
 -- add '<ul>' and </ul>
-function _M:mtag2htag(line, mtag, htag, last_mtag)
-    if mtag:len() > 0 then
-        line = line:gsub(mtag, _format("<%s>", htag)) .. _format("</%s>", htag)
-    else
-        line = _format("<%s>", htag) .. line .. _format("</%s>", htag)
+function _M:mtag2htag(line, mtag, htag, last_mtag, in_mtag)
+    local mpre = "^```"
+    if mtag == mpre then
+        -- ``` and pre
+        in_mtag = not in_mtag
+        local pattern = in_mtag and (mpre .. "%a+") or mpre
+        line = line:gsub(pattern, in_mtag and "<pre><code>" or "</code></pre>")
+    elseif not in_mtag then
+        -- h and li transform
+        if mtag:len() > 0 then
+            line = line:gsub(mtag, _format("<%s>", htag)) .. _format("</%s>", htag)
+        else
+            line = _format("<%s>", htag) .. line .. _format("</%s>", htag)
+        end
+        -- detect first and last li
+        local mli = "^%-"
+        if mtag == mli and last_mtag ~= mli then
+            line = "<ul>" .. line
+        elseif mtag ~= mli and last_mtag == mli then
+            line = "</ul>" .. line
+        end
     end
-    local li = _md_tbl[#_md_tbl]
-    if mtag == li and last_mtag ~= li then
-        line = "<ul>" .. line
-    elseif mtag ~= li and last_mtag == li then
-        line = "</ul>" .. line
-    end
-    return line
+    return line, in_mtag
 end
 
-function _M:getParagraphs(index)
+-- nested code between <pre> and </pre>, and links
+function _M:htagReplace(paragraphs)
+    local tbl = {}
+    local padding = ""
+    for _, v in ipairs(paragraphs) do
+        if v:startwith("<pre>") then
+            padding = v
+        elseif v:endwith("</pre>") then
+            tbl[#tbl] = tbl[#tbl] .. v
+        else
+            -- replace mardown's [name](link) to htmls
+            v = v:gsub("%[(.-)%]%((.-)%)", '<a href="%2">%1</a>')
+            tbl[#tbl + 1] = padding .. v
+            padding = ""
+        end
+    end
+    return tbl
+end
+
+function _M:getParagraphs()
     return self._paragraphs
 end
 

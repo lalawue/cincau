@@ -19,14 +19,14 @@ _M.__index = {}
 
 -- register file name first
 function _M:register(tbl)
-    assert(type(tbl) == "table", "invalid register parameter type")
+    assert(type(tbl) == "table", "invalid register type")
     assert(#tbl > 0, "invalid register table size")
     for _, v in ipairs(tbl) do
         self._templates[tostring(v)] = 1 -- keep non nil
     end
 end
 
-local function _noDebug(config)
+local function _debugOff(config)
     return (config == nil) or (not config.debug_on)
 end
 
@@ -34,20 +34,27 @@ end
 function _M:render(name, value_tbl, config)
     assert(type(name) == "string", "invalid view name")
     local tmpl = self._templates[name]
+    -- view template need register before
+    if tmpl == nil then
+        config.logger.err("view need register before: %s", name)
+        return nil
+    end
+    --  template not loaded
     if type(tmpl) ~= "function" then
         local content = FileManager.readFile("app/views/" .. name .. ".etlua")
-        if type(content) == "string" then
+        -- invalid template
+        if type(content) ~= "string" then
+            config.logger.err("failed to find view: %s", name)
+            return nil
+        else
             tmpl = CoreEtlua.compile(content)
             if type(tmpl) ~= "function" then
-                config.logger.err("failed to compile: %s", name)
+                config.logger.err("failed to compile view: %s", name)
                 return nil
             end
-            if _noDebug(config) then
+            if _debugOff(config) then
                 self._templates[name] = tmpl
             end
-        else
-            config.logger.err("failed to find template: %s", name)
-            return nil
         end
     end
     -- return template string
@@ -59,16 +66,17 @@ function _M:renderString(content, value_tbl, config, cache_name)
     assert(type(content) == "string", "not string")
     assert(type(value_tbl) == "table", "not table")
     local tmpl = nil
+    -- read cache_name first
     if type(cache_name) == "string" then
         tmpl = self._templates[cache_name]
     end
     if type(tmpl) ~= "function" then
         tmpl = CoreEtlua.compile(content)
         if type(tmpl) ~= "function" then
-            config.logger.err("failed to compile: %s", cache_name)
+            config.logger.err("failed to compile string: %s", cache_name)
             return nil
         end
-        if cache_name and _noDebug(config) then
+        if cache_name and _debugOff(config) then
             self._templates[cache_name] = tmpl
         end
     end

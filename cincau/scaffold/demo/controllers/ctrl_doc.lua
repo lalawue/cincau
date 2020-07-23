@@ -18,7 +18,7 @@ render:register(
 )
 
 -- only run once
-function _M:init()
+function _M:init(config)
     model:loadModel()
 end
 
