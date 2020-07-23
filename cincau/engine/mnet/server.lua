@@ -16,8 +16,6 @@ local Serv = {}
 local function _clientDestroy(chann)
     chann:close()
     chann._http_parser:destroy()
-    chann._left_data = ""
-    chann._router = nil
 end
 
 -- response option
@@ -37,13 +35,10 @@ local function _onClientEventCallback(chann, event_name, _)
             _clientDestroy(chann)
             return
         end
-        chann._left_data = chann._left_data .. data
-        local ret_value, state, http_tbl = chann._http_parser:process(chann._left_data)
+        -- parse raw data to http protoco info
+        local ret_value, state, http_tbl = chann._http_parser:process(data)
         if ret_value < 0 then
             return
-        end
-        if ret_value > 0 and ret_value < data:len() then
-            chann._left_data = data:sub(ret_value + 1)
         end
         if state == HttpParser.STATE_BODY_FINISH and http_tbl then
             local content = ""
@@ -88,7 +83,6 @@ function Serv:run(config, http_callback)
         function(_, event_name, accept)
             if event_name == "event_accept" and accept ~= nil then
                 accept._config = config
-                accept._left_data = ""
                 accept._http_callback = http_callback
                 accept._http_parser = HttpParser.createParser("REQUEST")
                 accept:setCallback(_onClientEventCallback)
