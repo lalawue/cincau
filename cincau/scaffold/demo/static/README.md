@@ -13,7 +13,7 @@ run command below in sequence:
 
 the last command will create a demo project in /tmp/demo.
 
-## Running Demo
+## Running
 
 in /tmp/demo, just 
 
@@ -38,14 +38,23 @@ config files stores in:
 - config/nginx.conf (only nginx engine)
 - config/mime.types (only nginx engine)
 
-you can set app/config.debug_on == true, to disable config, router (including controller, view, and model) cache.
+you can set app/config.debug_on == true, to disable controllers, views cache.
 
-using code below to reload library when app/config.debug_on == true:
+### MVC
+
+cincau using MVC (model view controller) pattern, each client request going through these steps below:
+
+- http server parse raw data into http method, path, headers and body content
+- router match http path to proper controller to process
+- controller is the center of business logic, using model data and view template to generate output page
+- response to client
+
+more refers to demo project generate by 
 
 ```sh
-local router = Lang.import("router")
+$ cincau.sh /tmp/demo [mnet|nginx]
 ```
 
-### MVC 
+located in /tmp/demo.
 
 EOF
