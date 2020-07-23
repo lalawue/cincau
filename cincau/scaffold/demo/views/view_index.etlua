@@ -28,7 +28,7 @@
         <h1><%= title %></h1>
         <ul>
             <% for i, f in pairs(features) do %>
-                <li><%= f -%></li>
+                <li><%- f -%></li>
             <% end %>
         </ul>
         <p><%- footer %></p>

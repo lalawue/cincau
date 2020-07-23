@@ -46,7 +46,7 @@
         <h1><%= name %></h1>
         <hr />
         <% for _, line in pairs(paragraphs) do %>
-            <%- line %>
+            <%- line -%>
         <% end %>
     </body>
   </html>

@@ -47,6 +47,7 @@ cincau using MVC (model view controller) pattern, each client request going thro
 - http server parse raw data into http method, path, headers and body content
 - router match http path to proper controller to process
 - controller is the center of business logic, using model data and view template to generate output page
+- using template library [etlua](https://github.com/leafo/etlua), using by [Lapis](https://github.com/leafo/lapis)
 - response to client
 
 more refers to demo project generate by 
