@@ -21,7 +21,7 @@ function _M:process(config, req, response, params)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- if POST, input text
-    if req.method == "POST" then
+    if req.method == "POST" and not table.isempty(req.post_args) then
         for k, v in pairs(req.post_args) do
             if k == "input" then
                 model:pushInput(v)
