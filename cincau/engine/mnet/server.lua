@@ -9,6 +9,7 @@ local NetCore = require("ffi_mnet")
 local HttpParser = require("ffi_hyperparser")
 local Request = require("engine.request_core")
 local Response = require("engine.response_core")
+local UrlCore = require("base.neturl")
 
 local Serv = {}
 
@@ -26,6 +27,15 @@ local _response_option = {
     fn_set_status = nil
 }
 _response_option.__index = _response_option
+
+local function _updateRequest(req)
+    -- FIXME: not form-data, or url-encode
+    if req.method == "POST" and req.body:len() > 0 then
+        req.post_args = UrlCore.parseQuery(req.body)
+    else
+        req.post_args = {}
+    end
+end
 
 -- receive client data then parse to http method, path, header, content
 local function _onClientEventCallback(chann, event_name, _)
@@ -49,6 +59,7 @@ local function _onClientEventCallback(chann, event_name, _)
             if chann._http_callback then
                 -- create req
                 local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content)
+                _updateRequest(req)
                 -- create response
                 local option = setmetatable({}, _response_option)
                 option.fn_chunked_callback = function(data)

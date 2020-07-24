@@ -22,12 +22,6 @@ function _M.new(method, path, header, body)
     req.path, req.query = _parsePath(path)
     req.header = header
     req.body = body or ""
-    -- FIXME: not form-data, or url-encode
-    if req.method == 'POST' and req.body:len() > 0 then
-        req.post_args = UrlCore.parseQuery(req.body)
-    else
-        req.post_args = {}
-    end
     return req
 end
 

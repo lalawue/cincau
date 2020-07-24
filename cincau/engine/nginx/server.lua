@@ -27,12 +27,21 @@ local _response_option = {
     end
 }
 
+local function _updateRequest(req)
+    -- FIXME: not form-data, or url-encode
+    if req.method == "POST" then
+        ngx.req.read_body()
+        req.post_args = ngx.req.get_post_args()
+    end
+end
+
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
     -- create req
     local nreq = ngx.req
     local nvar = ngx.var
     local req = Request.new(nreq.get_method(), nvar.request_uri, nreq.get_headers(), nreq.get_body_data())
+    _updateRequest(req)
     -- create response
     local response = Response.new(_response_option)
     -- callback
