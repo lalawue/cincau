@@ -26,16 +26,14 @@
                 margin-left: .5in;
                 margin-right: .5in;                
             }
-            form#line {
-                margin: 0 0 0 0;
-                padding: 0 0 0 0;
-            }
             ul {
                 margin-left: .3in;
-                width: 80%;
             }
-            li {
-                width: 100%;
+            .line {
+                display: table;
+            }
+            .cell {
+                display: table-cell;
             }
         </style>
     </head>
@@ -50,7 +48,13 @@
         <hr />
         <ul>
             <% for _, str in pairs(inputs) do %>
-                <li>text: <%- str -%><form id="line" action="" method="POST"><input type="submit" name="<%- str -%>" value="delete" /></form></li>
+                <div class="line">
+                    <li class="cell">text: <%- str -%></li>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <form class="cell" action="" method="POST">
+                        <input type="submit" name="<%- str -%>" value="delete" />
+                    </form>
+                </div>
             <% end %>
         </ul>
     </body>

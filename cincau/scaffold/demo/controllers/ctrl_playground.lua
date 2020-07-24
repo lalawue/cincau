@@ -18,6 +18,7 @@ render:register(
 )
 
 function _M:process(config, req, response, params)
+    table.dump(req)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- if POST, input text
