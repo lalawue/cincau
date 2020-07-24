@@ -18,7 +18,6 @@ render:register(
 )
 
 function _M:process(config, req, response, params)
-    table.dump(req)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- if POST, input text
@@ -26,8 +25,8 @@ function _M:process(config, req, response, params)
         for k, v in pairs(req.post_args) do
             if k == "input" then
                 model:pushInput(v)
-            elseif v == "delete" then
-                model:deleteInput(k)
+            elseif k == "delete" then
+                model:deleteInput(v)
             end
         end
     end

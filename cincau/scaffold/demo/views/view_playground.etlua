@@ -52,7 +52,8 @@
                     <li class="cell">text: <%- str -%></li>
                     &nbsp;&nbsp;&nbsp;&nbsp;
                     <form class="cell" action="" method="POST">
-                        <input type="submit" name="<%- str -%>" value="delete" />
+                        <input type="hidden" name="delete" value="<%- str -%>">
+                        <input type="submit" value="delete" />
                     </form>
                 </div>
             <% end %>
