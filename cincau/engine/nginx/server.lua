@@ -27,9 +27,9 @@ local _response_option = {
     end
 }
 
-local function _updateRequest(req)
-    -- FIXME: not form-data, or url-encode
-    if req.method == "POST" then
+local function _updateRequest(req, is_multipart_formdata)
+    -- enough for x-www-form-urlencoded or body kv
+    if req.method == "POST" and not is_multipart_formdata then
         ngx.req.read_body()
         req.post_args = ngx.req.get_post_args()
     end
@@ -37,11 +37,25 @@ end
 
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
+    local fd_tbl = {}
+    local multipart_info = nil
     -- create req
     local nreq = ngx.req
     local nvar = ngx.var
-    local req = Request.new(nreq.get_method(), nvar.request_uri, nreq.get_headers(), nreq.get_body_data())
-    _updateRequest(req)
+    local method = nreq.get_method()
+    local header = nreq.get_headers()
+    local is_multipart_formdata = Request.isMultiPartFormData(fd_tbl, method, header)
+    if is_multipart_formdata then
+        multipart_info = {
+            filename = "nginx upload howto",
+            content_type = "application/html",
+            filepath = "https://www.nginx.com/resources/wiki/modules/upload/"
+        }
+    end
+    config.logger.err("is multipart formdata: %s", is_multipart_formdata)
+    local data = is_multipart_formdata and "" or nreq.get_body_data()
+    local req = Request.new(method, nvar.request_uri, header, data, multipart_info)
+    _updateRequest(req, is_multipart_formdata)
     -- create response
     local response = Response.new(_response_option)
     -- callback

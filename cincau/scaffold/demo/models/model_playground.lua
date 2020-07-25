@@ -6,7 +6,8 @@
 --
 
 local _M = {
-    _inputs = {}
+    _inputs = {},
+    _encodes = {}
 }
 _M.__index = _M
 
@@ -27,6 +28,14 @@ end
 
 function _M:allInputs()
     return self._inputs
+end
+
+function _M:pushEncodes(v1, v2)
+    self._encodes[#self._encodes + 1] = { v1, v2 }
+end
+
+function _M:allEncodes()
+    return self._encodes
 end
 
 return _M

@@ -34,10 +34,7 @@ local function _updateRequest(req)
     if req.method ~= "POST" then
         return
     end
-    local content_type = req.header["Content-Type"]
-    local is_url_encoded = content_type and content_type:find("application/x-www-form-urlencoded")
-    if is_url_encoded then
-    elseif req.body:len() > 0 then
+    if Request.isXwwwFormUrlEncoded(req.header) or req.body:len() > 0 then
         req.post_args = UrlCore.parseQuery(req.body)
     else
         req.post_args = {}
@@ -54,11 +51,12 @@ local function _suffix4(filename)
     return ".bin"
 end
 
--- return filename
+-- store multipart/form-data to tmp/, put random name into multipart_info
 local function _storeMultiPartData(cnt, http_tbl, multipart_info)
     local fd_tbl = cnt.fd_tbl
+    local method = http_tbl.method
     local header = http_tbl.header
-    if not Request.isMultiPartFormData(fd_tbl, header) then
+    if not Request.isMultiPartFormData(fd_tbl, method, header) then
         return false
     end
     local contents = http_tbl.contents
@@ -114,6 +112,7 @@ local function _onClientEventCallback(chann, event_name, _)
                 content = table.concat(http_tbl.contents)
                 http_tbl.contents = nil
             end
+            -- create callback info
             local http_callback = cnt.http_callback
             if http_callback then
                 -- create req

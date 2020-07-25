@@ -7,6 +7,7 @@
 
 local render = require("view_core")
 local model = require("models.model_playground")
+local Request = require("engine.request_core")
 
 local _M = require("controller_core").newInstance()
 
@@ -22,11 +23,29 @@ function _M:process(config, req, response, params)
             string.format("content_type: %s", req.multipart_info.content_type)
         }
     elseif req.method == "POST" and not table.isempty(req.post_args) then
+        local is_input = false
+        -- if body key=value
         for k, v in pairs(req.post_args) do
             if k == "input" then
+                is_input = true
                 model:pushInput(v)
             elseif k == "delete" then
+                is_input = false
                 model:deleteInput(v)
+            end
+        end
+        -- if x-www-form-urlencoded as k1=v1&k2=v2
+        if not is_input then
+            local enc1, enc2 = nil, nil
+            for k, v in pairs(req.post_args) do
+                if k == "enc1" then
+                    enc1 = v
+                elseif k == "enc2" then
+                    enc2 = v
+                end
+            end
+            if enc1 and enc2 then
+                model:pushEncodes(enc1, enc2)
             end
         end
     end
@@ -36,6 +55,7 @@ function _M:process(config, req, response, params)
         "view_playground",
         {
             inputs = model:allInputs(),
+            encodes = model:allEncodes(),
             multipart_info = multipart_info
         },
         config -- for debug purpose

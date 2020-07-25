@@ -39,19 +39,42 @@ function _M:dumpPath(logger)
 end
 
 local function _urlUnescape(str, path)
-	local str = str
-	if not path then
-		str = str:gsub('+', ' ')
-	end
-	return (str:gsub("%%(%x%x)", function(c)
-			return string.char(tonumber(c, 16))
-	end))
+    local str = str
+    if not path then
+        str = str:gsub("+", " ")
+    end
+    return (str:gsub(
+        "%%(%x%x)",
+        function(c)
+            return string.char(tonumber(c, 16))
+        end
+    ))
 end
 
+-- application/x-www-form-urlencoded
+--
+
+function _M.isXwwwFormUrlEncoded(header)
+    if type(header) ~= "table" then
+        return false
+    end
+    local content_type = header["Content-Type"]
+    if type(content_type) ~= "string" then
+        return false
+    end
+    return content_type:find("^application/x%-www%-form%-urlencoded") == 1
+end
+
+-- multipart/form-data
+--
+
 -- check "multipart/form-data" and init fd_tbl
-function _M.isMultiPartFormData(fd_tbl, header)
+function _M.isMultiPartFormData(fd_tbl, method, header)
     if fd_tbl._stage ~= nil then
         return true
+    end
+    if method ~= "POST" then
+        return false
     end
     if type(header) ~= "table" then
         return false
