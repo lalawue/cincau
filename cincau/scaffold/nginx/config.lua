@@ -23,6 +23,7 @@ _logger.printf = function(level, fmt, ...)
 end
 
 return {
+    engine_type = "nginx",
     ipport = "", -- defined by config/nginx.conf
     logger = _logger,
     debug_on = false, -- debug framework, close cache
