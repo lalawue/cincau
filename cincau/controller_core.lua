@@ -32,14 +32,6 @@ end
 -- master controller interface
 --
 
-function _M:register(tbl)
-    assert(type(tbl) == "table", "invalid register type")
-    assert(#tbl > 0, "invalid register table size")
-    for _, v in ipairs(tbl) do
-        self._controllers[tostring(v)] = 1 -- keep non nil
-    end
-end
-
 local function _debugOn(config)
     return config and config.debug_on
 end
@@ -51,7 +43,6 @@ end
 function _M:process(name, config, ...)
     assert(type(name) == "string", "invalid controller name")
     local ctrl = self._controllers[name]
-    assert(ctrl, "please register controller first")
     if type(ctrl) ~= "table" then
         -- assume all controller business under controllers dir
         ctrl = require("controllers." .. name)

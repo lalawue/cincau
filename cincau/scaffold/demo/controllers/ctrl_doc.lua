@@ -10,13 +10,6 @@ local model = require("models.model_doc")
 
 local _M = require("controller_core").newInstance()
 
--- register using template
-render:register(
-    {
-        "view_doc"
-    }
-)
-
 -- only run once
 function _M:init(config)
     model:loadModel()

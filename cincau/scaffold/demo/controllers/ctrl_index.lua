@@ -8,13 +8,6 @@
 local render = require("view_core")
 local _M = require("controller_core").newInstance()
 
--- register using template
-render:register(
-    {
-        "view_index"
-    }
-)
-
 -- output index page
 function _M:process(config, req, response, params)
     -- set header before appendBody

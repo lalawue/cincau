@@ -10,13 +10,6 @@ local model = require("models.model_playground")
 
 local _M = require("controller_core").newInstance()
 
--- register using template
-render:register(
-    {
-        "view_playground"
-    }
-)
-
 function _M:process(config, req, response, params)
     local multipart_info = {}
     -- set header before appendBody

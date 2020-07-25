@@ -9,15 +9,6 @@
 --
 local master_ctrl = require("controller_core")
 
--- list using controller
-master_ctrl:register(
-    {
-        "ctrl_index",
-        "ctrl_doc",
-        "ctrl_playground"
-    }
-)
-
 local r = require("router_core").new()
 
 -- get root

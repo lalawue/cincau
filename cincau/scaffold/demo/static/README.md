@@ -58,7 +58,7 @@ $ cincau.sh /tmp/demo [mnet|nginx]
 
 located in /tmp/demo.
 
-## Database
+### Database
 
 as a minimalist web framework, default provide sqlite3 connection library [ffi_sqlite3.lua](https://github.com/lalawue/cincau/blob/master/cincau/db/ffi_lsqlite3.lua).
 

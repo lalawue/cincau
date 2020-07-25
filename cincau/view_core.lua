@@ -17,15 +17,6 @@ local _M = {
 }
 _M.__index = {}
 
--- register file name first
-function _M:register(tbl)
-    assert(type(tbl) == "table", "invalid register type")
-    assert(#tbl > 0, "invalid register table size")
-    for _, v in ipairs(tbl) do
-        self._templates[tostring(v)] = 1 -- keep non nil
-    end
-end
-
 local function _debugOff(config)
     return (config == nil) or (not config.debug_on)
 end
@@ -34,11 +25,6 @@ end
 function _M:render(name, value_tbl, config)
     assert(type(name) == "string", "invalid view name")
     local tmpl = self._templates[name]
-    -- view template need register before
-    if tmpl == nil then
-        config.logger.err("view need register before: %s", name)
-        return nil
-    end
     --  template not loaded
     if type(tmpl) ~= "function" then
         local content = FileManager.readFile("app/views/" .. name .. ".etlua")
