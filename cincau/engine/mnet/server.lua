@@ -21,6 +21,14 @@ local function _clientDestroy(chann)
     chann:close()
 end
 
+-- client reset
+local function _clientReset(chann)
+    local cnt = chann._cnt
+    cnt.http_parser:reset()
+    cnt.fd_tbl = {}
+    cnt.multipart_info = {}
+end
+
 -- response option
 local _response_option = {
     en_chunked_length = true, -- append chunked body length
@@ -52,7 +60,7 @@ local function _suffix4(filename)
 end
 
 -- store multipart/form-data to tmp/, put random name into multipart_info
-local function _storeMultiPartData(cnt, http_tbl, multipart_info)
+local function _storeMultiPartData(cnt, http_tbl)
     local fd_tbl = cnt.fd_tbl
     local method = http_tbl.method
     local header = http_tbl.header
@@ -61,30 +69,31 @@ local function _storeMultiPartData(cnt, http_tbl, multipart_info)
     end
     local contents = http_tbl.contents
     local raw_data = contents and table.concat(contents) or ""
-    Request.multiPartReadBody(
-        fd_tbl,
-        raw_data,
-        function(filename, content_type, data)
-            local filepath = "tmp/upload_temp_file.bin"
-            if data then
-                FileManager.appendFile(filepath, data)
-            else
-                FileManager.removeFile(filepath)
+    local count = 0
+    -- magic number for preventing over loop
+    while count < 4096 and
+        Request.multiPartReadBody(
+            fd_tbl,
+            raw_data,
+            function(filename, content_type, data)
+                local info = cnt.multipart_info[#cnt.multipart_info]
+                if data and info and info.filepath then
+                    FileManager.appendFile(info.filepath, data)
+                elseif filename and filename:len() > 0 then
+                    local filepath = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
+                    cnt.multipart_info[#cnt.multipart_info + 1] = {
+                        filename = filename,
+                        filepath = filepath,
+                        content_type = content_type
+                    }
+                end
             end
-            if multipart_info then
-                local new_path = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
-                FileManager.renameFile(filepath, new_path)
-                multipart_info.filename = filename
-                multipart_info.content_type = content_type
-                multipart_info.filepath = new_path
-            end
-        end
-    )
+        ) do
+        count = count + 1
+    end
     http_tbl.contents = nil
     return true
 end
-
-local _multipart_info = {}
 
 -- receive client data then parse to http method, path, header, content
 local function _onClientEventCallback(chann, event_name, _)
@@ -106,8 +115,8 @@ local function _onClientEventCallback(chann, event_name, _)
         if state == HttpParser.STATE_BODY_FINISH and http_tbl then
             local content = ""
             local multipart_info = nil -- multipart/form-data
-            if _storeMultiPartData(cnt, http_tbl, _multipart_info) then
-                multipart_info = _multipart_info
+            if _storeMultiPartData(cnt, http_tbl) then
+                multipart_info = cnt.multipart_info
             elseif http_tbl.contents then
                 content = table.concat(http_tbl.contents)
                 http_tbl.contents = nil
@@ -128,8 +137,8 @@ local function _onClientEventCallback(chann, event_name, _)
                 http_callback(cnt.config, req, response)
                 -- finish response
                 response:finishResponse()
-                -- reset http parser
-                cnt.http_parser:reset()
+                -- reset resources
+                _clientReset(chann)
             end
         end
     elseif event_name == "event_disconnect" then
@@ -157,7 +166,8 @@ function Serv:run(config, http_callback)
                     config = config,
                     http_callback = http_callback,
                     http_parser = HttpParser.createParser("REQUEST"),
-                    fd_tbl = {}
+                    fd_tbl = {},
+                    multipart_info = {}
                 }
                 accept:setCallback(_onClientEventCallback)
             end

@@ -82,10 +82,13 @@
                     <li class="cell"> <%- i -%>. text: '<%- vtbl[1] -%>', '<%- vtbl[2] -%>'</li>
                 </div>
             <% end %>
-            <% for i, item in pairs(multipart_info) do %>
-                <div class="line">
-                    <li class="cell"><%- item -%></li>
-                </div>
+            <% for _, item in pairs(multipart_info) do %>
+                <% for _, line in pairs(item) do %>
+                    <div class="line">
+                        <li class="cell"><%- line -%></li>
+                    </div>
+                <% end %>
+                <p>--</p>
             <% end %>
         </ul>
     </body>

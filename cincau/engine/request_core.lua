@@ -92,12 +92,12 @@ function _M.isMultiPartFormData(fd_tbl, method, header)
             state:
             0: none info
             1: get begin boundary
-            2: get filename
+            2: get filename, or reach empty slot, advance to next boundary
             3: get content-type
             -> callback with data == nil
-       filename < read more data >
+            filename < read more data >
             -> callback with data ~= nil
-            4: reach end boundary
+            4: reach next bourndary, or reach end boundary
             -> callback with data ~= nil
         ]]
         fd_tbl._stage = 0
@@ -109,8 +109,10 @@ end
 -- read data and update fd_tbl context, callback(filename, content_type, data) multiple times
 function _M.multiPartReadBody(fd_tbl, input_data, callback)
     if input_data:len() <= 0 then
-        return
+        return false
     end
+
+    local ret_run_next = false
     local fdata = fd_tbl._data .. input_data
 
     -- check begin boundary
@@ -120,7 +122,7 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
             -- update stage
             fd_tbl._stage = 1
             fdata = fdata:sub(e + 1)
-        --print("1 begin boundary end:", e, "<", fdata:sub(1, 10))
+            --print("1 begin boundary end:", e, "<", fdata:sub(1, 10))
         end
     end
 
@@ -132,8 +134,18 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
             fd_tbl._stage = 2
             fdata = fdata:sub(25 + deposition:len() + 1)
             -- get filename
-            fd_tbl._filename = _urlUnescape(deposition:match('filename="([^"]-)"'))
-        --print("2 deposition:", fd_tbl._filename, "<", fdata:sub(1, 10))
+            local filename = deposition:match('filename="([^"]-)"')
+            if filename and filename:len() > 0 then
+                fd_tbl._filename = _urlUnescape(filename)
+                --print("2 deposition:", fd_tbl._filename, "<", fdata:sub(1, 10))
+            else
+                -- update state, to next boundary
+                fd_tbl._stage = 0
+                -- no filename, means empty slot, advance to next boundary
+                local s, e = fdata:find("\r\n\r\n")
+                fdata = fdata:sub((e or 0) + 1)
+                --print("2 empty deposition, advance to next boundary", "<", fdata:sub(1, 10))
+            end
         end
     end
 
@@ -147,29 +159,39 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
             fd_tbl._content_type = content_type
             -- callback with data == nil
             callback(fd_tbl._filename, fd_tbl._content_type, nil)
-        --print("3 content_type:", fd_tbl._content_type, "<", fdata:sub(1, 10))
+            --print("3 content_type:", fd_tbl._content_type, "<", fdata:sub(1, 10))
         end
     end
 
     -- read file data
     if fd_tbl._stage == 3 then
-        local bstr = "--" .. fd_tbl._boundary .. "--"
-        if fdata:len() > bstr:len() then
+        local bstr = "--" .. fd_tbl._boundary
+        if fdata:len() > bstr:len() + 2 then -- extra '--' in for end boundary
             local s, e = fdata:find(bstr, 1, true)
             if s then
-                --print("4 reach end", data:len())
                 local data = fdata:sub(1, s - 3) -- trim last '\r\n'
-                -- update state
-                fd_tbl._stage = 4
-                fdata = fdata:sub(2 + e + 1) -- add last '\r\n'
+                -- if reach end boundary
+                if fdata:sub(e + 1, e + 2) == "--" then
+                    -- update state
+                    fd_tbl._stage = 4
+                    fdata = fdata:sub(2 + e + 1)
+                    --print("4 reach end", data:len())
+                else
+                    -- update state
+                    fd_tbl._stage = 0
+                    -- reach next file boundary, reset to boundary begin
+                    fdata = fdata:sub(s)
+                    --print("4 reach next", data:len(), fdata:sub(1, 10))
+                    ret_run_next = true
+                end
                 -- callback with data ~= nil
                 callback(fd_tbl._filename, fd_tbl._content_type, data)
             else
-                --print("3 data:", data:len())
                 local data = fdata:sub(1, fdata:len() - bstr:len() - 1)
                 fdata = fdata:sub(data:len() + 1)
                 -- callback with data ~= nil
                 callback(fd_tbl._filename, fd_tbl._content_type, data)
+                --print("3 data:", data:len())
             end
         end
     end
@@ -181,6 +203,8 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
     if fd_tbl._stage == 4 then
         fd_tbl._stage = nil
     end
+
+    return ret_run_next
 end
 
 return _M

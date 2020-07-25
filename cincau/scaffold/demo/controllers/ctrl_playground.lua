@@ -17,11 +17,13 @@ function _M:process(config, req, response, params)
     response:setHeader("Content-Type", "text/html")
     --
     if req.multipart_info then
-        multipart_info = {
-            string.format("name: %s", req.multipart_info.filename),
-            string.format("path: %s", req.multipart_info.filepath),
-            string.format("content_type: %s", req.multipart_info.content_type)
-        }
+        for _, info in ipairs(req.multipart_info) do
+            multipart_info[#multipart_info + 1] = {
+                string.format("name: %s", info.filename),
+                string.format("path: %s", info.filepath),
+                string.format("content_type: %s", info.content_type)
+            }
+        end
     elseif req.method == "POST" and not table.isempty(req.post_args) then
         local is_input = false
         -- if body key=value
