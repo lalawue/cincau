@@ -44,31 +44,49 @@ local function _updateRequest(req)
     end
 end
 
+local function _suffix4(filename)
+    if filename:len() >= 4 then
+        local s = filename:find(".", filename:len() - 4, true)
+        if s then
+            return filename:sub(s)
+        end
+    end
+    return ".bin"
+end
+
 -- return filename
-local function _storeMultiPartData(cnt, http_tbl)
+local function _storeMultiPartData(cnt, http_tbl, multipart_info)
     local fd_tbl = cnt.fd_tbl
     local header = http_tbl.header
     if not Request.isMultiPartFormData(fd_tbl, header) then
-        return nil
+        return false
     end
-    local fname = nil
     local contents = http_tbl.contents
     local raw_data = contents and table.concat(contents) or ""
     Request.multiPartReadBody(
         fd_tbl,
         raw_data,
         function(filename, content_type, data)
-            fname = filename
+            local filepath = "tmp/upload_temp_file.bin"
             if data then
-                FileManager.appendFile("tmp/" .. filename, data)
+                FileManager.appendFile(filepath, data)
             else
-                FileManager.removeFile("tmp/" .. filename)
+                FileManager.removeFile(filepath)
+            end
+            if multipart_info then
+                local new_path = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
+                FileManager.renameFile(filepath, new_path)
+                multipart_info.filename = filename
+                multipart_info.content_type = content_type
+                multipart_info.filepath = new_path
             end
         end
     )
     http_tbl.contents = nil
-    return fname
+    return true
 end
+
+local _multipart_info = {}
 
 -- receive client data then parse to http method, path, header, content
 local function _onClientEventCallback(chann, event_name, _)
@@ -88,17 +106,18 @@ local function _onClientEventCallback(chann, event_name, _)
             _storeMultiPartData(cnt, http_tbl)
         end
         if state == HttpParser.STATE_BODY_FINISH and http_tbl then
-            -- multipart/form-data
-            local content = _storeMultiPartData(cnt, http_tbl)
-            -- not multipart
-            if not content and http_tbl.contents then
+            local content = ""
+            local multipart_info = nil -- multipart/form-data
+            if _storeMultiPartData(cnt, http_tbl, _multipart_info) then
+                multipart_info = _multipart_info
+            elseif http_tbl.contents then
                 content = table.concat(http_tbl.contents)
                 http_tbl.contents = nil
             end
             local http_callback = cnt.http_callback
             if http_callback then
                 -- create req
-                local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content or "")
+                local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
                 _updateRequest(req)
                 -- create response
                 local option = setmetatable({}, _response_option)

@@ -42,4 +42,8 @@ function FileManager.removeFile(file_path)
     os.remove(file_path)
 end
 
+function FileManager.renameFile(oldname, newname)
+    os.rename(oldname, newname)
+end
+
 return FileManager
