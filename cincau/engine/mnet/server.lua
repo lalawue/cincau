@@ -69,28 +69,23 @@ local function _storeMultiPartData(cnt, http_tbl)
     end
     local contents = http_tbl.contents
     local raw_data = contents and table.concat(contents) or ""
-    local count = 0
-    -- magic number for preventing over loop
-    while count < 4096 and
-        Request.multiPartReadBody(
-            fd_tbl,
-            raw_data,
-            function(filename, content_type, data)
-                local info = cnt.multipart_info[#cnt.multipart_info]
-                if data and info and info.filepath then
-                    FileManager.appendFile(info.filepath, data)
-                elseif filename and filename:len() > 0 then
-                    local filepath = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
-                    cnt.multipart_info[#cnt.multipart_info + 1] = {
-                        filename = filename,
-                        filepath = filepath,
-                        content_type = content_type
-                    }
-                end
+    Request.multiPartReadBody(
+        fd_tbl,
+        raw_data,
+        function(filename, content_type, data)
+            local info = cnt.multipart_info[#cnt.multipart_info]
+            if data and info and info.filepath then
+                FileManager.appendFile(info.filepath, data)
+            elseif filename and filename:len() > 0 then
+                local filepath = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
+                cnt.multipart_info[#cnt.multipart_info + 1] = {
+                    filename = filename,
+                    filepath = filepath,
+                    content_type = content_type
+                }
             end
-        ) do
-        count = count + 1
-    end
+        end
+    )
     http_tbl.contents = nil
     return true
 end
@@ -156,6 +151,7 @@ function Serv:run(config, http_callback)
     else
         logger.info("listen on %s:%d", addr.ip, addr.port)
     end
+    math.randomseed(os.time())
     NetCore.init()
     self.svr_tcp = NetCore.openChann("tcp")
     self.svr_tcp:listen(addr.ip, addr.port, 1024)
