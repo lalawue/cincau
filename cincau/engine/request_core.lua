@@ -39,7 +39,7 @@ end
 
 -- check "multipart/form-data" and init fd_tbl
 function _M.isMultiPartFormData(fd_tbl, header)
-    if fd_tbl._stage then
+    if fd_tbl._stage ~= nil then
         return true
     end
     if type(header) ~= "table" then
@@ -60,9 +60,11 @@ function _M.isMultiPartFormData(fd_tbl, header)
             1: get begin boundary
             2: get filename
             3: get content-type
-            -> callback
+            -> callback with data == nil
+            < read more data >
+            -> callback with data ~= nil
             4: reach end boundary
-            -> callback
+            -> callback with data ~= nil
         ]]
         fd_tbl._stage = 0
         return true
@@ -70,7 +72,7 @@ function _M.isMultiPartFormData(fd_tbl, header)
     return false
 end
 
--- read data and update fd_tbl context, callback(filename, content_type, data, end_mark) multiple times
+-- read data and update fd_tbl context, callback(filename, content_type, data) multiple times
 function _M.multiPartReadBody(fd_tbl, input_data, callback)
     if input_data:len() <= 0 then
         return
@@ -109,6 +111,8 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
             fd_tbl._stage = 3
             fdata = fdata:sub(18 + content_type:len() + 1)
             fd_tbl._content_type = content_type
+            -- callback with data == nil
+            callback(fd_tbl._filename, fd_tbl._content_type, nil)
             --print("3 content_type:", fd_tbl._content_type, "<", fdata:sub(1, 10))
         end
     end
@@ -123,12 +127,14 @@ function _M.multiPartReadBody(fd_tbl, input_data, callback)
                 -- update state
                 fd_tbl._stage = 4
                 fdata = fdata:sub(2 + e + 1) -- add last '\r\n'
-                callback(fd_tbl._filename, fd_tbl._content_type, data, true)
+                -- callback with data ~= nil
+                callback(fd_tbl._filename, fd_tbl._content_type, data)
                 --print("4 reach end", data:len())
             else
                 local data = fdata:sub(1, fdata:len() - bstr:len() - 1)
                 fdata = fdata:sub(data:len() + 1)
-                callback(fd_tbl._filename, fd_tbl._content_type, data, false)
+                -- callback with data ~= nil
+                callback(fd_tbl._filename, fd_tbl._content_type, data)
                 --print("3 data:", data:len())
             end
         end

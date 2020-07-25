@@ -16,8 +16,9 @@ local Serv = {}
 
 -- close chann and destroy http parser
 local function _clientDestroy(chann)
+    local cnt = chann._cnt
+    cnt.http_parser:destroy()
     chann:close()
-    chann._http_parser:destroy()
 end
 
 -- response option
@@ -44,21 +45,29 @@ local function _updateRequest(req)
 end
 
 -- return filename
-local function _readMultiPartData(fd_tbl, header, contents)
+local function _storeMultiPartData(cnt, http_tbl)
+    local fd_tbl = cnt.fd_tbl
+    local header = http_tbl.header
     if not Request.isMultiPartFormData(fd_tbl, header) then
-        return false, nil
+        return nil
     end
     local fname = nil
+    local contents = http_tbl.contents
     local raw_data = contents and table.concat(contents) or ""
     Request.multiPartReadBody(
         fd_tbl,
         raw_data,
-        function(filename, content_type, data, end_mak)
+        function(filename, content_type, data)
             fname = filename
-            FileManager.appendFile("tmp/" .. filename, data)
+            if data then
+                FileManager.appendFile("tmp/" .. filename, data)
+            else
+                FileManager.removeFile("tmp/" .. filename)
+            end
         end
     )
-    return true, fname
+    http_tbl.contents = nil
+    return fname
 end
 
 -- receive client data then parse to http method, path, header, content
@@ -69,30 +78,25 @@ local function _onClientEventCallback(chann, event_name, _)
             _clientDestroy(chann)
             return
         end
+        local cnt = chann._cnt
         -- parse raw data to http protoco info
-        local ret_value, state, http_tbl = chann._http_parser:process(data)
+        local ret_value, state, http_tbl = cnt.http_parser:process(data)
         if ret_value < 0 then
             return
         end
-        local content = nil
         if state == HttpParser.STATE_BODY_CONTINUE and http_tbl then
-            if _readMultiPartData(chann._fd_tbl, http_tbl.header, http_tbl.contents) then
-                http_tbl.contents = nil
-            end
+            _storeMultiPartData(cnt, http_tbl)
         end
         if state == HttpParser.STATE_BODY_FINISH and http_tbl then
             -- multipart/form-data
-            local ret, fname = _readMultiPartData(chann._fd_tbl, http_tbl.header, http_tbl.contents)
-            if ret then
-                content = fname
-                http_tbl.contents = nil
-            end
+            local content = _storeMultiPartData(cnt, http_tbl)
             -- not multipart
             if not content and http_tbl.contents then
                 content = table.concat(http_tbl.contents)
                 http_tbl.contents = nil
             end
-            if chann._http_callback then
+            local http_callback = cnt.http_callback
+            if http_callback then
                 -- create req
                 local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content or "")
                 _updateRequest(req)
@@ -103,9 +107,11 @@ local function _onClientEventCallback(chann, event_name, _)
                 end
                 local response = Response.new(option)
                 -- callback
-                chann._http_callback(chann._config, req, response)
+                http_callback(cnt.config, req, response)
                 -- finish response
                 response:finishResponse()
+                -- reset http parser
+                cnt.http_parser:reset()
             end
         end
     elseif event_name == "event_disconnect" then
@@ -129,10 +135,12 @@ function Serv:run(config, http_callback)
     self.svr_tcp:setCallback(
         function(_, event_name, accept)
             if event_name == "event_accept" and accept ~= nil then
-                accept._config = config
-                accept._http_callback = http_callback
-                accept._http_parser = HttpParser.createParser("REQUEST")
-                accept._fd_tbl = {}
+                accept._cnt = {
+                    config = config,
+                    http_callback = http_callback,
+                    http_parser = HttpParser.createParser("REQUEST"),
+                    fd_tbl = {}
+                }
                 accept:setCallback(_onClientEventCallback)
             end
         end

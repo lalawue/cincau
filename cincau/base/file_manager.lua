@@ -30,12 +30,16 @@ end
 
 function FileManager.appendFile(file_path, data)
     local f = io.open(file_path, "a+")
-    if  f then
+    if f then
         f:write(data)
         f:close()
         return true
     end
     return false
+end
+
+function FileManager.removeFile(file_path)
+    os.remove(file_path)
 end
 
 return FileManager
