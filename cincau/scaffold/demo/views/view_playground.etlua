@@ -43,8 +43,8 @@
     </head>
     <body>
         <h1>Playground</h1>
-        <hr />  
-            <br />
+        <hr />
+            <p>engine type: <%- engine_type -%></p>
             <div class="line">        
                 <p class="cell">] &nbsp; try POST text: &nbsp;</p>
                 <form class="cell" action="" method="POST">
@@ -62,15 +62,7 @@
                 </form>
             </div>
             <br />
-            <div class="line">
-                <p class="cell">] &nbsp; try upload multipart/form-data: &nbsp;</p>
-                <form class="cell" action="" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="file1" />
-                    <input type="file" name="file2" />
-                    <input type="submit" value = "submit" />
-                </form>
-            </div>
-            <br />
+            <%- multipart_show_block -%>
             <%- dns_show_block -%>
         <hr />
         <ul>

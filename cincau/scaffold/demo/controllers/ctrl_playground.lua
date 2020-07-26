@@ -81,8 +81,24 @@ function _M:_getDnsShowBlock(config)
                 <input type="submit" value="submit" />
             </form>
         </div>
-        <br />
-    ]]
+        <br />]]
+end
+
+-- show upload multipart/form-data example
+function _M:_getMultipartShowBlock(config)
+    if config.engine_type ~= "mnet" then
+        return ""
+    end
+    return [[
+        <div class="line">
+            <p class="cell">] &nbsp; try upload multipart/form-data: &nbsp;</p>
+            <form class="cell" action="" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file1" />
+                <input type="file" name="file2" />
+                <input type="submit" value = "submit" />
+            </form>
+        </div>
+        <br />]]
 end
 
 -- public interface
@@ -111,6 +127,8 @@ function _M:process(config, req, response, params)
         render:render(
         "view_playground",
         {
+            engine_type = config.engine_type,
+            multipart_show_block = self:_getMultipartShowBlock(config),
             dns_show_block = self:_getDnsShowBlock(config),
             dns_query = dns_query,
             inputs = model:allInputs(),
