@@ -1,6 +1,8 @@
 #
 # use gmake in FreeBSD
 
+.PHONY : test
+
 all:
 	@echo "Installation:"
 	@echo "\t1. make [mnet|nginx] \t\t\t\t # compile required library"
@@ -16,6 +18,11 @@ nginx:
 install:
 	sudo cp -af cincau/ /usr/local/cincau
 	sudo cp cincau.sh /usr/local/bin/cincau.sh
+
+test:
+	@export LD_LIBRARY_PATH=cincau/vendor
+	@export DYLD_LIBRARY_PATH=cincau/vendor
+	lua test/run_test.lua test/cases_multipart.lua
 
 clean:
 	rm -rf vendor/lib/*

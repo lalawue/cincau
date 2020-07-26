@@ -1,0 +1,19 @@
+POST /playground HTTP/1.1
+Host: 127.0.0.1:8080
+Origin: http://127.0.0.1:8080
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryGBQjAccNK5WDz4IY
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Safari/605.1.15
+Referer: http://127.0.0.1:8080/playground
+Content-Length: 189
+Accept-Language: zh-cn
+
+------WebKitFormBoundaryGBQjAccNK5WDz4IY
+Content-Disposition: form-data; name="file1"; filename=""
+Content-Type: application/octet-stream
+
+
+------WebKitFormBoundaryGBQjAccNK5WDz4IY--

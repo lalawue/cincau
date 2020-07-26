@@ -1,0 +1,25 @@
+POST /playground HTTP/1.1
+Host: 127.0.0.1:8080
+Origin: http://127.0.0.1:8080
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundarysbBAapsaFcBj1PQH
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.2 Safari/605.1.15
+Referer: http://127.0.0.1:8080/playground
+Content-Length: 962
+Accept-Language: zh-cn
+
+------WebKitFormBoundarysbBAapsaFcBj1PQH
+Content-Disposition: form-data; name="file1"; filename="summary.txt"
+Content-Type: text/plain
+
+When you fetch a list of resources, the response includes a subset of the attributes for that resource. This is the "summary" representation of the resource. (Some attributes are computationally expensive for the API to provide. For performance reasons, the summary representation excludes those attributes. To obtain those attributes, fetch the "detailed" representation.)
+
+------WebKitFormBoundarysbBAapsaFcBj1PQH
+Content-Disposition: form-data; name="file2"; filename="detailed.txt"
+Content-Type: text/plain
+
+When you fetch an individual resource, the response typically includes all attributes for that resource. This is the "detailed" representation of the resource. (Note that authorization sometimes influences the amount of detail included in the representation.)
+------WebKitFormBoundarysbBAapsaFcBj1PQH--
