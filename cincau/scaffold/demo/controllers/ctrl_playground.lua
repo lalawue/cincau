@@ -7,8 +7,7 @@
 
 local render = require("view_core")
 local model = require("models.model_playground")
-local ThreaBroker = require("bridge.thread_broker")
-local mDns = require("bridge.ffi_mdns")
+local mediator = require("bridge.mediator")
 
 local _M = require("controller_core").newInstance()
 
@@ -61,21 +60,27 @@ function _M:_processQueryDomain(post_args, dns_query)
     for k, domain in pairs(post_args) do
         if k == "domain" then
             dns_query[1] = domain
-            dns_query[2] =
-                ThreaBroker.callThread(
-                function(ret_func)
-                    mDns.queryHost(
-                        domain,
-                        function(ipv4)
-                            ret_func(ipv4)
-                        end
-                    )
-                end
-            )
+            dns_query[2] = mediator.queryDomain(domain)
             return true
         end
     end
     return false
+end
+
+function _M:_getDnsShowBlock(config)
+    if config.engine_type ~= "mnet" then
+        return ""
+    end
+    return [[
+        <div class="line">
+            <p class="cell">] &nbsp; try query domain: &nbsp;</p>
+            <form class="cell" action="" method="POST">
+                <input type="text" name="domain" placeholder="www.baidu.com" />
+                <input type="submit" value="submit" />
+            </form>
+        </div>
+        <br />
+    ]]
 end
 
 -- public interface
@@ -103,6 +108,7 @@ function _M:process(config, req, response, params)
         render:render(
         "view_playground",
         {
+            dns_show_block = self:_getDnsShowBlock(config),
             dns_query = dns_query,
             inputs = model:allInputs(),
             encodes = model:allEncodes(),

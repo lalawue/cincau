@@ -19,7 +19,7 @@ local _response_option = {
     fn_chunked_callback = function(data)
         ngx.say(data)
     end,
-    fn_set_header = function (key, value)
+    fn_set_header = function(key, value)
         ngx.header[key] = value
     end,
     fn_set_status = function(status_code)
@@ -32,6 +32,8 @@ local function _updateRequest(req, is_multipart_formdata)
     if req.method == "POST" and not is_multipart_formdata then
         ngx.req.read_body()
         req.post_args = ngx.req.get_post_args()
+    else
+        req.post_args = {}
     end
 end
 
@@ -45,6 +47,7 @@ function Serv:run(config, http_callback)
     local method = nreq.get_method()
     local header = nreq.get_headers()
     local is_multipart_formdata = Request.isMultiPartFormData(fd_tbl, method, header)
+    -- fill fake multipart info, nginx use another way to upload binary files
     if is_multipart_formdata then
         multipart_info = {
             filename = "nginx upload howto",
@@ -52,7 +55,6 @@ function Serv:run(config, http_callback)
             filepath = "https://www.nginx.com/resources/wiki/modules/upload/"
         }
     end
-    config.logger.err("is multipart formdata: %s", is_multipart_formdata)
     local data = is_multipart_formdata and "" or nreq.get_body_data()
     local req = Request.new(method, nvar.request_uri, header, data, multipart_info)
     _updateRequest(req, is_multipart_formdata)

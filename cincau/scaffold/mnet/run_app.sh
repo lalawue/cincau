@@ -10,6 +10,7 @@ start_server()
     PID_FILE=$PWD/tmp/cincau-mnet.pid
     if [ -f $PID_FILE ]; then
         echo "app already running with pid $(cat $PID_FILE)"
+        exit 0
     fi 
 
     CORE_PATH=/usr/local/cincau

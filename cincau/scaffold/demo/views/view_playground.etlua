@@ -71,14 +71,7 @@
                 </form>
             </div>
             <br />
-            <div class="line">
-                <p class="cell">] &nbsp; try query domain: &nbsp;</p>
-                <form class="cell" action="" method="POST">
-                    <input type="text" name="domain" placeholder="www.baidu.com" />
-                    <input type="submit" value="submit" />
-                </form>
-            </div>
-            <br />
+            <%- dns_show_block -%>
         <hr />
         <ul>
             <% if table.maxn(dns_query) >= 2 then %>
