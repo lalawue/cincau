@@ -43,30 +43,50 @@
     </head>
     <body>
         <h1>Playground</h1>
-        <hr />
+        <hr />  
+            <br />
             <div class="line">        
-                <p class="cell">try POST text: &nbsp;</p>
+                <p class="cell">] &nbsp; try POST text: &nbsp;</p>
                 <form class="cell" action="" method="POST">
                     <input type="text" name="input" placeholder="" />
                     <input type="submit" value="submit" />
                 </form>
-                &nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp;
-                <p class="cell">or urlencoded text: &nbsp;</p>
+            </div>
+            <br />
+            <div class="line">
+                <p class="cell">] &nbsp; try urlencoded text: &nbsp;</p>
                 <form class="cell" action="" method="POST" enctype="application/x-www-form-urlencoded">
                     <input type="text" name="enc1" />
                     <input type="text" name="enc2" />
                     <input type="submit" value="submit" />
                 </form>
-                &nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp;
-                <p class="cell">or upload multipart/form-data: &nbsp;</p>
+            </div>
+            <br />
+            <div class="line">
+                <p class="cell">] &nbsp; try upload multipart/form-data: &nbsp;</p>
                 <form class="cell" action="" method="POST" enctype="multipart/form-data">
                     <input type="file" name="file1" />
                     <input type="file" name="file2" />
-                    <input type="submit" />
+                    <input type="submit" value = "submit" />
                 </form>
             </div>
+            <br />
+            <div class="line">
+                <p class="cell">] &nbsp; try query domain: &nbsp;</p>
+                <form class="cell" action="" method="POST">
+                    <input type="text" name="domain" placeholder="www.baidu.com" />
+                    <input type="submit" value="submit" />
+                </form>
+            </div>
+            <br />
         <hr />
         <ul>
+            <% if table.maxn(dns_query) >= 2 then %>
+                <div class="line">
+                    <li>domain: <%- dns_query[1] -%></li>
+                    <li>ip: <%- dns_query[2] -%></li>
+                </div>
+            <% end %>
             <% for i, str in pairs(inputs) do %>
                 <div class="line">
                     <li class="cell"> <%- i -%>. text: <%- str -%></li>

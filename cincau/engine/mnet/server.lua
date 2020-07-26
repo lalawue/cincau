@@ -6,19 +6,20 @@
 --
 
 local NetCore = require("ffi_mnet")
+local DnsCore = require("bridge.ffi_mdns")
 local HttpParser = require("ffi_hyperparser")
 local Request = require("engine.request_core")
 local Response = require("engine.response_core")
 local UrlCore = require("base.neturl")
 local FileManager = require("base.file_manager")
-
-local Serv = {}
+local ThreadBroker = require("bridge.thread_broker")
 
 -- close chann and destroy http parser
 local function _clientDestroy(chann)
     local cnt = chann._cnt
     cnt.http_parser:destroy()
     chann:close()
+    ThreadBroker.removeThread(chann)
 end
 
 -- client reset
@@ -27,6 +28,7 @@ local function _clientReset(chann)
     cnt.http_parser:reset()
     cnt.fd_tbl = {}
     cnt.multipart_info = {}
+    ThreadBroker.removeThread(chann)
 end
 
 -- response option
@@ -128,18 +130,31 @@ local function _onClientEventCallback(chann, event_name, _)
                     chann:send(data)
                 end
                 local response = Response.new(option)
-                -- callback
-                http_callback(cnt.config, req, response)
-                -- finish response
-                response:finishResponse()
-                -- reset resources
-                _clientReset(chann)
+                local co =
+                    coroutine.create(
+                    function()
+                        -- callback
+                        http_callback(cnt.config, req, response)
+                        -- finish response
+                        response:finishResponse()
+                        -- reset resources
+                        _clientReset(chann)
+                    end
+                )
+                -- broker take thread
+                ThreadBroker.addThread(chann, co)
+                coroutine.resume(co)
             end
         end
     elseif event_name == "event_disconnect" then
         _clientDestroy(chann)
     end
 end
+
+-- public interface
+--
+
+local Serv = {}
 
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
@@ -153,6 +168,7 @@ function Serv:run(config, http_callback)
     end
     math.randomseed(os.time())
     NetCore.init()
+    DnsCore.init(config)
     self.svr_tcp = NetCore.openChann("tcp")
     self.svr_tcp:listen(addr.ip, addr.port, 1024)
     self.svr_tcp:setCallback(
