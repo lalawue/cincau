@@ -1,2 +1,4 @@
 vendor/*
 cincau/vendor/*
+!vendor/m_dnscnt
+vendor/m_dnscnt/build/*
