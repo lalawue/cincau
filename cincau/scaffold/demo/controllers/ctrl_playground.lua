@@ -56,6 +56,7 @@ function _M:_processUrlEncodedData(post_args)
     return is_input
 end
 
+-- query domain
 function _M:_processQueryDomain(post_args, dns_query)
     for k, domain in pairs(post_args) do
         if k == "domain" then
@@ -67,6 +68,7 @@ function _M:_processQueryDomain(post_args, dns_query)
     return false
 end
 
+-- show query dns entry on page
 function _M:_getDnsShowBlock(config)
     if config.engine_type ~= "mnet" then
         return ""
@@ -103,6 +105,7 @@ function _M:process(config, req, response, params)
         -- proces POS domain
         end
     end
+
     -- render page content
     local page_content =
         render:render(

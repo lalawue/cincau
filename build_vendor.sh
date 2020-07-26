@@ -18,6 +18,7 @@ MNET_DIR=vendor/m_net
 MFOUNDATION_DIR=vendor/m_foundation
 MDNSCNT_DIR=vendor/m_dnscnt
 HP_DIR=vendor/hyperparser
+CURL_DIR=vendor/curl
 VD_DIR=cincau/vendor
 
 mkdir -p $VD_DIR
@@ -30,11 +31,15 @@ fi
 if [ ! -d "$HP_DIR" ]; then
     git clone --depth 1 https://github.com/lalawue/hyperparser $HP_DIR
 fi
+if [ ! -d "$CURL_DIR" ]; then
+    git clone --depth 1 https://github.com/Lua-cURL/Lua-cURLv3.git $CURL_DIR
+fi
 # make
 echo_run "make lib -C $MNET_DIR"
 echo_run "make release -C $MFOUNDATION_DIR"
 echo_run "make -C $MDNSCNT_DIR"
 echo_run "make -C $HP_DIR"
+echo_run "make -C $CURL_DIR"
 # copy
 echo_run "cp -f $MNET_DIR/build/libmnet.* $VD_DIR/libmnet.$SUFFIX"
 echo_run "cp -f $MNET_DIR/extension/luajit/ffi_mnet.lua $VD_DIR"
@@ -42,4 +47,5 @@ echo_run "cp -f $MFOUNDATION_DIR/build/libmfoundation.* $VD_DIR/libmfoundation.$
 echo_run "cp -f $MDNSCNT_DIR/build/libmdns.* $VD_DIR/libmdns.$SUFFIX"
 echo_run "cp -f $HP_DIR/hyperparser.* $VD_DIR/libhyperparser.$SUFFIX"
 echo_run "cp -f $HP_DIR/ffi_hyperparser.lua $VD_DIR"
+echo_run "cp -f $CURL_DIR/lcurl.so $VD_DIR/liblcurl.$SUFFIX"
 echo "build and copy done"

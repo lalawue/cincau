@@ -22,10 +22,10 @@ start_server()
     # package.cpath
     if [ "$(uname)" = "Darwin" ]; then
         export DYLD_LIBRARY_PATH=$VD_PATH
-        export LUA_CPATH=$VD_PATH/?.dylib
+        export LUA_CPATH=$VD_PATH/lib?.dylib
     else
         export LD_LIBRARY_PATH=$VD_PATH
-        export LUA_CPATH=$VD_PATH/?.so
+        export LUA_CPATH=$VD_PATH/lib?.so
     fi
 
     # running app
