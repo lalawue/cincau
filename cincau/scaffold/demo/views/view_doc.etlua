@@ -36,17 +36,23 @@
                 padding-top: 1em;
                 padding-left: 1em;
                 padding-bottom: 1em;
-                overflow: auto;
+
                 color: #FFFFFF;
                 background-color: #444444;
+                white-space: pre;
+                overflow: auto;                
+            }
+            code {
+                text-indent: 0px;
+                white-space: pre;
             }
         </style>
     </head>
-    <body>
-        <h1><%= name %></h1>
-        <hr />
-        <% for _, line in pairs(paragraphs) do %>
-            <%- line -%>
-        <% end %>
-    </body>
-  </html>
+<body>
+<h1><%= name %></h1>
+<hr />
+<% for _, line in pairs(paragraphs) do %>
+<%- line -%>
+<% end %>
+</body>
+</html>

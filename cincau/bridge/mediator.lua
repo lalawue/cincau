@@ -35,7 +35,6 @@ end
 --[[
     request HTTP/HTTPS URL
     option = {
-        header = {...},
         callback = function(header_tbl, data_string) end,
     }
     return header_tbl, data_string (if no callback function set)
