@@ -66,15 +66,17 @@ as a minimalist web framework, default provide sqlite3 connection library [ffi_s
 
 that may be enough for a small web site.
 
-# Technical Detail
+# Technical Details
 
-some technical detail about POST method, query DNS, and raise HTTP Request.
+some technical detail about POST method, query DNS, and raise HTTP Request for mnet engine type, nginx engine type should use other implement for these.
 
 ## POST something
 
 take look at demo project, run and click playground link.
 
 details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
+
+POST "multipart/form-data" example only appears for mnet engine type.
 
 ## Query DNS
 
@@ -84,6 +86,8 @@ like POST something, run and click playground link, usage:
 local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local ipv4 = mediator.queryDomain(domain)
 ```
+
+only for mnet engine type.
 
 ## Raise HTTP Request
 
@@ -99,5 +103,7 @@ local header_tbl, data_str = mediator.requestURL("http://www.baidu.com", option)
 ```
 
 when setting option.callback function, no data_str return.
+
+only for mnet engine type.
 
 EOF

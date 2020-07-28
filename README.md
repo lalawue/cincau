@@ -83,7 +83,7 @@ POST "multipart/form-data" example only appears for mnet engine type.
 like POST something, run and click playground link, usage:
 
 ```sh
-local mediator = require("bridge.mediator")
+local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local ipv4 = mediator.queryDomain(domain)
 ```
 
@@ -94,7 +94,7 @@ only for mnet engine type.
 using [Lua-cURLv3](https://github.com/Lua-cURL/) library, no example in demo project, usage:
 
 ```sh
-local mediator = require("bridge.mediator")
+local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local option = {
     callback = function (header_tbl, data_string)
     end,
