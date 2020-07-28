@@ -7,7 +7,7 @@ cincau was a minimalist, fast and high configurable web framework for [LuaJIT](h
 
 run command below in sequence:
 
-- make [ mnet | nginx ]
+- sh build_vender.sh LUAJIT_INC_DIR LUAJIT_LIB_DIR LUAJIT_LIB_NAME
 - make install
 - cincau.sh /tmp/demo [ mnet | nginx ]
 
