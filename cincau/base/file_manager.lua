@@ -5,7 +5,18 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+local FileSystem = require("base.ffi_lfs")
+local Zlib = require("base.ffi_zlib")
+
 local FileManager = {}
+
+function FileManager.mkdir(dir_path)
+    FileSystem.mkdir(dir_path)
+end
+
+function FileManager.stat(path)
+    return FileSystem.attributes(path)
+end
 
 -- save data to path
 function FileManager.saveFile(file_path, data)
@@ -44,6 +55,52 @@ end
 
 function FileManager.renameFile(oldname, newname)
     os.rename(oldname, newname)
+end
+
+function FileManager.inflate(input_content)
+    if type(input_content) ~= "string" then
+        return nil
+    end
+    local function _input(buf_size)
+        local min_len = math.min(buf_size, input_content:len())
+        if min_len > 0 then
+            local data = input_content:sub(1, min_len)
+            input_content = input_content:sub(1 + min_len)
+            return data
+        end
+    end
+    local tbl = {}
+    local function _ouput(data)
+        tbl[#tbl + 1] = data
+    end
+    local success, err_msg = Zlib.inflateGzip(_input, _ouput)
+    if not success then
+        return table.concat(tbl), err_msg
+    end
+    return table.concat(tbl)
+end
+
+function FileManager.deflate(input_content)
+    if type(input_content) ~= "string" then
+        return nil
+    end
+    local function _input(buf_size)
+        local min_len = math.min(buf_size, input_content:len())
+        if min_len > 0 then
+            local data = input_content:sub(1, min_len)
+            input_content = input_content:sub(1 + min_len)
+            return data
+        end
+    end
+    local tbl = {}
+    local function _ouput(data)
+        tbl[#tbl + 1] = data
+    end
+    local success, err_msg = Zlib.deflateGzip(_input, _ouput)
+    if not success then
+        return table.concat(tbl), err_msg
+    end
+    return table.concat(tbl)
 end
 
 return FileManager
