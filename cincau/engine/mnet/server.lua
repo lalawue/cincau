@@ -13,6 +13,7 @@ local Response = require("engine.response_core")
 local UrlCore = require("base.neturl")
 local FileManager = require("base.file_manager")
 local ThreadBroker = require("bridge.thread_broker")
+local Mediator = require("bridge.mediator")
 
 -- close chann and destroy http parser
 local function _clientDestroy(chann)
@@ -187,7 +188,8 @@ function Serv:run(config, http_callback)
     )
     -- mnet event loop
     while true do
-        NetCore.poll(1000)
+        NetCore.poll(20)
+        Mediator.servLoop()
     end
 end
 

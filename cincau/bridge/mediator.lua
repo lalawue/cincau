@@ -13,7 +13,29 @@ local CurlCore = require("lcurl")
 local _valid = require("config").engine_type == "mnet"
 local DnsCore = _valid and require("bridge.ffi_mdns") or {}
 
-local _M = {}
+local _M = {
+    _callbacks = setmetatable({}, {__mode = "k"})
+}
+
+-- in server loop
+function _M.servLoop()
+    for key, fn in pairs(_M._callbacks) do
+        if fn.func() then
+            _M._callbacks[key] = nil
+            if fn.finalizer then
+                fn.finalizer()
+            end
+            break
+        end
+    end
+end
+
+-- func return false to finish loop, and run finalizer in the end
+local function _addServLoopCallback(key, func, finalizer)
+    if key and type(func) == "function" then
+        _M._callbacks[key] = {func = func, finalizer = finalizer}
+    end
+end
 
 -- query domain's ipv4, return ipv4
 function _M.queryDomain(domain)
@@ -45,22 +67,41 @@ function _M.requestURL(url, option)
         return nil
     end
     option = option or _dummy_option
-    local op =
+    local easy =
         CurlCore.easy {
         url = url,
         httpheader = option.header
     }
     local header_tbl = {}
     local data_tbl = {}
-    op:setopt_headerfunction(table.insert, header_tbl)
+    easy:setopt_headerfunction(table.insert, header_tbl)
     if option.callback then
-        op:setopt_writefunction(option.callback, header_tbl)
+        easy:setopt_writefunction(option.callback, header_tbl)
     else
-        op:setopt_writefunction(table.insert, data_tbl)
+        easy:setopt_writefunction(table.insert, data_tbl)
     end
-    op:perform()
-    op:close()
-    return header_tbl, table.concat(data_tbl)
+    if not _M._multi then
+        _M._multi = CurlCore.multi()
+    end
+    _M._multi:add_handle(easy)
+    local co = coroutine.running()
+    _addServLoopCallback(
+        easy,
+        function()
+            if _M._multi:perform() > 0 then
+                _M._multi:wait(0)
+            else
+                return true
+            end
+        end,
+        function()
+            print("release", easy)
+            _M._multi:remove_handle(easy)
+            easy:close()
+            coroutine.resume(co, header_tbl, table.concat(data_tbl))
+        end
+    )
+    return coroutine.yield()
 end
 
 return _M
