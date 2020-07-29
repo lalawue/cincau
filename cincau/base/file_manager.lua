@@ -8,18 +8,43 @@
 local FileSystem = require("base.ffi_lfs")
 local Zlib = require("base.ffi_zlib")
 
-local FileManager = {}
+local FileManager = {
+    _sandbox_dir = nil,
+    _logger = nil
+}
+
+-- restrict to proj dir
+function FileManager.setupSandboxEnv(config)
+    FileManager._sandbox_dir = config.proj_dir
+    FileManager._logger = config.logger
+end
+
+function FileManager.validatePath(path)
+    if FileManager._sandbox_dir and path then
+        local ret = false
+        ret = (path:find("/", 1, true) == 1) and (path:find(FileManager._sandbox_dir, 1, true) ~= 1)
+        ret = ret or (path:find("..", 1, true) == 1)
+        if ret and FileManager._logger then
+            FileManager._logger.err("invalid path: '%s', out of sandbox", path)
+            print(debug.traceback())
+            os.exit(1)
+        end
+    end
+end
 
 function FileManager.mkdir(dir_path)
+    FileManager.validatePath(dir_path)
     FileSystem.mkdir(dir_path)
 end
 
 function FileManager.stat(path)
+    FileManager.validatePath(path)
     return FileSystem.attributes(path)
 end
 
 -- save data to path
 function FileManager.saveFile(file_path, data)
+    FileManager.validatePath(file_path)
     local f = io.open(file_path, "wb")
     if f then
         f:write(data)
@@ -30,6 +55,7 @@ function FileManager.saveFile(file_path, data)
 end
 
 function FileManager.readFile(file_path)
+    FileManager.validatePath(file_path)
     local f = io.open(file_path, "rb")
     if f then
         local data = f:read("*a")
@@ -40,6 +66,7 @@ function FileManager.readFile(file_path)
 end
 
 function FileManager.appendFile(file_path, data)
+    FileManager.validatePath(file_path)
     local f = io.open(file_path, "a+")
     if f then
         f:write(data)
@@ -50,10 +77,13 @@ function FileManager.appendFile(file_path, data)
 end
 
 function FileManager.removeFile(file_path)
+    FileManager.validatePath(file_path)
     os.remove(file_path)
 end
 
 function FileManager.renameFile(oldname, newname)
+    FileManager.validatePath(oldname)
+    FileManager.validatePath(newname)
     os.rename(oldname, newname)
 end
 

@@ -8,6 +8,7 @@
 local ngx = ngx or {}
 local Request = require("engine.request_core")
 local Response = require("engine.response_core")
+local FileManager = require("base.file_manager")
 
 -- Serv instance
 local Serv = {}
@@ -37,10 +38,15 @@ local function _updateRequest(req, is_multipart_formdata)
     end
 end
 
+-- setup env
+math.randomseed(os.time())
+
 -- run server, http_callback(config, req, response)
 function Serv:run(config, http_callback)
     local fd_tbl = {}
     local multipart_info = nil
+    -- setup env
+    FileManager.setupSandboxEnv(config)
     -- create req
     local nreq = ngx.req
     local nvar = ngx.var

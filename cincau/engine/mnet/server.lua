@@ -167,7 +167,10 @@ function Serv:run(config, http_callback)
     else
         logger.info("listen on %s:%d", addr.ip, addr.port)
     end
+    -- setup env
     math.randomseed(os.time())
+    FileManager.setupSandboxEnv(config)
+    -- create bind
     NetCore.init()
     DnsCore.init(config)
     self.svr_tcp = NetCore.openChann("tcp")
