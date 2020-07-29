@@ -56,12 +56,9 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     _copyFile(engine_dir .. "/server.lua", app_dir .. "/server.lua")
     -- copy others
     _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
+    -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
-    -- replace config proj_dir
-    local content = FileManager.readFile(scaffold_dir .. "/config.lua")
-    content = content:gsub("__PROJ_DIR__", "\"" .. proj_dir .. "\"")
-    FileManager.saveFile(app_dir .. "/config.lua", content)
-    print("write to " .. app_dir .. "/config.lua")
+    _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
 end
 
 -- create project skeleton

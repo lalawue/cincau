@@ -9,21 +9,21 @@ local FileSystem = require("base.ffi_lfs")
 local Zlib = require("base.ffi_zlib")
 
 local FileManager = {
-    _sandbox_dir = nil,
+    _sandboxed = nil,
     _logger = nil
 }
 
 -- restrict to proj dir
 function FileManager.setupSandboxEnv(config)
-    FileManager._sandbox_dir = config.proj_dir
+    FileManager._sandboxed = true
     FileManager._logger = config.logger
 end
 
 function FileManager.validatePath(path)
-    if FileManager._sandbox_dir and path then
+    if FileManager._sandboxed and path then
         local ret = false
-        ret = (path:find("/", 1, true) == 1) and (path:find(FileManager._sandbox_dir, 1, true) ~= 1)
-        ret = ret or (path:find("..", 1, true) == 1)
+        ret = path:find("/", 1, true) == 1
+        ret = ret or path:find("..", 1, true)
         if ret and FileManager._logger then
             FileManager._logger.err("invalid path: '%s', out of sandbox", path)
             print(debug.traceback())
