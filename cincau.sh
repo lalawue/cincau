@@ -34,4 +34,4 @@ if [ ! -d "$CORE_PATH" ]; then
     ln -sf $PWD/cincau $CORE_PATH
 fi
 
-$LUA_JIT $CORE_PATH/main.lua $CORE_PATH $PROJ_PATH $ENGINE_TYPE
+$LUA_JIT $CORE_PATH/proj_prepare.lua $CORE_PATH $PROJ_PATH $ENGINE_TYPE

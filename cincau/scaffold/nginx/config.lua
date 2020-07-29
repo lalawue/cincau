@@ -22,9 +22,12 @@ _logger.printf = function(level, fmt, ...)
     end
 end
 
-return {
+local config = {
     engine_type = "nginx",
     ipport = "", -- defined by config/nginx.conf
     logger = _logger,
+    proj_dir = __PROJ_DIR__, -- restrict file_manager operation dir
     debug_on = false, -- debug framework, close cache
 }
+
+return config
