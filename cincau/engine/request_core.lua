@@ -5,7 +5,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local UrlCore = require("base.neturl")
+local UrlCore = require("base.url_core")
 
 local _M = {}
 _M.__index = _M
