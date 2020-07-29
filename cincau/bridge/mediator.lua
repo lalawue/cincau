@@ -9,9 +9,9 @@
 --
 
 local ThreaBroker = require("bridge.thread_broker")
-local CurlCore = require("lcurl")
-local _valid = require("config").engine_type == "mnet"
-local DnsCore = _valid and require("bridge.ffi_mdns") or {}
+local _engine_valid = require("config").engine_type == "mnet"
+local CurlCore = _engine_valid and require("lcurl") or {}
+local DnsCore = _engine_valid and require("bridge.ffi_mdns") or {}
 
 local _M = {
     _callbacks = setmetatable({}, {__mode = "k"})
@@ -39,7 +39,7 @@ end
 
 -- query domain's ipv4, return ipv4
 function _M.queryDomain(domain)
-    if not _valid then
+    if not _engine_valid then
         return ""
     end
     return ThreaBroker.callThread(
@@ -63,6 +63,9 @@ end
 ]]
 local _dummy_option = {}
 function _M.requestURL(url, option)
+    if not _engine_valid then
+        return ""
+    end
     if type(url) ~= "string" then
         return nil
     end

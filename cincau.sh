@@ -27,7 +27,7 @@ if [ -z "$PROJ_PATH" ]; then
 fi
 
 if [ -z "$ENGINE_TYPE" ]; then
-    ENGINE_TYPE="nginx"
+    ENGINE_TYPE="mnet"
 fi
 
 if [ ! -d "$CORE_PATH" ]; then
