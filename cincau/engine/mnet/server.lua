@@ -190,8 +190,9 @@ function Serv:run(config, http_callback)
         end
     )
     -- mnet event loop
+    local poll_wait = config.poll_wait or 50
     while true do
-        NetCore.poll(20)
+        NetCore.poll(poll_wait)
         Mediator.servLoop()
     end
 end
