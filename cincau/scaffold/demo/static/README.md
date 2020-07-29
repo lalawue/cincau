@@ -106,4 +106,21 @@ when setting option.callback function, no data_str return.
 
 only for mnet engine type.
 
+# Thanks
+
+thanks people build useful libraries below, some are MIT License, or with no license from github.
+
+- [golgote/neturl](https://github.com/golgote/neturl), URL and Query string parser, builder, normalizer for Lua
+- [APItools/router.lua](https://github.com/APItools/router.lua), A barebones router for Lua. It matches urls and executes lua functions.
+- [leafo/etlua](https://github.com/leafo/etlua), Embedded Lua templates
+- [mpx/lua-cjson](https://github.com/mpx/lua-cjson), Lua CJSON is a fast JSON encoding/parsing module for Lua
+- [Lua-cURL/Lua-cURLv3](https://github.com/search?q=lua-curl), Lua binding to libcurl
+- [cyx/cookie.lua](https://github.com/cyx/cookie.lua), basic cookie building / parsing for lua
+- [Tieske/date](https://github.com/Tieske/date), Date & Time module for Lua 5.x
+- [Tieske/uuid](https://github.com/Tieske/uuid/), A pure Lua uuid generator (modified from a Rackspace module)
+- [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
+- [lalawue/hyperparser](https://github.com/lalawue/hyperparser), LuaJIT HTTP parser with pull-style api
+- [lalawue/m_foundation](https://github.com/lalawue/m_foundation), platform dependent C librarey
+- [lalawue/m_dnscnt](https://github.com/lalawue/m_dnscnt), cross platform standalone or library dns client
+
 EOF
