@@ -63,9 +63,15 @@ end
 
 -- default 'Content-Type: text/plain;'
 function _M:staticContent(response, path, content_type)
+    if type(path) ~= "string" then
+        return
+    end
     content_type = content_type or "text/plain"
     response:setHeader("Content-Type", content_type)
-    response:appendBody(FileManager.readFile(path))
+    local page_content = FileManager.readFile(path)
+    if type(page_content) == "string" then
+        response:appendBody(page_content)
+    end
 end
 
 return _M
