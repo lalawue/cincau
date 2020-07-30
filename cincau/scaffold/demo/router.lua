@@ -19,6 +19,15 @@ r:get(
     end
 )
 
+-- get stylesheet files
+r:get(
+    "/styles/:filename/",
+    function(config, req, response, params)
+        master_ctrl:staticContent(response, 'app/styles/' .. params.filename)
+    end
+)
+
+-- jump to doc and input doc name
 r:get(
     "/doc/:name/",
     function(config, req, response, params)
@@ -26,6 +35,7 @@ r:get(
     end
 )
 
+-- get/post in playground page
 local function _playground(config, req, response, params)
     master_ctrl:process("ctrl_playground", config, req, response, params)
 end

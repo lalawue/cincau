@@ -8,6 +8,8 @@
 -- controller was a business logic block for data processing
 --
 
+local FileManager = require("base.file_manager")
+
 local _M = {
     _controllers = {} -- hold all named controller instance
 }
@@ -57,6 +59,13 @@ function _M:process(name, config, ...)
     end
     -- process data
     ctrl:process(config, ...)
+end
+
+-- default 'Content-Type: text/plain;'
+function _M:staticContent(response, path, content_type)
+    content_type = content_type or "text/plain"
+    response:setHeader("Content-Type", content_type)
+    response:appendBody(FileManager.readFile(path))
 end
 
 return _M

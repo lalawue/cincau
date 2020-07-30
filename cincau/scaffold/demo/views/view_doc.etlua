@@ -1,52 +1,6 @@
-  <html>
+<html>
     <head>
-        <style type="text/css">
-            html {
-                width: 100%;
-                background-color: #E8E8D3;
-            }
-            h1 {
-                text-align: left;
-                margin-top: 0.5in;
-                margin-bottom: .2in;
-                margin-left: .5in;
-                font-size: 3em;
-                font-weight: bold;
-            }
-            h2,h3 {
-                margin-left: .5in;
-                text-align: left;
-            }
-            h4 {
-                margin-top: .2in;
-                margin-bottom: .1in;
-                margin-left: .5in;
-                text-align: left;
-            }
-            p {
-                margin-left: .5in;
-                margin-right: .5in;
-            }
-            ul {
-                margin-left: .3in;
-            }
-            pre {
-                margin-left: .5in;
-                margin-right: 1.0in;
-                padding-top: 1em;
-                padding-left: 1em;
-                padding-bottom: 1em;
-
-                color: #FFFFFF;
-                background-color: #444444;
-                white-space: pre;
-                overflow: auto;                
-            }
-            code {
-                text-indent: 0px;
-                white-space: pre;
-            }
-        </style>
+        <link rel="stylesheet" type="text/css" href="/styles/doc.css" />
     </head>
 <body>
 <h1><%= name %></h1>
