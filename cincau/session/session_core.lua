@@ -43,7 +43,20 @@ function _M.inSession(req, skey)
     return false
 end
 
--- store session info to response using 'Set-Cookie'
+--[[ store session info to response using 'Set-Cookie'
+local options = {
+	max_age = 3600,
+	domain = ".example.com",
+	path = "/",
+	expires = time,
+	http_only = true,
+	secure = true
+}
+local expected =
+	"foo=bar; Max-Age=3600; Domain=.example.com; " ..
+	"Path=/; Expires=Wed, 23 Apr 2014 13:01:14 GMT; " ..
+	"HttpOnly; Secure
+]]
 function _M.createSession(req, response, skey, options)
     if not skey or _M.inSession(req, skey) then
         return false
