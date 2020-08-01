@@ -63,6 +63,7 @@ function Serv:run(config, http_callback)
     end
     local data = is_multipart_formdata and "" or nreq.get_body_data()
     local req = Request.new(method, nvar.request_uri, header, data, multipart_info)
+    req:updateRemoteIp(ngx.var.remote_addr)
     _updateRequest(req, is_multipart_formdata)
     -- create response
     local response = Response.new(_response_option)

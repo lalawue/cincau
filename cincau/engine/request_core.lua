@@ -26,6 +26,29 @@ function _M.new(method, path, header, body, multipart_info)
     return req
 end
 
+-- remote addr
+function _M:updateRemoteIp(remote_addr)
+    local headers = self.header
+    local client_ip = headers["x-forwarded-for"]
+    if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" then
+        client_ip = headers["Proxy-Client-IP"]
+    end
+    if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" then
+        client_ip = headers["WL-Proxy-Client-IP"]
+    end
+    if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" then
+        client_ip = remote_addr
+    end
+    -- multi-proxy case
+    if type(client_ip) == "string" then
+        local pos = client_ip:find(",", 1, true)
+        if pos then
+            client_ip = client_ip:sub(1, pos - 1)
+        end
+    end
+    self.remote_ip = client_ip
+end
+
 -- '/hello/word?q=3&r=4'
 -- path: '/hello/word'
 -- query: { q=3, r=4 }

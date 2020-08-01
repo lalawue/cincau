@@ -124,6 +124,7 @@ local function _onClientEventCallback(chann, event_name, _)
             if http_callback then
                 -- create req
                 local req = Request.new(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
+                req:updateRemoteIp(chann:addr().ip)
                 _updateRequest(req)
                 -- create response
                 local option = setmetatable({}, _response_option)
