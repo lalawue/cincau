@@ -10,9 +10,11 @@
 
 local Cookie = require("session.cookie_core")
 local UUIDCore = require("session.uuid_core")
+local Fifo = require("base.fifo")
 
 local _M = {
-    _sessions = setmetatable({}, {__mode = "v"})
+    _sessions = setmetatable({}, {__mode = "v"}),
+    _fifo = Fifo.new()
 }
 
 -- check session exist, input req, response
@@ -67,6 +69,7 @@ function _M.createSession(req, response, skey, options)
     req._cookies[skey] = uuid
     -- create session table
     _M._sessions[uuid] = {}
+    _M._fifo:push({time = os.time(), uuid = uuid})
     return true
 end
 
@@ -108,6 +111,19 @@ function _M.clearSession(req, skey)
     local uuid = req._cookies[skey]
     _M._sessions[uuid] = nil
     return true
+end
+
+-- clear outdate session
+function _M.clearOutdate(seconds)
+    local now = os.time()
+    for i = 1, #_M._fifo:length(), 1 do
+        local tbl = _M._fifo:peek()
+        if now - tbl.time >= seconds then
+            _M._fifo:pop()
+        else
+            break
+        end
+    end
 end
 
 return _M
