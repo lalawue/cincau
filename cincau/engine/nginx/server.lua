@@ -9,6 +9,7 @@ local ngx = ngx or {}
 local Request = require("engine.request_core")
 local Response = require("engine.response_core")
 local FileManager = require("base.file_manager")
+local SessionMgnt = require("session.session_mgnt")
 
 -- Serv instance
 local Serv = {}
@@ -46,6 +47,7 @@ function Serv:run(config, http_callback)
     local fd_tbl = {}
     local multipart_info = nil
     -- setup env
+    SessionMgnt.clearOutdate(config.session_outdate)
     FileManager.setupSandboxEnv(config)
     -- create req
     local nreq = ngx.req

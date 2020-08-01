@@ -25,7 +25,11 @@ function _M.inSession(req, skey)
     for i = 1, 2, 1 do
         if req._cookies then
             local uuid = req._cookies[skey]
-            return (uuid and _M._sessions[uuid] ~= nil) or false
+            local info = uuid and _M._sessions[uuid] or nil
+            if info and info._time then
+                info._time.visited = os.time()
+            end
+            return (info and true) or false
         end
         local cookie_str = req.header["Cookie"]
         if not cookie_str then
@@ -68,8 +72,16 @@ function _M.createSession(req, response, skey, options)
     -- set cookie to req
     req._cookies[skey] = uuid
     -- create session table
-    _M._sessions[uuid] = {}
-    _M._fifo:push({time = os.time(), uuid = uuid})
+    local now = os.time()
+    local tm = {
+        created = now,
+        visited = now,
+        uuid = uuid
+    }
+    _M._sessions[uuid] = {
+        _time = tm
+    }
+    _M._fifo:push(tm)
     return true
 end
 
@@ -83,6 +95,7 @@ function _M.getValue(req, skey, hkey)
     if not uuid or not hvtbl then
         return nil
     end
+    hvtbl._time.visited = os.time()
     return hvtbl[hkey]
 end
 
@@ -100,6 +113,7 @@ function _M.setValue(req, skey, hkey, hval)
         return false
     end
     hvtbl[hkey] = hval
+    hvtbl._time.visited = os.time()
     return true
 end
 
@@ -109,7 +123,12 @@ function _M.clearSession(req, skey)
         return false
     end
     local uuid = req._cookies[skey]
-    _M._sessions[uuid] = nil
+    local hvtbl = _M._sessions[uuid]
+    if hvtbl then
+        hvtbl._time.created = 0
+        hvtbl._time.visited = 0
+        _M._sessions[uuid] = nil
+    end
     return true
 end
 
@@ -117,14 +136,24 @@ end
 function _M.clearOutdate(seconds)
     local now = os.time()
     repeat
-        local tbl = _M._fifo:peek()
-        if tbl and now - tbl.time >= seconds then
-            _M._sessions[tbl.uuid] = nil
-            _M._fifo:pop()
+        local tm = _M._fifo:peek()
+        if not tm then
+            break
+        end
+        _M._fifo:pop()
+        if now - tm.created >= seconds then
+            -- visited in this circle, make it visible in next circle
+            if tm.visited ~= tm.created then
+                tm.visited = now
+                tm.created = now
+                _M._fifo:push(tm)
+            else
+                _M._sessions[tm.uuid] = nil
+            end
         else
             break
         end
-    until tbl == nil
+    until tm == nil
 end
 
 return _M

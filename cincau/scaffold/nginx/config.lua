@@ -27,6 +27,7 @@ local config = {
     ipport = "", -- defined by config/nginx.conf
     logger = _logger,
     debug_on = false, -- debug framework, close cache
+    session_outdate = 300 -- session oudated seconds
 }
 
 return config

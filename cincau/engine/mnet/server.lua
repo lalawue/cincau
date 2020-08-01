@@ -14,6 +14,7 @@ local UrlCore = require("base.url_core")
 local FileManager = require("base.file_manager")
 local ThreadBroker = require("bridge.thread_broker")
 local Mediator = require("bridge.mediator")
+local SessionMgnt = require("session.session_mgnt")
 
 -- close chann and destroy http parser
 local function _clientDestroy(chann)
@@ -192,9 +193,11 @@ function Serv:run(config, http_callback)
     )
     -- mnet event loop
     local poll_wait = config.poll_wait or 50
+    local ssmgnt_outdate = config.session_outdate
     while true do
         NetCore.poll(poll_wait)
         Mediator.servLoop()
+        SessionMgnt.clearOutdate(ssmgnt_outdate)
     end
 end
 
