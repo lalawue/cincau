@@ -17,26 +17,24 @@ local _M = {
 
 -- check session exist, input req, response
 function _M.inSession(req, skey)
-    if not req or not skey then
-        return false
-    end
-    if not req.header or not req._cookies then
+    if not req or not req.header or not skey then
         return false
     end
     for i = 1, 2, 1 do
         if req._cookies then
-            return _M._sessions[req._cookies[skey]] ~= nil
+            local uuid = req._cookies[skey]
+            return (uuid and _M._sessions[uuid] ~= nil) or false
         end
-        local str = req.header["Cookie"]
-        if not str then
+        local cookie_str = req.header["Cookie"]
+        if not cookie_str then
             return false
         end
         req._cookies = {}
-        local tbl = str:split(";")
+        local tbl = cookie_str:split("; ")
         for _, v in ipairs(tbl) do
-            local s, e = v:find("=")
+            local s, e = v:find("=[^=]")
             if s and e then
-                req._cookies[v:sub(1, s - 1)] = v:sub(e + 1)
+                req._cookies[v:sub(1, s - 1)] = v:sub(e)
             end
         end
     end
@@ -58,17 +56,17 @@ local expected =
 	"HttpOnly; Secure
 ]]
 function _M.createSession(req, response, skey, options)
-    if not skey or _M.inSession(req, skey) then
+    if not req or not response or not skey or _M.inSession(req, skey) then
         return false
     end
     -- set cookie to respoinse
     local uuid = UUIDCore.new()
-    local cookie_str = Cookie.build({skey = uuid}, options)
+    local cookie_str = Cookie.build({[skey] = uuid}, options)
     response:setHeader("Set-Cookie", cookie_str)
     -- set cookie to req
-    req._cookies = req._cookies or {}
     req._cookies[skey] = uuid
-    req._sessions[uuid] = {} -- create session table
+    -- create session table
+    _M._sessions[uuid] = {}
     return true
 end
 
