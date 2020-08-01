@@ -10,11 +10,11 @@
 
 local Cookie = require("session.cookie_core")
 local UUIDCore = require("session.uuid_core")
-local Fifo = require("base.fifo")
+local FifoNew = require("base.fifo")
 
 local _M = {
     _sessions = setmetatable({}, {__mode = "v"}),
-    _fifo = Fifo.new()
+    _fifo = FifoNew()
 }
 
 -- check session exist, input req, response
@@ -116,14 +116,15 @@ end
 -- clear outdate session
 function _M.clearOutdate(seconds)
     local now = os.time()
-    for i = 1, #_M._fifo:length(), 1 do
+    repeat
         local tbl = _M._fifo:peek()
-        if now - tbl.time >= seconds then
+        if tbl and now - tbl.time >= seconds then
+            _M._sessions[tbl.uuid] = nil
             _M._fifo:pop()
         else
             break
         end
-    end
+    until tbl == nil
 end
 
 return _M
