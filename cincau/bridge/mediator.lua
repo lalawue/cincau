@@ -10,8 +10,8 @@
 
 local ThreaBroker = require("bridge.thread_broker")
 local _engine_valid = require("config").engine_type == "mnet"
-local CurlCore = _engine_valid and require("lcurl") or {}
 local DnsCore = _engine_valid and require("bridge.ffi_mdns") or {}
+local Browser = _engine_valid and require("bridge.http_browser")
 
 local _M = {
     _callbacks = setmetatable({}, {__mode = "k"})
@@ -30,7 +30,7 @@ function _M.servLoop()
     end
 end
 
--- func return false to finish loop, and run finalizer in the end
+-- check_stop return true to finish loop, and run finalizer in the end
 local function _addServLoopCallback(key, check_stop, finalizer)
     if key and type(check_stop) == "function" then
         _M._callbacks[key] = {check_stop = check_stop, finalizer = finalizer}
@@ -54,15 +54,16 @@ function _M.queryDomain(domain)
     )
 end
 
-local _dummy_option = {}
-
 --[[
     request HTTP/HTTPS URL
     option = {
-        reciever = function(header_tbl, data_string) end, -- for receiving data
+        header = {} -- header option, not implement yet
+        recv_cb = function(header_tbl, data_string) end, -- for receiving data
     }
-    return header_tbl, data_string (if no reciever function set)
+    return header_tbl, data_string (if no recv_cb function set)
 ]]
+local function _dummy_cb()
+end
 function _M.requestURL(url, option)
     if not _engine_valid then
         return ""
@@ -70,41 +71,34 @@ function _M.requestURL(url, option)
     if type(url) ~= "string" then
         return nil
     end
-    option = option or _dummy_option
-    local easy =
-        CurlCore.easy {
-        url = url,
-        httpheader = option.header
-    }
-    local header_tbl = {}
-    local data_tbl = {}
-    easy:setopt_headerfunction(table.insert, header_tbl)
-    if option.reciever then
-        easy:setopt_writefunction(option.reciever, header_tbl)
-    else
-        easy:setopt_writefunction(table.insert, data_tbl)
-    end
-    if not _M._multi then
-        _M._multi = CurlCore.multi()
-    end
-    _M._multi:add_handle(easy)
-    local co = coroutine.running()
-    _addServLoopCallback(
-        easy,
-        function()
-            if _M._multi:perform() > 0 then
-                _M._multi:wait(0)
-            else
-                return true
+    print(option, option and option.recv_cb)
+    return ThreaBroker.callThread(
+        function(ret_func)
+            local data_tbl = {}
+            local recv_cb = option and option.recv_cb or _dummy_cb
+            local url_opt = option or {}
+            url_opt.recv_cb = function(header_tbl, data_str)
+                if header_tbl == nil then
+                    ret_func()
+                elseif data_str then
+                    recv_cb(header_tbl, data_str)
+                    data_tbl[#data_tbl + 1] = data_str
+                else
+                    recv_cb(header_tbl, nil)
+                    ret_func(header_tbl, table.concat(data_tbl))
+                end
             end
-        end,
-        function()
-            _M._multi:remove_handle(easy)
-            easy:close()
-            coroutine.resume(co, header_tbl, table.concat(data_tbl))
+            local brw = Browser.newBrowser()
+            brw:requestURL(url, url_opt)
+            _addServLoopCallback(
+                brw,
+                function()
+                    return brw:onLoopEvent()
+                end,
+                nil
+            )
         end
     )
-    return coroutine.yield()
 end
 
 return _M
