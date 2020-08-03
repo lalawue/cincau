@@ -53,9 +53,6 @@ fi
 if [ ! -d "$HP_DIR" ]; then
     git clone --depth 1 https://github.com/lalawue/hyperparser $HP_DIR
 fi
-if [ ! -d "$CURL_DIR" ]; then
-    git clone --depth 1 https://github.com/Lua-cURL/Lua-cURLv3.git $CURL_DIR
-fi
 if [ ! -d "$OPENSSL_DIR" ]; then
     git clone --depth 1 --recurse https://github.com/zhaozg/lua-openssl.git $OPENSSL_DIR
 fi
