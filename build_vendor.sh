@@ -51,6 +51,9 @@ fi
 if [ ! -d "$CURL_DIR" ]; then
     git clone --depth 1 https://github.com/Lua-cURL/Lua-cURLv3.git $CURL_DIR
 fi
+if [ ! -d "$CJSON_DIR" ]; then
+   git clone --depth 1 https://github.com/openresty/lua-cjson.git $CJSON_DIR
+fi
 # make
 echo_run "make lib -C $MNET_DIR"
 echo_run "make release -C $MFOUNDATION_DIR"
