@@ -20,7 +20,7 @@ local _M = {
 -- in server loop
 function _M.servLoop()
     for key, fn in pairs(_M._callbacks) do
-        if fn.func() then
+        if fn.check_stop() then
             _M._callbacks[key] = nil
             if fn.finalizer then
                 fn.finalizer()
@@ -31,9 +31,9 @@ function _M.servLoop()
 end
 
 -- func return false to finish loop, and run finalizer in the end
-local function _addServLoopCallback(key, func, finalizer)
-    if key and type(func) == "function" then
-        _M._callbacks[key] = {func = func, finalizer = finalizer}
+local function _addServLoopCallback(key, check_stop, finalizer)
+    if key and type(check_stop) == "function" then
+        _M._callbacks[key] = {check_stop = check_stop, finalizer = finalizer}
     end
 end
 
@@ -54,14 +54,15 @@ function _M.queryDomain(domain)
     )
 end
 
+local _dummy_option = {}
+
 --[[
     request HTTP/HTTPS URL
     option = {
-        callback = function(header_tbl, data_string) end,
+        reciever = function(header_tbl, data_string) end, -- for receiving data
     }
-    return header_tbl, data_string (if no callback function set)
+    return header_tbl, data_string (if no reciever function set)
 ]]
-local _dummy_option = {}
 function _M.requestURL(url, option)
     if not _engine_valid then
         return ""
@@ -78,8 +79,8 @@ function _M.requestURL(url, option)
     local header_tbl = {}
     local data_tbl = {}
     easy:setopt_headerfunction(table.insert, header_tbl)
-    if option.callback then
-        easy:setopt_writefunction(option.callback, header_tbl)
+    if option.reciever then
+        easy:setopt_writefunction(option.reciever, header_tbl)
     else
         easy:setopt_writefunction(table.insert, data_tbl)
     end
@@ -98,7 +99,6 @@ function _M.requestURL(url, option)
             end
         end,
         function()
-            print("release", easy)
             _M._multi:remove_handle(easy)
             easy:close()
             coroutine.resume(co, header_tbl, table.concat(data_tbl))

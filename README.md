@@ -96,13 +96,13 @@ using [Lua-cURLv3](https://github.com/Lua-cURL/) library, no example in demo pro
 ```sh
 local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local option = {
-    callback = function (header_tbl, data_string)
+    reciever = function (header_tbl, data_string)
     end,
 }
 local header_tbl, data_str = mediator.requestURL("http://www.baidu.com", option)
 ```
 
-when setting option.callback function, no data_str return.
+when setting option.reciever function, no data_str return.
 
 only for mnet engine type.
 
