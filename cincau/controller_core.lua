@@ -38,10 +38,6 @@ local function _debugOn(config)
     return config and config.debug_on
 end
 
-local function _debugOff(config)
-    return (config == nil) or (not config.debug_on)
-end
-
 function _M:process(name, config, ...)
     assert(type(name) == "string", "invalid controller name")
     local ctrl = self._controllers[name]
@@ -53,7 +49,7 @@ function _M:process(name, config, ...)
             ctrl._inited = true
             ctrl:init(config)
         end
-        if _debugOff(config) then
+        if not _debugOn(config) then
             self._controllers[name] = ctrl
         end
     end

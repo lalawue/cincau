@@ -29,7 +29,7 @@ start_server()
     fi
 
     # running app
-    echo "start cincau web framework"
+    echo "start cincau web framework [mnet]"
     luajit $PROJ_PATH/app/main.lua $* & > /dev/null
     CINCAU_PID=$!
     sleep 1
@@ -44,7 +44,7 @@ start_server()
 stop_server()
 {
     PID_FILE=$PWD/tmp/cincau-mnet.pid
-    echo "stop cincau web framework"
+    echo "stop cincau web framework [mnet]"
     if [ -f $PID_FILE ]; then
         kill $(cat $PWD/tmp/cincau-mnet.pid)
     fi
