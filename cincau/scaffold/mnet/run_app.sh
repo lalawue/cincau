@@ -7,6 +7,9 @@ PROJ_PATH=$(dirname $0)
 
 start_server()
 {
+    mkdir -p $PWD/tmp
+    mkdir -p $PWD/logs
+
     PID_FILE=$PWD/tmp/cincau-mnet.pid
     if [ -f $PID_FILE ]; then
         echo "app already running with pid $(cat $PID_FILE)"

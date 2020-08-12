@@ -43,11 +43,12 @@ function _M.printf(level, fmt, ...)
     if _M.validLevel(level) and type(fmt) == "string" then
         local msg = _M._level_msg[level] .. " " .. string.format(fmt, ...)
         print(msg)
-        if _M._fp == nil then
+        if not _M._fp then
             _M._fp = io.open(_M._dir .. "cincau_mnet.log", "wb")
         end
-        _M._fp:write(msg .. "\n")
-        _M._fp:flush()
+        local fp = _M._fp or io.stdout
+        fp:write(msg .. "\n")
+        fp:flush()
     end
 end
 

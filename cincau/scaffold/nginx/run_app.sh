@@ -4,6 +4,9 @@
 
 start_server()
 {
+    mkdir -p $PWD/tmp
+    mkdir -p $PWD/logs
+
     which $1 > /dev/null
     if [ "$?" = "0" ]; then
         echo "start cincau web framework [nginx]"
