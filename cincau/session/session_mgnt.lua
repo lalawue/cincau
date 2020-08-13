@@ -17,34 +17,17 @@ local _M = {
     _fifo = FifoNew()
 }
 
--- check session exist, input req, response
+-- check session exist, from req
 function _M.inSession(req, skey)
-    if not req or not req.header or not skey then
+    if not req or not skey then
         return false
     end
-    for i = 1, 2, 1 do
-        if req._cookies then
-            local uuid = req._cookies[skey]
-            local info = uuid and _M._sessions[uuid] or nil
-            if info and info._time then
-                info._time.visited = os.time()
-            end
-            return (info and true) or false
-        end
-        local cookie_str = req.header["Cookie"]
-        if not cookie_str then
-            return false
-        end
-        req._cookies = {}
-        local tbl = cookie_str:split("; ")
-        for _, v in ipairs(tbl) do
-            local s, e = v:find("=[^=]")
-            if s and e then
-                req._cookies[v:sub(1, s - 1)] = v:sub(e)
-            end
-        end
+    local uuid = req.cookies[skey]
+    local info = _M._sessions[uuid]
+    if info and info._tm then
+        info._tm.visited = os.time()
     end
-    return false
+    return (info and true) or false
 end
 
 --[[ store session info to response using 'Set-Cookie'
@@ -70,7 +53,7 @@ function _M.createSession(req, response, skey, options)
     local cookie_str = Cookie.build({[skey] = uuid}, options)
     response:setHeader("Set-Cookie", cookie_str)
     -- set cookie to req
-    req._cookies[skey] = uuid
+    req.cookies[skey] = uuid
     -- create session table
     local now = os.time()
     local tm = {
@@ -79,7 +62,7 @@ function _M.createSession(req, response, skey, options)
         uuid = uuid
     }
     _M._sessions[uuid] = {
-        _time = tm
+        _tm = tm
     }
     _M._fifo:push(tm)
     return true
@@ -87,46 +70,46 @@ end
 
 -- check in session first, get hval from session with hkey
 function _M.getValue(req, skey, hkey)
-    if req or req._cookies or not skey or not hkey then
+    if req or not skey or not hkey then
         return nil
     end
-    local uuid = req._cookies[skey]
-    local hvtbl = _M._sessions[uuid]
+    local uuid = req.cookies[skey]
+    local hvtbl = _M.sessions[uuid]
     if not uuid or not hvtbl then
         return nil
     end
-    hvtbl._time.visited = os.time()
+    hvtbl._tm.visited = os.time()
     return hvtbl[hkey]
 end
 
 -- check in session first, set hkey, hval
 function _M.setValue(req, skey, hkey, hval)
-    if not req or not req._cookies or not skey then
+    if not req or not skey then
         return false
     end
     if not hkey or not hval then
         return false
     end
-    local uuid = req._cookies[skey]
+    local uuid = req.cookies[skey]
     local hvtbl = _M._sessions[uuid]
     if not uuid or not hvtbl then
         return false
     end
     hvtbl[hkey] = hval
-    hvtbl._time.visited = os.time()
+    hvtbl._tm.visited = os.time()
     return true
 end
 
 -- check in session first, clear session hkey, hval table
 function _M.clearSession(req, skey)
-    if not req or not req._cookies or not skey then
+    if not req or not skey then
         return false
     end
-    local uuid = req._cookies[skey]
+    local uuid = req.cookies[skey]
     local hvtbl = _M._sessions[uuid]
-    if hvtbl then
-        hvtbl._time.created = 0
-        hvtbl._time.visited = 0
+    if uuid and hvtbl then
+        hvtbl._tm.created = 0
+        hvtbl._tm.visited = 0
         _M._sessions[uuid] = nil
     end
     return true

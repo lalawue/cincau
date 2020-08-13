@@ -23,6 +23,18 @@ function _M.new(method, path, header, body, multipart_info)
     req.header = header
     req.body = body or ""
     req.multipart_info = multipart_info
+    -- cookies
+    req.cookies = {}
+    local cookie_str = header["Cookie"]
+    if cookie_str then
+        local tbl = cookie_str:split("; ")
+        for _, v in ipairs(tbl) do
+            local s, e = v:find("=[^=]")
+            if s and e then
+                req.cookies[v:sub(1, s - 1)] = v:sub(e)
+            end
+        end
+    end
     return req
 end
 
