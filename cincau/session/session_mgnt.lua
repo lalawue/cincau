@@ -10,11 +10,15 @@
 
 local Cookie = require("session.cookie_core")
 local UUIDCore = require("session.uuid_core")
-local FifoNew = require("base.fifo")
+local RBTree = require("lrbtree")
 
 local _M = {
     _sessions = setmetatable({}, {__mode = "v"}),
-    _fifo = FifoNew()
+    _rbtree = RBTree.new(
+        function(tma, tmb)
+            return tma.created > tmb.created
+        end
+    )
 }
 
 -- check session exist, from req
@@ -64,7 +68,7 @@ function _M.createSession(req, response, skey, options)
     _M._sessions[uuid] = {
         _tm = tm
     }
-    _M._fifo:push(tm)
+    _M._rbtree:insert(tm)
     return true
 end
 
@@ -108,8 +112,7 @@ function _M.clearSession(req, skey)
     local uuid = req.cookies[skey]
     local hvtbl = _M._sessions[uuid]
     if uuid and hvtbl then
-        hvtbl._tm.created = 0
-        hvtbl._tm.visited = 0
+        _M._rbtree:delete(hvtbl._tm)
         _M._sessions[uuid] = nil
     end
     return true
@@ -119,17 +122,17 @@ end
 function _M.clearOutdate(seconds)
     local now = os.time()
     repeat
-        local tm = _M._fifo:peek()
+        local tm = _M._rbtree:first()
         if not tm then
             break
         end
-        _M._fifo:pop()
+        _M._rbtree:delete(tm)
         if now - tm.created >= seconds then
             -- visited in this circle, make it visible in next circle
             if tm.visited ~= tm.created then
                 tm.visited = now
                 tm.created = now
-                _M._fifo:push(tm)
+                _M._rbtree:insert(tm)
             else
                 _M._sessions[tm.uuid] = nil
             end
