@@ -67,7 +67,12 @@ function _M:setHeader(key, value)
     if self.opt.fn_set_header then
         self.opt.fn_set_header(key, value)
     else
-        self.http.header[key] = value
+        if key:lower() == "set-cookie" then
+            self.http.cookies = self.http.cookies or {}
+            self.http.cookies[#self.http.cookies + 1] = value
+        else
+            self.http.header[key] = value
+        end
     end
 end
 
@@ -87,6 +92,11 @@ local function _makeHeader(self)
     end
     for k, v in pairs(http.header) do
         content = content .. string.format("%s: %s\r\n", k, v)
+    end
+    if http.cookies then
+        for _, v in ipairs(http.cookies) do
+            content = content .. string.format("Set-Cookie: %s\r\n", v)
+        end
     end
     content = content .. "\r\n"
     self.opt.fn_chunked_callback(content)
