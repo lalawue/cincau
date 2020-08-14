@@ -41,7 +41,6 @@ HP_DIR=vendor/hyperparser
 OPENSSL_DIR=vendor/openssl
 CJSON_DIR=vendor/cjson
 CJSON_FILES="lua_cjson.c strbuf.c fpconv.c"
-LRBTREE_DIR=vendor/lrbtree
 VD_DIR=cincau/vendor
 
 mkdir -p $VD_DIR
@@ -57,9 +56,6 @@ fi
 if [ ! -d "$OPENSSL_DIR" ]; then
     git clone --depth 1 --recurse https://github.com/zhaozg/lua-openssl.git $OPENSSL_DIR
 fi
-if [ ! -d "$LRBTREE_DIR" ]; then
-    git clone --depth 1 --recurse https://github.com/lalawue/lrbtree $LRBTREE_DIR
-fi
 
 # make
 echo_run "make lib -C $MNET_DIR"
@@ -68,7 +64,6 @@ echo_run "make -C $MDNSCNT_DIR"
 echo_run "make -C $HP_DIR"
 echo_run "cd $CJSON_DIR && gcc -o libcjson.$SUFFIX -O3 -shared -fPIC -I$LUAJIT_INC_DIR -L$LUAJIT_LIB_DIR -l$LUAJIT_LIB_NAME $CJSON_FILES && cd -"
 echo_run "make -C $OPENSSL_DIR"
-echo_run "cd $LRBTREE_DIR && gcc -o liblrbtree.$SUFFIX -O3 -shared -fPIC -I$LUAJIT_INC_DIR -L$LUAJIT_LIB_DIR -l$LUAJIT_LIB_NAME *.c && cd -"
 # copy
 echo_run "cp -f $MNET_DIR/build/libmnet.* $VD_DIR/libmnet.$SUFFIX"
 echo_run "cp -f $MNET_DIR/extension/luajit/ffi_mnet.lua $VD_DIR"
@@ -78,5 +73,4 @@ echo_run "cp -f $HP_DIR/hyperparser.* $VD_DIR/libhyperparser.$SUFFIX"
 echo_run "cp -f $HP_DIR/ffi_hyperparser.lua $VD_DIR"
 echo_run "cp -f $CJSON_DIR/libcjson.$SUFFIX $VD_DIR/libcjson.$SUFFIX"
 echo_run "cp -f $OPENSSL_DIR/openssl.so $VD_DIR/libopenssl.$SUFFIX"
-echo_run "cp -f $LRBTREE_DIR/liblrbtree.$SUFFIX $VD_DIR/liblrbtree.$SUFFIX"
 echo "build and copy done"
