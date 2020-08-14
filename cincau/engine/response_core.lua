@@ -13,6 +13,7 @@ local _status_code_msg = {
     ["200"] = "OK",
     ["301"] = "Moved Permanently",
     ["302"] = "Found",
+    ["307"] = "Temporary Redirect",
     ["401"] = "Unauthorized",
     ["403"] = "Forbidden",
     ["404"] = "Not Found",

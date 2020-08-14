@@ -13,10 +13,10 @@ local UUIDCore = require("session.uuid_core")
 local RBTree = require("lrbtree")
 
 local _M = {
-    _sessions = setmetatable({}, {__mode = "v"}),
+    _sessions = {},
     _rbtree = RBTree.new(
         function(tma, tmb)
-            return tma.created > tmb.created
+            return tma.created - tmb.created
         end
     )
 }
@@ -49,7 +49,7 @@ local expected =
 	"HttpOnly; Secure
 ]]
 function _M.createSession(req, response, skey, options)
-    if not req or not response or not skey or _M.inSession(req, skey) then
+    if not response or _M.inSession(req, skey) then
         return false
     end
     -- set cookie to respoinse
@@ -74,11 +74,11 @@ end
 
 -- check in session first, get hval from session with hkey
 function _M.getValue(req, skey, hkey)
-    if req or not skey or not hkey then
+    if not req or not skey or not hkey then
         return nil
     end
     local uuid = req.cookies[skey]
-    local hvtbl = _M.sessions[uuid]
+    local hvtbl = _M._sessions[uuid]
     if not uuid or not hvtbl then
         return nil
     end
