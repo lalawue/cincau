@@ -124,8 +124,8 @@ function _M.clearOutdate(seconds)
         if not tm then
             break
         end
-        _M._fifo:pop(tm)
         if now - tm.created >= seconds then
+            _M._fifo:pop(tm)
             -- visited in this circle, make it visible in next circle
             if tm.visited ~= tm.created then
                 tm.visited = now
