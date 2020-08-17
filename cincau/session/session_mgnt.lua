@@ -10,7 +10,7 @@
 
 local Cookie = require("session.cookie_core")
 local UUIDCore = require("session.uuid_core")
-local List = require("base.list")
+local List = require("base.ffi_list")
 
 local _M = {
     _sessions = {},

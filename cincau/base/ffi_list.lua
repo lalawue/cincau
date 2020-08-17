@@ -6,36 +6,67 @@
 --
 
 --[[
-   list will keep only one value instance,
-   for value <-> node mapping
+   ffi_list will keep only one value instance,
+   for node <-> value mapping,
+   limited size but at least 1e30 slot, change this in _nextKey()
 ]]
+
+local ffi = require("ffi")
+
+ffi.cdef[[
+struct _cnode {
+    struct _cnode *prev;
+    struct _cnode *next;
+    float key;
+};
+struct _chead {
+    struct _cnode *head;
+    struct _cnode *tail;
+};
+void* calloc(size_t count, size_t size);
+void free(void *ptr);
+]]
+
+local C = ffi.C
 
 local _M = {}
 _M.__index = _M
 
+local function _nextKey(self)
+   repeat
+      self._bkey = self._bkey + 1e-30
+   until self._nvmap[self._bkey] == nil
+   return self._bkey
+end
+
+local function _calloc(str)
+   return ffi.cast(str.."*", C.calloc(1, ffi.sizeof(str)))
+end
+
 local function _add_maps(self, node, value)
    self._vnmap[value] = node
-   self._nvmap[node] = value
+   self._nvmap[node.key] = value
    self._count = self._count + 1
    return value
 end
 
 local function _remove_node(self, node)
-   local value = self._nvmap[node]
-   self._nvmap[node] = nil
-   self._vnmap[value] = nil
+   local value = self._nvmap[node.key]
    if self._root.head == node then
       self._root.head = node.next
    end
    if self._root.tail == node then
       self._root.tail = node.prev
    end
-   if node.prev then
+   if node.prev ~= nil then
       node.prev.next = node.next
    end
-   if node.next then
+   if node.next ~= nil then
       node.next.prev = node.prev
    end
+   self._nvmap[node.key] = nil
+   self._vnmap[value] = nil
+   C.free(node)
    self._count = self._count - 1
    return value
 end
@@ -48,14 +79,14 @@ function _M:first()
    if self._count <= 0 then
       return nil
    end
-   return self._nvmap[self._root.head]
+   return self._nvmap[self._root.head.key]
 end
 
 function _M:last()
    if self._count <= 0 then
       return nil
    end
-   return self._nvmap[self._root.tail]
+   return self._nvmap[self._root.tail.key]
 end
 
 function _M:pushf(value)
@@ -63,12 +94,13 @@ function _M:pushf(value)
       return nil
    end
    local node = self._vnmap[value]
-   if node then
+   if node ~= nil then
       _remove_node(self, node)
    end
-   node = {}
+   node = _calloc("struct _cnode")
+   node.key = _nextKey(self)
    node.next = self._root.head
-   if self._root.head then
+   if self._root.head ~= nil then
       self._root.head.prev = node
    else
       self._root.tail = node
@@ -82,12 +114,13 @@ function _M:pushl(value)
       return nil
    end
    local node = self._vnmap[value]
-   if node then
+   if node ~= nil then
       _remove_node(self, node)
    end
-   node = {}
+   node = _calloc("struct _cnode")
+   node.key = _nextKey(self)
    node.prev = self._root.tail
-   if self._root.tail then
+   if self._root.tail ~= nil then
       self._root.tail.next = node      
    else
       self._root.head = node
@@ -115,7 +148,7 @@ function _M:remove(value)
       return nil
    end
    local node = self._vnmap[value]
-   if node then
+   if node ~= nil then
       return _remove_node(self, node)
    end
 end
@@ -133,7 +166,7 @@ function _M:range(from, to)
    repeat
       local nn = node.next
       if idx >= from and idx <= to then
-         range[#range + 1] = self._nvmap[node]
+         range[#range + 1] = self._nvmap[node.key]
       end
       node = nn
       idx = idx + 1
@@ -148,12 +181,12 @@ function _M:walk()
    local idx = 1
    local node = self._root.head
    return function()
-      if node then
+      if node ~= nil then
          local i = idx
          local n = node
          idx = idx + 1
          node = node.next
-         return i, self._nvmap[n]
+         return i, self._nvmap[n.key]
       else
          return nil
       end
@@ -166,12 +199,18 @@ end
 
 -- constructor
 local function _new()
-   local ins = {}
-   setmetatable(ins, _M)
-   ins._root = {}
+   local ins = setmetatable({}, _M)
+   ins._root = _calloc("struct _chead")
    ins._count = 0
    ins._vnmap = {}              -- value to node
    ins._nvmap = {}              -- node to value
+   ins._bkey = 0            -- for key generation
+   ffi.gc(ins._root, function(ins)
+             for _, n in pairs(ins._vnmap) do
+                C.free(n)
+             end
+             C.free(ins)
+   end)
    return ins
 end
 
