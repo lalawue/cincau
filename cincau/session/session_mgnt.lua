@@ -10,12 +10,19 @@
 
 local Cookie = require("session.cookie_core")
 local UUIDCore = require("session.uuid_core")
-local Fifo = require("base.fifo")
+local List = require("base.list")
 
 local _M = {
     _sessions = {},
-    _fifo = Fifo()
+    _lst = List.new()
 }
+
+-- update time struct, push to last
+local function _updateTime(lst, tm)
+    tm.time = os.time()
+    lst:remove(tm)
+    lst:pushl(tm)
+end
 
 -- check session exist, from req
 function _M.inSession(req, skey)
@@ -23,11 +30,11 @@ function _M.inSession(req, skey)
         return false
     end
     local uuid = req.cookies[skey]
-    local info = _M._sessions[uuid]
-    if info and info._tm then
-        info._tm.visited = os.time()
+    local sinfo = _M._sessions[uuid]
+    if sinfo and sinfo.tm then
+        _updateTime(_M._lst, sinfo.tm)
     end
-    return (info and true) or false
+    return (sinfo and true) or false
 end
 
 --[[ store session info to response using 'Set-Cookie'
@@ -57,14 +64,13 @@ function _M.createSession(req, response, skey, options)
     -- create session table
     local now = os.time()
     local tm = {
-        created = now,
-        visited = now,
+        time = now,
         uuid = uuid
     }
     _M._sessions[uuid] = {
-        _tm = tm
+        tm = tm
     }
-    _M._fifo:push(tm)
+    _M._lst:pushl(tm)
     return true
 end
 
@@ -74,12 +80,12 @@ function _M.getValue(req, skey, hkey)
         return nil
     end
     local uuid = req.cookies[skey]
-    local hvtbl = _M._sessions[uuid]
-    if not uuid or not hvtbl then
+    local sinfo = _M._sessions[uuid]
+    if not uuid or not sinfo then
         return nil
     end
-    hvtbl._tm.visited = os.time()
-    return hvtbl[hkey]
+    _updateTime(_M._lst, sinfo.tm)
+    return sinfo[hkey]
 end
 
 -- check in session first, set hkey, hval
@@ -91,12 +97,12 @@ function _M.setValue(req, skey, hkey, hval)
         return false
     end
     local uuid = req.cookies[skey]
-    local hvtbl = _M._sessions[uuid]
-    if not uuid or not hvtbl then
+    local sinfo = _M._sessions[uuid]
+    if not uuid or not sinfo then
         return false
     end
-    hvtbl[hkey] = hval
-    hvtbl._tm.visited = os.time()
+    sinfo[hkey] = hval
+    _updateTime(_M._lst, sinfo.tm)
     return true
 end
 
@@ -106,11 +112,9 @@ function _M.clearSession(req, skey)
         return false
     end
     local uuid = req.cookies[skey]
-    local hvtbl = _M._sessions[uuid]
-    if uuid and hvtbl then
-        local tm = hvtbl._tm
-        tm.created = 0
-        tm.visited = 0
+    local sinfo = _M._sessions[uuid]
+    if uuid and sinfo then
+        _M._lst:remove(sinfo.tm)
         _M._sessions[uuid] = nil
     end
     return true
@@ -120,23 +124,12 @@ end
 function _M.clearOutdate(seconds)
     local now = os.time()
     repeat
-        local tm = _M._fifo:peek()
-        if not tm then
+        local tm = _M._lst:first()
+        if not tm or now - tm.time < seconds then
             break
         end
-        if now - tm.created >= seconds then
-            _M._fifo:pop(tm)
-            -- visited in this circle, make it visible in next circle
-            if tm.visited ~= tm.created then
-                tm.visited = now
-                tm.created = now
-                _M._fifo:push(tm)
-            else
-                _M._sessions[tm.uuid] = nil
-            end
-        else
-            break
-        end
+        _M._lst:popf(tm)
+        _M._sessions[tm.uuid] = nil
     until tm == nil
 end
 
