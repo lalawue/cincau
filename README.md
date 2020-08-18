@@ -5,9 +5,18 @@ cincau was a minimalist, fast and high configurable web framework for [LuaJIT](h
 
 ## Install
 
-run command below in sequence:
+first, export like
 
-- sh build_vender.sh LUAJIT_INC_DIR LUAJIT_LIB_DIR LUAJIT_LIB_NAME
+```sh
+$ export LUAJIT_INC_DIR=/usr/local/include
+$ export LUAJIT_LIB_DIR=/usr/local/lib
+$ export LUAJIT_LIB_NAME=luajit
+$ export PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1g/lib/pkgconfig
+```
+
+then run command below in sequence:
+
+- sh build_vender.sh
 - make install
 - cincau.sh /tmp/demo [ mnet | nginx ]
 
