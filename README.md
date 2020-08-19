@@ -100,8 +100,6 @@ only for mnet engine type.
 
 ## Raise HTTP Request
 
-using [Lua-cURLv3](https://github.com/Lua-cURL/) library, no example in demo project, usage:
-
 ```sh
 local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local option = {
