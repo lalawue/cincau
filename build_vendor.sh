@@ -42,6 +42,8 @@ OPENSSL_DIR=vendor/openssl
 CJSON_DIR=vendor/cjson
 CJSON_FILES="lua_cjson.c strbuf.c fpconv.c"
 CABINET_DIR=vendor/cabinet
+RESP_FILES="resp.c lauxhlib.c"
+RESP_DIR=vendor/lua-resp
 VD_DIR=cincau/vendor
 
 LUA_FLAGS="-I$LUAJIT_INC_DIR -L$LUAJIT_LIB_DIR -l$LUAJIT_LIB_NAME"
@@ -62,6 +64,9 @@ fi
 if [ ! -d "$CABINET_DIR" ]; then
    git clone --depth 1 https://github.com/lalawue/lua-tokyocabinet.git $CABINET_DIR
 fi
+if [ ! -d "$RESP_DIR" ]; then
+    git clone  --depth 1 https://github.com/lalawue/lua-resp.git $RESP_DIR
+fi
 
 # make
 echo_run "make lib -C $MNET_DIR"
@@ -72,6 +77,7 @@ echo_run "cd $CJSON_DIR && gcc -o libcjson.$SUFFIX -O3 -shared -fPIC $LUA_FLAGS 
 echo_run "make -C $OPENSSL_DIR"
 echo_run "cd $CABINET_DIR && ./build.sh tokyocabinet && cd -"
 echo_run "cd $CABINET_DIR && ./build.sh lua $LUA_FLAGS && cd -" 
+echo_run "cd $RESP_DIR/src && gcc -o ../libresp.$SUFFIX -O3 -shared -fPIC -I./ $LUA_FLAGS $RESP_FILES && cd -"
 # copy
 echo_run "cp -f $MNET_DIR/build/libmnet.* $VD_DIR/libmnet.$SUFFIX"
 echo_run "cp -f $MNET_DIR/extension/luajit/ffi_mnet.lua $VD_DIR"
@@ -83,4 +89,5 @@ echo_run "cp -f $CJSON_DIR/libcjson.$SUFFIX $VD_DIR/libcjson.$SUFFIX"
 echo_run "cp -f $OPENSSL_DIR/openssl.so $VD_DIR/libopenssl.$SUFFIX"
 echo_run "cp -f $CABINET_DIR/tokyocabinet-1.4.48/libtokyocabinet.9.11.0.* $VD_DIR/libtokyocabinet.9.$SUFFIX"
 echo_run "cp -f $CABINET_DIR/cabinet.so $VD_DIR/libcabinet.$SUFFIX"
+echo_run "cp -f $RESP_DIR/libresp.$SUFFIX $VD_DIR/libresp.$SUFFIX"
 echo "build and copy done"
