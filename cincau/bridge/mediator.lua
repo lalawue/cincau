@@ -12,6 +12,7 @@ local ThreaBroker = require("bridge.thread_broker")
 local _engine_valid = require("config").engine_type == "mnet"
 local DnsCore = _engine_valid and require("bridge.ffi_mdns") or {}
 local Browser = _engine_valid and require("bridge.http_browser")
+local RedisCmd = _engine_valid and require("bridge.redis_cmd")
 
 local _M = {
     _callbacks = setmetatable({}, {__mode = "k"})
@@ -97,6 +98,25 @@ function _M.requestURL(url, option)
                 end,
                 nil
             )
+        end
+    )
+end
+
+--[[
+    redis cmd_tbl as { "SET", "KEY", "VALUE" },
+    option as { ipv4 = "127.0.0.1", port = 6379 }
+]]
+local _redis_option = {ipv4 = "127.0.0.1", port = 6379}
+function _M.redisCMD(cmd_tbl, option)
+    if type(cmd_tbl) ~= "table" then
+        return nil
+    end
+    option = option or _redis_option
+    return ThreaBroker.callThread(
+        function(ret_func)
+            if not RedisCmd.runCMD(option.ipv4, option.port, cmd_tbl, ret_func) then
+                ret_func(nil)
+            end
         end
     )
 end
