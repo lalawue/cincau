@@ -448,4 +448,12 @@ function M:normalize()
 	return self
 end
 
+function M.encode(str)
+    return encode(str)
+end
+
+function M.decode(str, path)
+    return decode(str, path)
+end
+
 return M
