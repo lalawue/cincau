@@ -106,15 +106,13 @@ end
     redis cmd_tbl as { "SET", "KEY", "VALUE" },
     option as { ipv4 = "127.0.0.1", port = 6379 }
 ]]
-local _redis_option = {ipv4 = "127.0.0.1", port = 6379}
-function _M.redisCMD(cmd_tbl, option)
-    if type(cmd_tbl) ~= "table" then
+function _M.redisCMD(option, cmd_tbl)
+    if type(cmd_tbl) ~= "table" or type(option) ~= "table" then
         return nil
     end
-    option = option or _redis_option
     return ThreaBroker.callThread(
         function(ret_func)
-            if not RedisCmd.runCMD(option.ipv4, option.port, cmd_tbl, ret_func) then
+            if not RedisCmd.runCMD(option, cmd_tbl, ret_func) then
                 ret_func(nil)
             end
         end
