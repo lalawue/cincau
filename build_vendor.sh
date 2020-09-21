@@ -28,7 +28,7 @@ echo_run()
     eval $1
 }
 
-if [ $(uname -s) == "Darwin" ]; then
+if [ $(uname -s) = "Darwin" ]; then
     SUFFIX=dylib
 else
     SUFFIX=so

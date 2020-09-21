@@ -37,6 +37,7 @@ function _M.runCMD(option, cmd_tbl, ret_func)
     if _M._chann:state() == "state_connected" then
         if type(msg) == "string" then
             _M._chann:send(msg)
+            msg = nil
         end
         return
     end
@@ -44,6 +45,7 @@ function _M.runCMD(option, cmd_tbl, ret_func)
         if event_name == "event_connected" then
             if type(msg) == "string" then
                 chann:send(msg)
+                msg = nil
             else
                 ret_func(nil)
             end
