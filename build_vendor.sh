@@ -43,6 +43,7 @@ CJSON_DIR=vendor/cjson
 CJSON_FILES="lua_cjson.c strbuf.c fpconv.c"
 RESP_FILES="resp.c lauxhlib.c"
 RESP_DIR=vendor/lua-resp
+PACKER_DIR=vendor/serialize
 VD_DIR=cincau/vendor
 
 LUA_FLAGS="-I$LUAJIT_INC_DIR -L$LUAJIT_LIB_DIR -l$LUAJIT_LIB_NAME"
@@ -63,6 +64,9 @@ fi
 if [ ! -d "$RESP_DIR" ]; then
     git clone  --depth 1 https://github.com/lalawue/lua-resp.git $RESP_DIR
 fi
+if [ ! -d "$PACKER_DIR" ]; then
+    git clone  --depth 1 https://github.com/lalawue/lua-serialize.git $PACKER_DIR
+fi
 
 # make
 echo_run "make lib -C $MNET_DIR"
@@ -72,6 +76,7 @@ echo_run "make -C $HP_DIR"
 echo_run "cd $CJSON_DIR && gcc -o libcjson.$SUFFIX -O3 -shared -fPIC $LUA_FLAGS $CJSON_FILES && cd -"
 echo_run "make -C $OPENSSL_DIR"
 echo_run "cd $RESP_DIR/src && gcc -o ../libresp.$SUFFIX -O3 -shared -fPIC -I./ $LUA_FLAGS $RESP_FILES && cd -"
+echo_run "cd $PACKER_DIR && gcc -o libpacker.$SUFFIX -O3 -shared -fPIC $LUA_FLAGS lpacker.c && cd -"
 # copy
 echo_run "cp -f $MNET_DIR/build/libmnet.* $VD_DIR/libmnet.$SUFFIX"
 echo_run "cp -f $MNET_DIR/extension/luajit/ffi_mnet.lua $VD_DIR"
@@ -82,4 +87,5 @@ echo_run "cp -f $HP_DIR/ffi_hyperparser.lua $VD_DIR"
 echo_run "cp -f $CJSON_DIR/libcjson.$SUFFIX $VD_DIR/libcjson.$SUFFIX"
 echo_run "cp -f $OPENSSL_DIR/openssl.so $VD_DIR/libopenssl.$SUFFIX"
 echo_run "cp -f $RESP_DIR/libresp.$SUFFIX $VD_DIR/libresp.$SUFFIX"
+echo_run "cp -f $PACKER_DIR/libpacker.$SUFFIX $VD_DIR/libpacker.$SUFFIX"
 echo "build and copy done"

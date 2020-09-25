@@ -129,6 +129,7 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [hamishforbes/lua-ffi-zlib](https://github.com/hamishforbes/lua-ffi-zlib)
 - [pkulchenko/serpent](https://github.com/pkulchenko/serpent), Lua serializer and pretty printer
 - [ColonelThirtyTwo/lsqlite3-ffi](https://github.com/ColonelThirtyTwo/lsqlite3-ffi), Lua SQLite using LuaJIT's FFI library
+- [cloudwu/lua-serialize](https://github.com/cloudwu/lua-serialize), Serialize lua objects into a binary block
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/hyperparser](https://github.com/lalawue/hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/m_foundation](https://github.com/lalawue/m_foundation), platform dependent C librarey
