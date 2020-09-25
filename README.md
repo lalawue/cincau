@@ -133,5 +133,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [lalawue/hyperparser](https://github.com/lalawue/hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/m_foundation](https://github.com/lalawue/m_foundation), platform dependent C librarey
 - [lalawue/m_dnscnt](https://github.com/lalawue/m_dnscnt), cross platform standalone or library dns client
+- [lalawue/ffi_bitcask.lua](https://github.com/lalawue/ffi_bitcask.lua), Bitcask key/value store for LuaJIT
 
 EOF
