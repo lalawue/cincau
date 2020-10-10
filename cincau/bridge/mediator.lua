@@ -72,7 +72,6 @@ function _M.requestURL(url, option)
     if type(url) ~= "string" then
         return nil
     end
-    print(option, option and option.recv_cb)
     return ThreaBroker.callThread(
         function(ret_func)
             local data_tbl = {}

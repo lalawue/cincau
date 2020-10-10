@@ -103,7 +103,10 @@ only for mnet engine type.
 ```sh
 local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local option = {
-    reciever = function (header_tbl, data_string)
+    recv_cb = function (header_tbl, data_string)
+        if data_string == nil then
+            -- data finished
+        end
     end,
 }
 local header_tbl, data_str = mediator.requestURL("http://www.baidu.com", option)

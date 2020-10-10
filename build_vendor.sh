@@ -35,8 +35,7 @@ else
 fi
 
 MNET_DIR=vendor/m_net
-MFOUNDATION_DIR=vendor/m_foundation
-MDNSCNT_DIR=vendor/m_dnscnt
+MDNSUTILS_DIR=vendor/m_dnsutils
 HP_DIR=vendor/hyperparser
 OPENSSL_DIR=vendor/openssl
 CJSON_DIR=vendor/cjson
@@ -52,8 +51,8 @@ mkdir -p $VD_DIR
 if [ ! -d "$MNET_DIR" ]; then
     git clone --depth 1 https://github.com/lalawue/m_net.git $MNET_DIR
 fi
-if [ ! -d "$MFOUNDATION_DIR" ]; then
-    git clone --depth 1 https://github.com/lalawue/m_foundation.git $MFOUNDATION_DIR
+if [ ! -d "$MDNSUTILS_DIR" ]; then
+    git clone --depth 1 https://github.com/lalawue/m_dnsutils.git $MDNSUTILS_DIR
 fi
 if [ ! -d "$HP_DIR" ]; then
     git clone --depth 1 https://github.com/lalawue/hyperparser $HP_DIR
@@ -70,8 +69,7 @@ fi
 
 # make
 echo_run "make lib -C $MNET_DIR"
-echo_run "make release -C $MFOUNDATION_DIR"
-echo_run "make -C $MDNSCNT_DIR"
+echo_run "cd $MDNSUTILS_DIR && gcc -o libmdns_utils.$SUFFIX -O3 -shared -fPIC mdns_utils.c && cd -"
 echo_run "make -C $HP_DIR"
 echo_run "cd $CJSON_DIR && gcc -o libcjson.$SUFFIX -O3 -shared -fPIC $LUA_FLAGS $CJSON_FILES && cd -"
 echo_run "make -C $OPENSSL_DIR"
@@ -80,8 +78,7 @@ echo_run "cd $PACKER_DIR && gcc -o libpacker.$SUFFIX -O3 -shared -fPIC $LUA_FLAG
 # copy
 echo_run "cp -f $MNET_DIR/build/libmnet.* $VD_DIR/libmnet.$SUFFIX"
 echo_run "cp -f $MNET_DIR/extension/luajit/ffi_mnet.lua $VD_DIR"
-echo_run "cp -f $MFOUNDATION_DIR/build/libmfoundation.* $VD_DIR/libmfoundation.$SUFFIX"
-echo_run "cp -f $MDNSCNT_DIR/build/libmdns.* $VD_DIR/libmdns.$SUFFIX"
+echo_run "cp -f $MDNSUTILS_DIR/libmdns_utils.* $VD_DIR/libmdns_utils.$SUFFIX"
 echo_run "cp -f $HP_DIR/hyperparser.* $VD_DIR/libhyperparser.$SUFFIX"
 echo_run "cp -f $HP_DIR/ffi_hyperparser.lua $VD_DIR"
 echo_run "cp -f $CJSON_DIR/libcjson.$SUFFIX $VD_DIR/libcjson.$SUFFIX"
