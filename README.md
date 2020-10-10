@@ -135,8 +135,7 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [cloudwu/lua-serialize](https://github.com/cloudwu/lua-serialize), Serialize lua objects into a binary block
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/hyperparser](https://github.com/lalawue/hyperparser), LuaJIT HTTP parser with pull-style api
-- [lalawue/m_foundation](https://github.com/lalawue/m_foundation), platform dependent C librarey
-- [lalawue/m_dnscnt](https://github.com/lalawue/m_dnscnt), cross platform standalone or library dns client
+- [lalawue/m_dnsutils](https://github.com/lalawue/m_dnsutils), cross platform dns packet builder/parser
 - [lalawue/ffi_bitcask.lua](https://github.com/lalawue/ffi_bitcask.lua), Bitcask key/value store for LuaJIT
 
 EOF
