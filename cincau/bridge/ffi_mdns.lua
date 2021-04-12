@@ -44,7 +44,7 @@ ffi.cdef [[
 local DnsCore = ffi.load("mdns_utils")
 local NetCore = require("ffi_mnet")
 local UrlCore = require("base.url_core")
-local AvlTree = require("base.ffi_avl")
+local AvlTree = require("base.avl")
 
 local _M = {}
 _M.__index = {}
