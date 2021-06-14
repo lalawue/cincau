@@ -137,5 +137,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [lalawue/hyperparser](https://github.com/lalawue/hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/m_dnsutils](https://github.com/lalawue/m_dnsutils), cross platform dns packet builder/parser
 - [lalawue/ffi_bitcask.lua](https://github.com/lalawue/ffi_bitcask.lua), Bitcask key/value store for LuaJIT
+- [lalawue/mooncake](https://github.com/lalawue/mooncake), a Swift like programming language compiles to Lua
 
 EOF
