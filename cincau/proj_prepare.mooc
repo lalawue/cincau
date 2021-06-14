@@ -9,81 +9,81 @@
 -- generate demo project
 --
 
-local core_dir, proj_dir, engine_type = ...
+core_dir, proj_dir, engine_type = ...
 
 package.path = package.path .. string.format(";%s/?.lua", core_dir)
-local Logger = require("base.logger")
-local FileManager = require("base.file_manager")
+import Logger from "base.logger"
+import FileManager from "base.file_manager"
 
 -- check input params
-local function _check_params(core_dir, proj_dir, engine_type)
-    if core_dir == nil or proj_dir == nil or engine_type == nil then
+fn _check_params(core_dir, proj_dir, engine_type) {
+    if core_dir == nil or proj_dir == nil or engine_type == nil {
         print("please provide core_dir proj_dir engine_type !")
         return false
-    end
+    }
     engine_type = string.lower(engine_type)
-    if engine_type == "mnet" or engine_type == "nginx" then
+    if engine_type == "mnet" or engine_type == "nginx" {
         print("create cincau demo project with:")
         print("core_dir:", core_dir)
         print("proj_dir:", proj_dir)
         print("engine_type:", engine_type)
         return true
-    end
-end
+    }
+}
 
 -- operation function
-local _runCmd = os.execute
+_runCmd = os.execute
 
-local function _mkDir(dir)
-    local cmd = "mkdir -p " .. dir
+fn _mkDir(dir) {
+    cmd = "mkdir -p " .. dir
     print(cmd)
     _runCmd(cmd)
-end
+}
 
-local function _copyFile(src, dest)
-    local cmd = "cp -af " .. src .. " " .. dest
+fn _copyFile(src, dest) {
+    cmd = "cp -af " .. src .. " " .. dest
     print(cmd)
     _runCmd(cmd)
-end
+}
 
 -- create demo app
-local function _createAppSkeleton(core_dir, proj_dir, engine_type)
+fn _createAppSkeleton(core_dir, proj_dir, engine_type) {
     print("---")
-    local app_dir = proj_dir .. "/app/"
+    app_dir = proj_dir .. "/app/"
     _mkDir(app_dir)
     -- copy engine
-    local engine_dir = core_dir .. "/engine/" .. engine_type
-    _copyFile(engine_dir .. "/server.lua", app_dir .. "/server.lua")
+    engine_dir = core_dir .. "/engine/" .. engine_type
+    _copyFile(engine_dir .. "/server.mooc", app_dir .. "/server.mooc")
     -- copy others
     _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
     -- copy config
-    local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
-    _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
-end
+    scaffold_dir = core_dir .. "/scaffold/" .. engine_type
+    _copyFile(scaffold_dir .. "/config.mooc", app_dir .. "/config.mooc")
+}
 
 -- create project skeleton
-local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
-    if not _check_params(core_dir, proj_dir, engine_type) then
+fn _createProjectSkeleton(core_dir, proj_dir, engine_type) {
+    if not _check_params(core_dir, proj_dir, engine_type) {
         return false
-    end
+    }
     -- create proj dirs
     print("--")
-    local proj_tbl = {"/tmp", "/" .. Logger.getOutputDir()}
-    for _, v in ipairs(proj_tbl) do
+    proj_tbl = {"/tmp", "/" .. Logger.getOutputDir()}
+    for _, v in ipairs(proj_tbl) {
         _mkDir(proj_dir .. v)
-    end
+    }
     -- copy scaffold
-    local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
+    scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/run_app.sh", proj_dir .. "/run_app.sh")
-    if engine_type == "nginx" then
+    if engine_type == "nginx" {
         local conf_dir = proj_dir .. "/config"
         _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
         _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
-    end
+    }
     -- create app dir
     _createAppSkeleton(core_dir, proj_dir, engine_type)
-end
+}
 
 -- start creation
 _createProjectSkeleton(core_dir, proj_dir, engine_type)

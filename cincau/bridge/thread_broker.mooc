@@ -1,0 +1,51 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+struct ThreadBroker {
+
+    _threads = {}
+
+    -- keep thread context in list
+    static fn addThread(key, co) {
+        if type(co) == "thread" {
+            Self._threads[tostring(key)] = co
+        }
+    }
+
+    -- remove thread context
+    static fn removeThread(key) {
+        if key {
+            Self._threads[tostring(key)] = nil
+        }
+    }
+
+    static fn _dummy_func() {
+    }
+
+    -- Usage: turn callback into coroutine sequence
+    -- func_thread(ret_func)
+    --     .. do anything ..
+    --     ret_func(ret_value_1, ret_value_2, ...)
+    -- end
+    static fn callThread(func_thread) {
+        if type(func_thread) ~= "function" {
+            return
+        }
+        co = coroutine.running()
+        if co {
+            ret_func = { ... in
+                coroutine.resume(co, ...)
+            }
+            func_thread(ret_func)
+            return coroutine.yield()
+        } else {
+            return func_thread(Self._dummy_func)
+        }
+    }
+}
+
+return ThreadBroker

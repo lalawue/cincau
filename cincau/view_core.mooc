@@ -1,0 +1,74 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- view core render template using proper rendering engine
+--
+
+import FileManager from "base.file_manager"
+import CoreEtlua from "render.etlua"
+
+fn _debugOff(config) {
+    return (config == nil) or (not config.debug_on)
+}
+
+struct ViewCore {
+    _templates = {} -- compiled templates
+
+    fn init() {
+        _templates = {}
+    }
+
+    -- render file
+    fn render(name, value_tbl, config) {
+        assert(type(name) == "string", "invalid view name")
+        tmpl = self._templates[name]
+        --  template not loaded
+        if type(tmpl) ~= "function" {
+            content = FileManager.readFile("app/views/" .. name .. ".etlua")
+            -- invalid template
+            if type(content) ~= "string" {
+                config.logger.err("failed to find view: %s", name)
+                return nil
+            } else {
+                tmpl = CoreEtlua.compile(content)
+                if type(tmpl) ~= "function" {
+                    config.logger.err("failed to compile view: %s", name)
+                    return nil
+                }
+                if _debugOff(config) {
+                    self._templates[name] = tmpl
+                }
+            }
+        }
+        -- return template string
+        return tmpl(value_tbl)
+    }
+
+    -- render string with cache_name
+    fn renderString(content, value_tbl, config, cache_name) {
+        assert(type(content) == "string", "not string")
+        assert(type(value_tbl) == "table", "not table")
+        tmpl = nil
+        -- read cache_name first
+        if type(cache_name) == "string" {
+            tmpl = self._templates[cache_name]
+        }
+        if type(tmpl) ~= "function" {
+            tmpl = CoreEtlua.compile(content)
+            if type(tmpl) ~= "function" {
+                config.logger.err("failed to compile string: %s", cache_name)
+                return nil
+            }
+            if cache_name and _debugOff(config) {
+                self._templates[cache_name] = tmpl
+            }
+        }
+        return tmpl(value_tbl)
+    }
+}
+
+return ViewCore

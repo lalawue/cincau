@@ -1,0 +1,80 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- controller was a business logic block for data processing
+--
+
+import FileManager from "base.file_manager"
+
+fn _debugOn(config) {
+    return config and config.debug_on
+}
+
+-- controller instance
+--
+
+class Controller {
+
+    _inited = false
+
+    fn init() {
+    }
+
+    fn process() {        
+    }
+}
+
+-- master controller interface
+--
+struct MasterController {
+
+    -- hold all named controller instance
+    _controllers = {}
+
+    static fn process(name, config, ...) {
+        assert(type(name) == "string", "invalid controller name")
+        ctrl = Self._controllers[name]
+        if type(ctrl) ~= "table" {
+            -- assume all controller business under controllers dir
+            libname = "controllers." .. name
+            ret, lib = pcall(require, libname)
+            if not ret {
+                config.logger.err("failed to load controller '%s'", libname)
+                return
+            }
+            ctrl = lib()
+            assert(type(ctrl) == "table", "controller not exist")
+            if not ctrl._inited or _debugOn(config) {
+                ctrl._inited = true
+                ctrl:init(config)
+            }
+            if not _debugOn(config) {
+                Self._controllers[name] = ctrl
+            }
+        }
+        -- process data
+        ctrl:process(config, ...)
+    }
+
+    -- default 'Content-Type: text/plain;'
+    static fn staticContent(response, path, content_type) {
+        if type(path) ~= "string" {
+            return
+        }
+        content_type = content_type or "text/plain"
+        response:setHeader("Content-Type", content_type)
+        page_content = FileManager.readFile(path)
+        if type(page_content) == "string" {
+            response:appendBody(page_content)
+        }
+    }
+}
+
+return {
+    :Controller,
+    :MasterController,
+}

@@ -1,0 +1,138 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+local _status_code_msg = {
+    ["100"] : "Continue",
+    ["200"] : "OK",
+    ["301"] : "Moved Permanently",
+    ["302"] : "Found",
+    ["307"] : "Temporary Redirect",
+    ["401"] : "Unauthorized",
+    ["403"] : "Forbidden",
+    ["404"] : "Not Found",
+    ["500"] : "Internal Server Error"
+}
+
+-- only support chunked output
+fn _validateOption(opt) {
+    if type(opt.en_chunked_length) == "boolean" and type(opt.fn_chunked_callback) == "function" {
+        return opt
+    } else {
+        return nil
+    }
+}
+
+-- makeup header before appendBody
+fn _makeHeader(self) {
+    if self.opt.fn_set_header or self._has_make_header {
+        return
+    }
+    self._has_make_header = true -- mark make
+    content = ""
+    http = self.http
+    status_msg = _status_code_msg[tostring(http.status_code)]
+    if status_msg {
+        content = "HTTP/1.1 " .. tostring(http.status_code) .. " " .. status_msg .. "\r\n"
+    } else {
+        content = "HTTP/1.1 500 " .. _status_code_msg["500"] .. "\r\n"
+    }
+    for k, v in pairs(http.header) {
+        content = content .. string.format("%s: %s\r\n", k, v)
+    }
+    if http.cookies {
+        for _, v in ipairs(http.cookies) {
+            content = content .. string.format("Set-Cookie: %s\r\n", v)
+        }
+    }
+    content = content .. "\r\n"
+    self.opt.fn_chunked_callback(content)
+}
+
+fn _hexlen(str) {
+    return string.format("%X", str:len())
+}
+
+class ResponseCore {
+    opt = false
+    http = false
+    _has_make_header = false
+
+    --[[
+    option as
+    {
+        en_chunked_length,
+        fn_chunked_callback,
+        fn_set_header, -- overide default
+        fn_set_status,
+    }
+    --]]
+    fn init(option) {
+        option = _validateOption(option)
+        if option == nil {
+            return nil
+        }
+        self.opt = option
+        self.http = { header : {} } -- { header, status_code }
+        if not option.fn_set_header {
+            self:setHeader("Server", "mnet/v20200717")
+        }
+        self:setStatus(200)
+        self:setHeader("X-Powered-By", "cincau framework")
+        self:setHeader("Transfer-Encoding", "chunked")
+    }
+
+    fn setStatus(status_code) {
+        self.http.status_code = status_code
+        if self.opt.fn_set_status {
+            self.opt.fn_set_status(status_code)
+        }
+    }
+
+    fn setHeader(key, value) {
+        if self.opt.fn_set_header {
+            self.opt.fn_set_header(key, value)
+        } else {
+            if key:lower() == "set-cookie" {
+                self.http.cookies = self.http.cookies or {}
+                self.http.cookies[#self.http.cookies + 1] = value
+            } else {
+                self.http.header[key] = value
+            }
+        }
+    }
+
+    -- appendBody after makeHeader
+    fn appendBody(data) {
+        if type(data) ~= "string" {
+            return
+        }
+        _makeHeader(self)
+        opt = self.opt
+        http = self.http
+        if http.status_code == 500 {
+            msg = "<html><h1>500 Internal Server Error</h1></html>"
+            if opt.en_chunked_length {
+                msg = _hexlen(msg) .. "\r\n" .. msg .. "\r\n"
+            }
+            opt.fn_chunked_callback(msg)
+        } elseif data:len() > 0 {
+            if opt.en_chunked_length {
+                data = _hexlen(data) .. "\r\n" .. data .. "\r\n"
+            }
+            opt.fn_chunked_callback(data)
+        }
+    }
+
+    fn finishResponse() {
+        _makeHeader(self)
+        if self.opt.en_chunked_length {
+            self.opt.fn_chunked_callback("0\r\n\r\n")
+        }
+    }
+}
+
+return ResponseCore

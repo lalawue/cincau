@@ -1,0 +1,73 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+struct Logger {
+
+    _fp = false
+    _level = 2 -- default info level
+    _dir = "logs/"
+
+    ERR = 0
+    WARN = 1
+    INFO = 2
+    DEBUG = 3
+
+    _level_msg = {
+        0 : "[ERR]",
+        1 : "[WARN]",
+        2 : "[INFO]",
+        3 : "[DEBUG]"
+    }
+
+    static fn getOutputDir() {
+        return Self._dir
+    }
+
+    static fn setLevel(level) {
+        level = math.max(Self.ERR, level)
+        level = math.min(Self.DEBUG, level)
+        Self._level = level
+    }
+
+    static fn validLevel(level) {
+        if level < Self.ERR or level > Self._level {
+            return false
+        }
+        return true
+    }
+
+    static fn printf(level, fmt, ...) {
+        if Self.validLevel(level) and type(fmt) == "string" {
+            msg = Self._level_msg[level] .. " " .. string.format(fmt, ...)
+            print(msg)
+            if not Self._fp {
+                Self._fp = io.open(Self._dir .. "cincau_mnet.log", "wb")
+            }
+            fp = Self._fp or io.stdout
+            fp:write(msg .. "\n")
+            fp:flush()
+        }
+    }
+
+    static fn err(fmt, ...) {
+        Self.printf(Self.ERR, fmt, ...)
+    }
+
+    static fn warn(fmt, ...) {
+        Self.printf(Self.WARN, fmt, ...)
+    }
+
+    static fn info(fmt, ...) {
+        Self.printf(Self.INFO, fmt, ...)
+    }
+
+    static fn debug(fmt, ...) {
+        Self.printf(Self.DEBUG, fmt, ...)
+    }
+}
+
+return Logger

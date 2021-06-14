@@ -1,0 +1,146 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Render from "view_core"
+import Model from "models.model_playground"
+import Mediator from "bridge.mediator"
+import Controller from "controller_core" {}
+
+class CtrlPlayground: Controller {
+
+    -- fetch req multipart info to multipart_info table
+    fn _processMultiPartInfo(req, multipart_info) {
+        for _, info in ipairs(req.multipart_info) {
+            multipart_info[#multipart_info + 1] = {
+                string.format("name: %s", info.filename),
+                string.format("path: %s", info.filepath),
+                string.format("content_type: %s", info.content_type)
+            }
+        }
+    }
+
+    fn _processInputDeleteModel(post_args) {
+        is_input = false
+        -- if body key=value
+        for k, v in pairs(post_args) {
+            if k == "input" {
+                is_input = true
+                Model:pushInput(v)
+            } elseif k == "delete" {
+                is_input = true
+                Model:deleteInput(v)
+            }
+        }
+        return is_input
+    }
+
+    -- process x-www-form-urlencoded as k1=v1&k2=v2
+    fn _processUrlEncodedData(post_args) {
+        is_input = false
+        enc1, enc2 = nil, nil
+        for k, v in pairs(post_args) {
+            if k == "enc1" {
+                enc1 = v
+                is_input = true
+            } elseif k == "enc2" {
+                enc2 = v
+                is_input = true
+            }
+        }
+        if enc1 and enc2 {
+            Model:pushEncodes(enc1, enc2)
+        }
+        return is_input
+    }
+
+    -- query domain
+    fn _processQueryDomain(post_args, dns_query) {
+        for k, domain in pairs(post_args) {
+            if k == "domain" {
+                dns_query[1] = domain
+                dns_query[2] = Mediator.queryDomain(domain)
+                return true
+            }
+        }
+        return false
+    }
+
+    -- show query dns entry on page
+    fn _getDnsShowBlock(config) {
+        if config.engine_type ~= "mnet" {
+            return ""
+        }
+        return [[
+            <div class="line">
+                <p class="cell">] &nbsp; try query domain: &nbsp;</p>
+                <form class="cell" action="" method="POST">
+                    <input type="text" name="domain" placeholder="www.baidu.com" />
+                    <input type="submit" value="submit" />
+                </form>
+            </div>
+            <br />]]
+    }
+
+    -- show upload multipart/form-data example
+    fn _getMultipartShowBlock(config) {
+        if config.engine_type ~= "mnet" {
+            return ""
+        }
+        return [[
+            <div class="line">
+                <p class="cell">] &nbsp; try upload multipart/form-data: &nbsp;</p>
+                <form class="cell" action="" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="file1" />
+                    <input type="file" name="file2" />
+                    <input type="submit" value = "submit" />
+                </form>
+            </div>
+            <br />]]
+    }
+
+    -- public interface
+    --
+
+    fn process(config, req, response, params) {
+        multipart_info = {}
+        dns_query = {}
+        -- set header before appendBody
+        response:setHeader("Content-Type", "text/html")
+        --
+        if req.multipart_info {
+            self:_processMultiPartInfo(req, multipart_info)
+        } elseif req.method == "POST" and not table.isempty(req.post_args) {
+            if self:_processInputDeleteModel(req.post_args) {
+                -- process POST input/delete
+            } elseif self:_processUrlEncodedData(req.post_args) {
+                -- process POST enc1/enc2
+            } elseif self:_processQueryDomain(req.post_args, dns_query) {
+                -- proces POS domain
+            }
+        }
+
+        -- render page content
+        page_content = Render:render(
+            "view_playground",
+            {
+                engine_type : config.engine_type,
+                multipart_show_block : self:_getMultipartShowBlock(config),
+                dns_show_block : self:_getDnsShowBlock(config),
+                dns_query : dns_query,
+                inputs : Model:allInputs(),
+                encodes : Model:allEncodes(),
+                multipart_info : multipart_info
+            },
+            config
+        )
+
+        -- append body as chunked data
+        response:appendBody(page_content)
+    }
+}
+
+return CtrlPlayground

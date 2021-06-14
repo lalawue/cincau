@@ -5,29 +5,29 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+require("moocscript.core")
 require("base.scratch")
-local config = require("config") -- app/config
-local server = require("server")
-local router = require("router")
+local Config = require("config")
+local Server = require("server")
+local Router = require("router")
 
-local logger = config.logger
+local Logger = Config.logger
 
 -- server:run(...) in protected mode
 xpcall(
-    server.run,
+    Server.run,
     function(msg)
         print("\nPANIC : " .. tostring(msg) .. "\n")
         print(debug.traceback())
     end,
-    --- args with self, ...
-    server,
-    config,
+    Server,
+    Config,
     function(config, req, response)
-        local func, params = router:resolve(req.method, req.path)
+        local func, params = Router:resolve(req.method, req.path)
         if func then
             func(config, req, response, params)
         else
-            logger.err("router failed to resolve method:%s path:%s", req.method, req.path)
+            Logger.err("router failed to resolve method:%s path:%s", req.method, req.path)
         end
     end
 )

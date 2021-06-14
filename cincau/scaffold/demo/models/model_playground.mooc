@@ -1,0 +1,40 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+struct Model {
+    _inputs = {}
+    _encodes = {}
+
+    fn pushInput(data) {
+        self._inputs[#self._inputs + 1] = data
+    }
+
+    fn deleteInput(data) {
+        index = -1
+        for i, v in ipairs(self._inputs) {
+            if v == data {
+                index = i
+                break
+            }
+        }
+        table.remove(self._inputs, index)
+    }
+
+    fn allInputs() {
+        return self._inputs
+    }
+
+    fn pushEncodes(v1, v2) {
+        self._encodes[#self._encodes + 1] = { v1, v2 }
+    }
+
+    fn allEncodes() {
+        return self._encodes
+    }
+}
+
+return Model

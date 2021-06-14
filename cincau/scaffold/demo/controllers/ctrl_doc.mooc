@@ -1,0 +1,41 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Render from "view_core"
+import Model from "models.model_doc"
+import Controller from "controller_core" {}
+
+class CtrlDoc: Controller {
+
+    -- only run once
+    fn init(config) {
+        Model:loadModel()
+    }
+
+    -- output param.name defined in router.lua
+    fn process(config, req, response, params) {
+        -- set header before appendBody
+        response:setHeader("Content-Type", "text/html")
+        -- render page content
+        page_content = Render:render(
+            "view_doc",
+            {
+                name : self:upperCaseFirstChar(params.name) .. " documents",
+                paragraphs : Model:getParagraphs()
+            },
+            config
+        )
+        -- append body as chunked data
+        response:appendBody(page_content)
+    }
+
+    fn upperCaseFirstChar(str) {
+        return str:sub(1, 1):upper() .. str:sub(2)
+    }
+}
+
+return CtrlDoc

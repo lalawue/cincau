@@ -1,0 +1,110 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- this module only for mnet
+--
+
+ThreaBroker = require("bridge.thread_broker")
+_engine_valid = require("config").engine_type == "mnet"
+DnsCore = _engine_valid and require("bridge.ffi_mdns") or {}
+Browser = _engine_valid and require("bridge.http_browser")
+RedisCmd = _engine_valid and require("bridge.redis_cmd")
+
+struct Mediator {
+
+    _callbacks = setmetatable({}, {__mode : "k"})
+
+    -- in server loop
+    static fn servLoop() {
+        for key, func in pairs(Self._callbacks) {
+            if func.check_stop() {
+                Self._callbacks[key] = nil
+                if func.finalizer {
+                    func.finalizer()
+                }
+                break
+            }
+        }
+    }
+
+    -- check_stop return true to finish loop, and run finalizer in the end
+    static fn _addServLoopCallback(key, check_stop, finalizer) {
+        if key and type(check_stop) == "function" {
+            Self._callbacks[key] = { :check_stop, :finalizer }
+        }
+    }
+
+    -- query domain's ipv4, return ipv4
+    static fn queryDomain(domain) {
+        if not _engine_valid {
+            return ""
+        }
+        return ThreaBroker.callThread({ ret_func in
+            DnsCore.queryHost(domain, { ipv4 in
+                ret_func(ipv4)
+            })
+        })
+    }
+
+    --[[
+        request HTTP/HTTPS URL
+        option = {
+            header = {} -- header option, not implement yet
+            recv_cb = function(header_tbl, data_string) end, -- for receiving data
+        }
+        return header_tbl, data_string (if no recv_cb function set)
+    ]]
+    static fn _dummy_cb() {
+    }
+
+    static fn requestURL(url, option) {
+        if not _engine_valid {
+            return ""
+        }
+        if type(url) ~= "string" {
+            return nil
+        }
+        return ThreaBroker.callThread({ ret_func in
+            data_tbl = {}
+            recv_cb = option and option.recv_cb or Self._dummy_cb
+            url_opt = option or {}
+            url_opt.recv_cb = { header_tbl, data_str in
+                if header_tbl == nil {
+                    ret_func()
+                } elseif data_str {
+                    recv_cb(header_tbl, data_str)
+                    data_tbl[#data_tbl + 1] = data_str
+                } else {
+                    recv_cb(header_tbl, nil)
+                    ret_func(header_tbl, table.concat(data_tbl))
+                }
+            }
+            brw = Browser.newBrowser()
+            brw:requestURL(url, url_opt)
+            Self._addServLoopCallback(brw, { _ in
+                    return brw:onLoopEvent()
+            }, nil)
+        })
+    }
+
+    --[[
+        redis cmd_tbl as { "SET", "KEY", "VALUE" },
+        option as { ipv4 = "127.0.0.1", port = 6379 }
+    ]]
+    static fn redisCMD(option, cmd_tbl) {
+        if type(cmd_tbl) ~= "table" or type(option) ~= "table" {
+            return nil
+        }
+        return ThreaBroker.callThread({ ret_func in
+            if not RedisCmd.runCMD(option, cmd_tbl, ret_func) {
+                ret_func(nil)
+            }
+        })
+    }
+}
+
+return Mediator

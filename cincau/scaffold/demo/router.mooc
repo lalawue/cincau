@@ -1,0 +1,46 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- master controller will cache all using instance controllers
+--
+import master_ctrl from "controller_core" { MasterController }
+
+r = require("router_core").new()
+
+-- get root
+r:get(
+    "/",
+    { config, req, response, params in
+        master_ctrl.process("ctrl_index", config, req, response, params)
+    }
+)
+
+-- get stylesheet files
+r:get(
+    "/styles/:filename/",
+    { config, req, response, params in
+        master_ctrl.staticContent(response, 'app/styles/' .. params.filename)
+    }
+)
+
+-- jump to doc and input doc name
+r:get(
+    "/doc/:name/",
+    { config, req, response, params in
+        master_ctrl.process("ctrl_doc", config, req, response, params)
+    }
+)
+
+-- get/post in playground page
+fn _playground(config, req, response, params) {
+    master_ctrl.process("ctrl_playground", config, req, response, params)
+}
+
+r:get("/playground", _playground)
+r:post("/playground", _playground)
+
+return r

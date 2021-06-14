@@ -3,7 +3,7 @@
 # cincau launcher by lalawue
 
 # check luajit exist
-LUA_JIT=luajit
+CMD=moocscript
 
 which_program()
 {
@@ -14,7 +14,7 @@ which_program()
     fi
 }
 
-which_program $LUA_JIT
+which_program $CMD
 
 # create demo project
 CORE_PATH='/usr/local/cincau'
@@ -34,4 +34,4 @@ if [ ! -d "$CORE_PATH" ]; then
     ln -sf $PWD/cincau $CORE_PATH
 fi
 
-$LUA_JIT $CORE_PATH/proj_prepare.lua $CORE_PATH $PROJ_PATH $ENGINE_TYPE
+$CMD $CORE_PATH/proj_prepare.mooc $CORE_PATH $PROJ_PATH $ENGINE_TYPE
