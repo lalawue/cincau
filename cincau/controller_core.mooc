@@ -43,15 +43,11 @@ struct MasterController {
             libname = "controllers." .. name
             ret, lib = pcall(require, libname)
             if not ret {
-                config.logger.err("failed to load controller '%s'", libname)
+                config.logger.err("failed to load controller '%s':%s", libname, lib)
                 return
             }
-            ctrl = lib()
+            ctrl = lib(config)
             assert(type(ctrl) == "table", "controller not exist")
-            if not ctrl._inited or _debugOn(config) {
-                ctrl._inited = true
-                ctrl:init(config)
-            }
             if not _debugOn(config) {
                 Self._controllers[name] = ctrl
             }
