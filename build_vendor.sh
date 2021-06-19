@@ -55,7 +55,7 @@ if [ ! -d "$MDNSUTILS_DIR" ]; then
     git clone --depth 1 https://github.com/lalawue/m_dnsutils.git $MDNSUTILS_DIR
 fi
 if [ ! -d "$HP_DIR" ]; then
-    git clone --depth 1 https://github.com/lalawue/hyperparser $HP_DIR
+    git clone --depth 1 https://github.com/lalawue/ffi_hyperparser $HP_DIR
 fi
 if [ ! -d "$OPENSSL_DIR" ]; then
     git clone --depth 1 --recurse https://github.com/zhaozg/lua-openssl.git $OPENSSL_DIR
@@ -69,7 +69,7 @@ fi
 
 # make
 echo_run "make lib -C $MNET_DIR"
-echo_run "cd $MDNSUTILS_DIR && gcc -o libmdns_utils.$SUFFIX -O3 -shared -fPIC mdns_utils.c && cd -"
+echo_run "cd $MDNSUTILS_DIR && gcc -std=c99 -o libmdns_utils.$SUFFIX -O3 -shared -fPIC mdns_utils.c && cd -"
 echo_run "make -C $HP_DIR"
 echo_run "cd $CJSON_DIR && gcc -o libcjson.$SUFFIX -O3 -shared -fPIC $LUA_FLAGS $CJSON_FILES && cd -"
 echo_run "make -C $OPENSSL_DIR"
