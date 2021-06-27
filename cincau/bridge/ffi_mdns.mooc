@@ -98,9 +98,6 @@ struct MDNS {
     }
 
     fn _processRequest(domain, callback) {
-        if type(domain) ~= "string" {
-            return false
-        }
         ipv4 = self._domain_tbl[domain]
         if ipv4 {
             callback(ipv4)
@@ -176,12 +173,25 @@ fn _init(config) {
     MDNS:_initUdpQueryChanns()
 }
 
--- callback(ipv4)
-fn _queryHost(host, callback) {
-    if type(host) ~= "string" or not callback {
+-- return ipv4
+fn _queryHost(domain) {
+    guard type(domain) == "string" else {
         return false
     }
-    return MDNS:_processRequest(host, callback)
+    ipv4 = MDNS._domain_tbl[domain]
+    if ipv4 {
+        return ipv4
+    } else {
+        co = coroutine.running()
+        ret_func = { ipv4 in
+            coroutine.resume(co, ipv4)
+        }
+        ret = MDNS:_processRequest(domain, ret_func)
+        guard ret else {
+            return nil
+        }
+        return coroutine.yield(ret)
+    }
 }
 
 return {

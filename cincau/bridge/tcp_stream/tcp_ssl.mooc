@@ -26,6 +26,7 @@ struct ChannSSL {
     _ssl = false -- OpenSSL SSL handle
     _ssl_connected = false -- SSL connected state
     _rfifo = false -- read fifo
+    _callback = false
 
 
     -- only support client now
@@ -140,7 +141,7 @@ struct ChannSSL {
     fn onLoopEvent() {
         if not self._ssl_connected {
             self._ssl_connected = self:handshake()
-            if self._ssl_connected {
+            if self._ssl_connected and self._callback {
                 self._callback(self, "event_connected", nil, nil)
                 return true -- remove on loop event
             }

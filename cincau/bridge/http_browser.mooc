@@ -192,6 +192,7 @@ struct Browser {
         }
         self._chann:setCallback(callback)
         self._chann:connectAddr(ipv4, port)
+        return true
     }
 
     -- return true/false, http header, data, one at a time

@@ -40,14 +40,10 @@ struct Mediator {
 
     -- query domain's ipv4, return ipv4
     static fn queryDomain(domain) {
-        if not _engine_valid {
+        guard _engine_valid else {
             return ""
         }
-        return ThreaBroker.callThread({ ret_func in
-            DnsCore.queryHost(domain, { ipv4 in
-                ret_func(ipv4)
-            })
-        })
+        return DnsCore.queryHost(domain)
     }
 
     --[[
@@ -62,7 +58,7 @@ struct Mediator {
     }
 
     static fn requestURL(url, option) {
-        if not _engine_valid {
+        guard _engine_valid else {
             return ""
         }
         if type(url) ~= "string" {
@@ -83,10 +79,10 @@ struct Mediator {
                     ret_func(header_tbl, table.concat(data_tbl))
                 }
             }
-            brw = Browser.newBrowser()
-            brw:requestURL(url, url_opt)
+            brw = Browser()
+            ret = brw:requestURL(url, url_opt)
             Self._addServLoopCallback(brw, { _ in
-                    return brw:onLoopEvent()
+                return brw:onLoopEvent()
             }, nil)
         })
     }

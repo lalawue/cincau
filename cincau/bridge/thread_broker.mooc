@@ -32,7 +32,7 @@ struct ThreadBroker {
     --     ret_func(ret_value_1, ret_value_2, ...)
     -- end
     static fn callThread(func_thread) {
-        if type(func_thread) ~= "function" {
+        guard type(func_thread) == "function" else {
             return
         }
         co = coroutine.running()
