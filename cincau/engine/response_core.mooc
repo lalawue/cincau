@@ -9,7 +9,7 @@ local _status_code_msg = {
     ["100"] : "Continue",
     ["200"] : "OK",
     ["301"] : "Moved Permanently",
-    ["302"] : "Found",
+    ["302"] : "Moved Temporarily",
     ["307"] : "Temporary Redirect",
     ["401"] : "Unauthorized",
     ["403"] : "Forbidden",
@@ -81,7 +81,7 @@ class ResponseCore {
             self:setHeader("Server", "mnet/v20200717")
         }
         self:setStatus(200)
-        self:setHeader("X-Powered-By", "cincau framework")
+        self:setHeader("X-Powered-By", "Cincau")
         self:setHeader("Transfer-Encoding", "chunked")
     }
 
