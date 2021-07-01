@@ -5,28 +5,18 @@ cincau was a minimalist, fast and high configurable web framework for [LuaJIT](h
 
 ## Install
 
-first, export like
+using [LuaRocks](https://luarocks.org/), then create a demo project in /tmp/demo, using mnet as network engine
 
 ```sh
-$ export LUAJIT_INC_DIR=/usr/local/include
-$ export LUAJIT_LIB_DIR=/usr/local/lib
-$ export LUAJIT_LIB_NAME=luajit
-$ export PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1g/lib/pkgconfig
+$ luarocks install cincau
+$ cincau /tmp/demo
 ```
-
-then run command below in sequence:
-
-- sh build_vender.sh
-- make install
-- cincau.sh /tmp/demo [ mnet | nginx ]
-
-the last command will create a demo project in /tmp/demo.
-
 ## Running
 
-in /tmp/demo, just 
+just 
 
 ```sh
+$ cd /tmp/demo
 $ ./run_app.sh [ start | stop | reload ]
 ```
 
@@ -43,7 +33,7 @@ then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the p
 
 config files stores in:
 
-- app/config.lua
+- app/config.mooc
 - config/nginx.conf (only nginx engine)
 - config/mime.types (only nginx engine)
 
@@ -71,7 +61,7 @@ located in /tmp/demo.
 
 ## Database
 
-as a minimalist web framework, default provide sqlite3 connection library [ffi_sqlite3.lua](https://github.com/lalawue/cincau/blob/master/cincau/db/ffi_lsqlite3.lua).
+as a minimalist web framework, default provide sqlite3 connection library.
 
 that may be enough for a small web site.
 
@@ -83,7 +73,7 @@ some technical detail about POST method, query DNS, and raise HTTP Request for m
 
 take look at demo project, run and click playground link.
 
-details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
+details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/lua/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
 
 POST "multipart/form-data" example only appears for mnet engine type.
 
