@@ -1,0 +1,84 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+--
+-- raw tcp stated stream, interface should be same as tcp_ssl
+--
+
+import NetCore from "ffi-mnet"
+
+_has_init = false
+
+struct ChannRaw {
+
+    _options = false
+    _chann = false
+    _callback = false
+
+    fn init(options) {
+        self._options = options
+        self._chann = NetCore.openChann("tcp")
+    }
+
+    fn closeChann() {
+        if self._chann {
+            self._chann:close()
+            self._chann = false
+        }
+    }
+
+    fn connectAddr(ipv4, port) {
+        if self._chann and self._chann:state() ~= "state_connected" {
+            self._chann:connect(ipv4, port)
+            return true
+        } else {
+            return false
+        }
+    }
+
+    -- callback params should be (self, event_name, accept_chann, c_msg)
+    fn setCallback(callback) {
+        if not callback {
+            return
+        }
+        self._callback = callback
+        self._chann:setCallback({ chann, event_name, accept_chann, c_msg in
+            if event_name == "event_connected" {
+                self._callback(self, event_name, accept_chann, c_msg)
+            } elseif event_name == "event_recv" {
+                self._callback(self, event_name, nil, c_msg)
+            } elseif event_name == "event_send" {
+                self._callback(self, event_name, nil, c_msg)
+            } elseif event_name == "event_disconnect" {
+                self._callback(self, event_name, nil, c_msg)
+            } elseif event_name == "event_accept" {
+                chann_raw = setmetatable({}, ChannRaw)
+                chann_raw.m_chann = accept_chann
+                self._callback(self, event_name, chann_raw, c_msg)
+            }
+        })
+    }
+
+    fn send(data) {
+        if self._chann and self._chann:state() == "state_connected" {
+            return self._chann:send(data)
+        }
+    }
+
+    fn recv() {
+        if self._chann and self._chann:state() == "state_connected" {
+            return self._chann:recv()
+        }
+    }
+
+    -- event_name always "event_loop", return true to keep event
+    fn onLoopEvent() {
+        return true
+    }
+}
+
+return ChannRaw

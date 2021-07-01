@@ -1,0 +1,48 @@
+#!/usr/bin/env lua
+
+--
+-- detect env
+--
+
+local proj_dir, engine_type = ...
+
+if not jit then
+    print("Only support LuaJIT !")
+    os.exit(0)
+end
+
+if not proj_dir then
+    print("Usage: cincau /tmp/demo [mnet|nginx]")
+    os.exit(0)
+end
+
+if not engine_type then
+    engine_type = "mnet"
+end
+
+--
+-- find core_dir
+--
+
+local core_dir = nil
+
+for path in package.path:gmatch("[^;]+") do
+    local len = path:len()
+    path = path:sub(1, len - 5)
+    local f = io.open(path .. "cincau/controller_core.mooc", "r")
+    if f then
+        f:close()
+        core_dir = path .. "cincau/"
+        package.path = package.path .. ";" .. core_dir .. "?.lua"
+        require("moocscript.core")
+        goto FOUND_CORE_DIR
+    end
+    print(path)
+end
+print("Can not found cincau core dir, exit !")
+os.exit(0)
+
+::FOUND_CORE_DIR::
+
+local Proj = require("cincau_prepare")
+Proj.createProjectSkeleton(core_dir, proj_dir, engine_type)
