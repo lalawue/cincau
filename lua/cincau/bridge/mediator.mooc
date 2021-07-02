@@ -12,7 +12,7 @@ ThreaBroker = require("bridge.thread_broker")
 _engine_valid = require("config").engine_type == "mnet"
 DnsCore = _engine_valid and require("ffi-mdns") or {}
 Browser = _engine_valid and require("bridge.http_browser")
---RedisCmd = _engine_valid and require("bridge.redis_cmd")
+RedisCmd = _engine_valid and require("bridge.redis_cmd")
 
 struct Mediator {
 
@@ -91,16 +91,16 @@ struct Mediator {
         redis cmd_tbl as { "SET", "KEY", "VALUE" },
         option as { ipv4 = "127.0.0.1", port = 6379 }
     ]]
-    -- static fn redisCMD(option, cmd_tbl) {
-    --     if type(cmd_tbl) ~= "table" or type(option) ~= "table" {
-    --         return nil
-    --     }
-    --     return ThreaBroker.callThread({ ret_func in
-    --         if not RedisCmd.runCMD(option, cmd_tbl, ret_func) {
-    --             ret_func(nil)
-    --         }
-    --     })
-    -- }
+    static fn redisCMD(option, cmd_tbl) {
+        if type(cmd_tbl) ~= "table" or type(option) ~= "table" {
+            return nil
+        }
+        return ThreaBroker.callThread({ ret_func in
+            if not RedisCmd.runCMD(option, cmd_tbl, ret_func) {
+                ret_func(nil)
+            }
+        })
+    }
 }
 
 return Mediator

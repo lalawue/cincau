@@ -19,6 +19,7 @@ dependencies = {
    "linked-list",
    "mnet",
    "ffi-hyperparser",
+   "lua-resp",
 }
 build = {
    type = "builtin",
