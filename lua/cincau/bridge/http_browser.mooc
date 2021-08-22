@@ -6,7 +6,6 @@
 --
 
 import TcpRaw from "bridge.tcp_stream.tcp_raw"
-import TcpSSL from "bridge.tcp_stream.tcp_ssl"
 import FileManager from "base.file_manager"
 import UrlCore from "base.url_core"
 import HttpParser from "ffi-hyperparser"
@@ -120,9 +119,7 @@ struct Browser {
             return false
         }
 
-        if url_info.scheme ~= "http" and url_info.scheme ~= "https" {
-            return false
-        } elseif url_info.scheme == "https" and not TcpSSL {
+        guard url_info.scheme == "http" or url_info.scheme == "https" else {
             return false
         }
 
@@ -147,11 +144,10 @@ struct Browser {
             port = url_info.port
         }
 
+        self._chann = TcpRaw()
         if url_info.scheme == "http" {
-            self._chann = TcpRaw()
             port = port and tonumber(port) or 80
         } else {
-            self._chann = TcpSSL()
             port = port and tonumber(port) or 443
         }
         url_info = nil -- reset nil
@@ -213,13 +209,6 @@ struct Browser {
             self._hp = false
         }
         self._url_info = false
-    }
-
-    fn onLoopEvent() {
-        if self._chann.onLoopEvent {
-            return self._chann:onLoopEvent()
-        }
-        return true
     }
 }
 

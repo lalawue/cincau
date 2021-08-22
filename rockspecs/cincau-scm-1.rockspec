@@ -15,7 +15,6 @@ description = {
 dependencies = {
    "lua >= 5.1",
    "mooncake",
-   "openssl",
    "linked-list",
    "mnet",
    "ffi-hyperparser",
