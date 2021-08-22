@@ -9,10 +9,10 @@
 --
 import master_ctrl from "controller_core" { MasterController }
 
-r = require("router_core").new()
+router = require("router_core").new()
 
 -- get root
-r:get(
+router:get(
     "/",
     { config, req, response, params in
         master_ctrl.process("ctrl_index", config, req, response, params)
@@ -20,7 +20,7 @@ r:get(
 )
 
 -- get stylesheet files
-r:get(
+router:get(
     "/styles/:filename/",
     { config, req, response, params in
         master_ctrl.staticContent(response, 'app/styles/' .. params.filename)
@@ -28,7 +28,7 @@ r:get(
 )
 
 -- jump to doc and input doc name
-r:get(
+router:get(
     "/doc/:name/",
     { config, req, response, params in
         master_ctrl.process("ctrl_doc", config, req, response, params)
@@ -40,7 +40,11 @@ fn _playground(config, req, response, params) {
     master_ctrl.process("ctrl_playground", config, req, response, params)
 }
 
-r:get("/playground", _playground)
-r:post("/playground", _playground)
+router:get("/playground", _playground)
+router:post("/playground", _playground)
+
+fn router:pageNotFound(config, method, path) {
+    config.logger.err("page not found method:%s path:%s", req.method, req.path)
+}
 
 return r
