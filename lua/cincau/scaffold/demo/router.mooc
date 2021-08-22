@@ -43,7 +43,7 @@ fn _playground(config, req, response, params) {
 router:get("/playground", _playground)
 router:post("/playground", _playground)
 
-fn router:pageNotFound(config, method, path) {
+fn router:pageNotFound(config, req, response) {
     config.logger.err("page not found method:%s path:%s", req.method, req.path)
 }
 
