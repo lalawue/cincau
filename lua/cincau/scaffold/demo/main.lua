@@ -27,7 +27,7 @@ xpcall(
         if func then
             func(config, req, response, params)
         elseif Router.pageNotFound then
-            Router:pageNotFound(config, req, response)
+            Router:pageNotFound(config, req, response, params)
         else
             Logger.err("router failed to resolve method:%s path:%s", req.method, req.path)
         end
