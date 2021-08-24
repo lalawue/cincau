@@ -8,6 +8,7 @@
 -- controller was a business logic block for data processing
 --
 
+import Base from "base.scratch"
 import FileManager from "base.file_manager"
 
 fn _debugOn(config) {
@@ -41,7 +42,7 @@ struct MasterController {
         if type(ctrl) ~= "table" {
             -- assume all controller business under controllers dir
             libname = "controllers." .. name
-            ret, lib = pcall(require, libname)
+            ret, lib = xpcall(require, Base.tracebackHandler, libname)
             if not ret {
                 config.logger.err("failed to load controller '%s':%s", libname, lib)
                 return
