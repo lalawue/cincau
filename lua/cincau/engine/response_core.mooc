@@ -78,10 +78,9 @@ class ResponseCore {
         self.opt = option
         self.http = { header : {} } -- { header, status_code }
         if not option.fn_set_header {
-            self:setHeader("Server", "mnet/v20200717")
+            self:setHeader("Server", "cincua/v20210826")
         }
         self:setStatus(200)
-        self:setHeader("X-Powered-By", "Cincau")
         self:setHeader("Transfer-Encoding", "chunked")
     }
 
