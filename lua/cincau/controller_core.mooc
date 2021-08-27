@@ -64,9 +64,11 @@ struct MasterController {
         }
         content_type = content_type or "text/plain"
         response:setHeader("Content-Type", content_type)
-        page_content = FileManager.readFile(path)
-        if type(page_content) == "string" {
-            response:appendBody(page_content)
+        if FileManager.stat(path) {
+            response:appendBody(FileManager.readFile(path))
+        } elseif FileManager.stat(path .. ".gz") {
+            response:setHeader("Content-Encoding", "gzip")
+            response:appendBody(FileManager.readFile(path .. ".gz"))
         }
     }
 }
