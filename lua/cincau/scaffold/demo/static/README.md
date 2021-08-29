@@ -133,5 +133,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
+- [lalawue/lua-html-tags](https://github.com/lalawue/lua-html-tags), Lua base DSL for writing HTML documents
 
 EOF

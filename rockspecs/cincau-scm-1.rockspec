@@ -19,6 +19,7 @@ dependencies = {
    "mnet",
    "ffi-hyperparser",
    "lua-resp",
+   "html-tags",
 }
 build = {
    type = "builtin",

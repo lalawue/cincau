@@ -51,7 +51,7 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
     -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
-    _copyFile(scaffold_dir .. "/config.mooc", app_dir .. "/config.mooc")
+    _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
 end
 
 -- create project skeleton

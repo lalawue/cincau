@@ -1,0 +1,33 @@
+html {
+    width: 100%;
+    background-color: #E8E8D3;
+}
+h1 {
+    text-align: left;
+    margin-top: 0.5in;
+    margin-bottom: .2in;
+    margin-left: .5in;
+    font-size: 3em;
+    font-weight: bold;
+}
+p {
+    margin-left: .5in;
+    margin-right: .5in;
+}
+form#input {
+    margin-left: .5in;
+    margin-right: .5in;                
+}
+ul {
+    margin-left: -.3in;
+}
+.line {
+    display: table;
+    margin-left: .5in;
+}
+.cell {
+    display: table-cell;
+}
+.right {
+    position: right;                
+}

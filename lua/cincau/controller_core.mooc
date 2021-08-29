@@ -41,7 +41,7 @@ struct MasterController {
         ctrl = Self._controllers[name]
         if type(ctrl) ~= "table" {
             -- assume all controller business under controllers dir
-            libname = "controllers." .. name
+            libname = "pages." .. name
             ret, lib = xpcall(require, Base.tracebackHandler, libname)
             if not ret {
                 config.logger.err("failed to load controller '%s':%s", libname, lib)

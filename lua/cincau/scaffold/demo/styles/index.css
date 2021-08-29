@@ -1,0 +1,21 @@
+html {
+    width: 100%;
+    background-color: #E8E8D3;
+}
+h1 {
+    text-align: center;
+    margin-top: 2.2in;
+    margin-bottom: .3in;
+    font-size: 3em;
+    font-weight: bold;
+}
+ul {
+    float: right;
+    position: relative;
+    left: -40%;
+    text-align: left;
+}
+.footer {
+    margin-top: 1.70in;
+    margin-left: 41.5%;
+}
