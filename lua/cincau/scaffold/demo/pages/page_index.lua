@@ -16,22 +16,17 @@ function Page:process(config, req, response, params)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- render page content
+    local features = {"minimalist", "fast", "high configurable", "for LuaJIT", "on mnet or openresty (nginx)"}
     local page_content = Render:render(self.pageContent, {
         css_path = "/styles/index.css",
         page_title = "Cincau web framework",
-        page_features = self:pageFeatures({"minimalist", "fast", "high configurable", "for LuaJIT", "on mnet or openresty (nginx)"}),
+        page_features = table.ireduce(features, "", function(total, i, value)
+            return total .. '<li>' .. value .. '</li>\n'
+        end),
         page_footer = 'get <a href="doc/cincau">documents</a>, try <a href="playground">playground</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>.',
     })
     -- append body as chunked data
     response:appendBody(page_content)
-end
-
-function Page:pageFeatures(tbl)
-    local content = {}
-    for i, v in ipairs(tbl) do
-        content[#content + 1] = '<li>' .. v .. '</li>'
-    end
-    return table.concat(content, '')
 end
 
 -- using default tags

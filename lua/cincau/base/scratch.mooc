@@ -38,12 +38,12 @@ fn string:split(sSeparator, nMax, bRegexp) {
 -- table
 --
 
-table.dump = fn(tbl) {
+fn table.dump(tbl) {
     print(Serpent.block(tbl))
 }
 
 -- return a readonly table
-table.readonly = fn(tbl, err_message) {
+fn table.readonly(tbl, err_message) {
     return setmetatable({}, {
             __index : tbl,
             __newindex : { t, k, v in
@@ -51,6 +51,13 @@ table.readonly = fn(tbl, err_message) {
             }
         }
     )
+}
+
+fn table.ireduce(tbl, total, func) {
+    for i, v in ipairs(tbl) {
+        total = func(total, i, v)
+    }
+    return total
 }
 
 fn _deep_copy(object, lookup_table) {

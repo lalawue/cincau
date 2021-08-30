@@ -186,53 +186,41 @@ function Page:process(config, req, response, params)
         multipart_show_block = self:_getMultipartShowBlock(config),
         dns_show_block = self:_getDnsShowBlock(config),
         dns_query_result = function()
-            if #dns_query < 2 then
+            if dns_query[1] and dns_query[2] then
+                return [[<div class="line"><li>domain: ]] ..
+                                tostring(dns_query[1]) ..
+                                [[</li><li>ip: ]] .. 
+                                tostring(dns_query[2]) ..
+                                [[</li></div>]]
+            else
                 return ""
             end
-            local content = [[<div class="line"><li>domain: ]] ..
-                            dns_query[1] ..
-                            [[</li><li>ip: ]] .. 
-                            dns_query[2] ..
-                            [[</li></div>]]
-            return content
         end,
-        input_result = function()
-            local content = {}
-            for i, str in pairs(Model:allInputs()) do
-                content[#content + 1] = [[<div class="line"><li class="cell">]] ..
-                                        tostring(i) ..
-                                        [[. text: ]] ..
-                                        str ..
-                                        [[</li>&nbsp;&nbsp;&nbsp;&nbsp;<form class="cell" action="" method="POST">
-                                        <input type="hidden" name="delete" value="]] ..
-                                        str ..
-                                        [[" /><input type="submit" value="delete" /></form></div>]]
-            end
-            return table.concat(content, "")
-        end,
-        encodes_result = function()
-            local content = {}
-            for i, vtbl in ipairs(Model:allEncodes()) do
-                content[#content + 1] = '<div class="line"><li class="cell"> ' ..
-                                        tostring(i) ..
-                                        '. text: ' ..
-                                        vtbl[1] ..
-                                        ', '
-                                        ..
-                                        vtbl[2] ..
-                                        '</li></div>'
-            end
-            return table.concat(content, "")
-        end,
-        multipart_info = function()
-            local content = {}
-            for _, item in pairs(multipart_info) do
-                for _, line in pairs(item) do
-                    content[#content + 1] = '<div class="line"><li class="cell">' .. line .. '</li></div>'
-                end
-            end
-            return table.concat(content, "")
-        end,
+        input_result = table.ireduce(Model:allInputs(), "", function(total, i, value)
+            return total .. [[<div class="line"><li class="cell">]] ..
+                   tostring(i) ..
+                   [[. text: ]] ..
+                   value ..
+                   [[</li>&nbsp;&nbsp;&nbsp;&nbsp;<form class="cell" action="" method="POST">
+                   <input type="hidden" name="delete" value="]] ..
+                   value ..
+                   [[" /><input type="submit" value="delete" /></form></div>]]
+        end),
+        encodes_result = table.ireduce(Model:allEncodes(), "", function(total, i, value)
+            return total .. '<div class="line"><li class="cell"> ' ..
+                   tostring(i) ..
+                   '. text: ' ..
+                   value[1] ..
+                   ', '
+                   ..
+                   value[2] ..
+                   '</li></div>'
+        end),
+        multipart_info = table.ireduce(multipart_info, "", function(total, i, item)
+            return total .. item:ireduce("", function(total, i, line)
+                return total .. '<div class="line"><li class="cell">' .. line .. '</li></div>'
+            end)
+        end),
     })
 
     -- append body as chunked data
