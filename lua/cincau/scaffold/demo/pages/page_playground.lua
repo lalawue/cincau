@@ -9,9 +9,9 @@ local Render = require("view_core")
 local Mediator = require("bridge.mediator")
 local MoocClass = require("moocscript.class")
 local Model = require("models.model_playground")
-local Controller = require("controller_core").Controller
+local PageBase = require("page_core").Controller
 
-local Page = MoocClass("page_playground", Controller)
+local Page = MoocClass("page_playground", PageBase)
 
     -- fetch req multipart info to multipart_info table
 function Page:_processMultiPartInfo(req, multipart_info)

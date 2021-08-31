@@ -7,29 +7,29 @@
 
 -- master controller will cache all using instance controllers
 --
-local CoreCtrl = require("controller_core")
-local MasterCtrl = CoreCtrl.MasterController
+local PageCore = require("page_core")
+local MasterPage = PageCore.MasterPage
 
 local router = require("router_core").new()
 
 -- get root
 router:get("/", function(config, req, response, params)
-    MasterCtrl.process("page_index", config, req, response, params)
+    MasterPage.process("page_index", config, req, response, params)
 end)
 
 -- get stylesheet files
 router:get("/styles/:filename/", function(config, req, response, params)
-    MasterCtrl.staticContent(response, "app/styles/" .. params.filename)
+    MasterPage.staticContent(response, "app/styles/" .. params.filename)
 end)
 
 -- jump to doc and input doc name
 router:get("/doc/:name/", function(config, req, response, params)
-    MasterCtrl.process("page_doc", config, req, response, params)
+    MasterPage.process("page_doc", config, req, response, params)
 end)
 
 -- get/post in playground page
 local function _playground(config, req, response, params)
-    MasterCtrl.process("page_playground", config, req, response, params)
+    MasterPage.process("page_playground", config, req, response, params)
 end
 
 router:get("/playground", _playground)

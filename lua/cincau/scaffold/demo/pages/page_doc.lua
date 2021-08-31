@@ -8,9 +8,9 @@
 local Render = require("view_core")
 local Model = require("models.model_doc")
 local MoocClass = require("moocscript.class")
-local Controller = require("controller_core").Controller
+local BasePage = require("page_core").BasePage
 
-local Page = MoocClass("page_doc", Controller)
+local Page = MoocClass("page_doc", BasePage)
 
 -- only run once
 function Page:init(config)

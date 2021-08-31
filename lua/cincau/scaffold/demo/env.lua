@@ -10,7 +10,7 @@ local core_dir = nil
 for path in package.path:gmatch("[^;]+") do
     local len = path:len()
     path = path:sub(1, len - 5)
-    local f = io.open(path .. "cincau/controller_core.mooc", "r")
+    local f = io.open(path .. "cincau/page_core.mooc", "r")
     if f then
         f:close()
         core_dir = path .. "cincau/"

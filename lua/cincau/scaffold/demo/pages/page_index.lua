@@ -7,9 +7,9 @@
 
 local Render = require("view_core")
 local MoocClass = require("moocscript.class")
-local Controller = require("controller_core").Controller
+local BasePage = require("page_core").BasePage
 
-local Page = MoocClass("page_index", Controller)
+local Page = MoocClass("page_index", BasePage)
 
 -- output index page
 function Page:process(config, req, response, params)

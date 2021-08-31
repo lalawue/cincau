@@ -15,10 +15,10 @@ fn _debugOn(config) {
     return config and config.debug_on
 }
 
--- controller instance
+-- page instance
 --
 
-class Controller {
+class BasePage {
 
     _inited = false
 
@@ -29,28 +29,28 @@ class Controller {
     }
 }
 
--- master controller interface
+-- master page interface
 --
-struct MasterController {
+struct MasterPage {
 
-    -- hold all named controller instance
-    _controllers = {}
+    -- hold all named page instance
+    _pages = {}
 
     static fn process(name, config, ...) {
         assert(type(name) == "string", "invalid controller name")
-        ctrl = Self._controllers[name]
+        ctrl = Self._pages[name]
         if type(ctrl) ~= "table" {
-            -- assume all controller business under controllers dir
+            -- assume all page business under pages dir
             libname = "pages." .. name
             ret, lib = xpcall(require, Base.tracebackHandler, libname)
             if not ret {
-                config.logger.err("failed to load controller '%s':%s", libname, lib)
+                config.logger.err("failed to load page '%s':%s", libname, lib)
                 return
             }
             ctrl = lib(config)
-            assert(type(ctrl) == "table", "controller not exist")
+            assert(type(ctrl) == "table", "page not exist")
             if not _debugOn(config) {
-                Self._controllers[name] = ctrl
+                Self._pages[name] = ctrl
             }
         }
         -- process data
@@ -74,6 +74,6 @@ struct MasterController {
 }
 
 return {
-    :Controller,
-    :MasterController,
+    :BasePage,
+    :MasterPage,
 }
