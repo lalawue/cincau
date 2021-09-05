@@ -20,6 +20,7 @@ dependencies = {
    "ffi-hyperparser",
    "lua-resp",
    "html-tags",
+   "sql-orm",
 }
 build = {
    type = "builtin",

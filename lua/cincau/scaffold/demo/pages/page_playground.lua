@@ -148,7 +148,7 @@ function Page:process(config, req, response, params)
         input_result = table.ireduce(Model:allInputs(), "", function(total, i, value)
             return total .. [[<div class="line"><li class="cell">]] ..
                    tostring(i) ..
-                   [[. text: ]] ..
+                   [[. db text: ]] ..
                    value ..
                    [[</li>&nbsp;&nbsp;&nbsp;&nbsp;<form class="cell" action="" method="POST">
                    <input type="hidden" name="delete" value="]] ..
