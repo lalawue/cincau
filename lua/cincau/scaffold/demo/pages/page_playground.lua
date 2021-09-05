@@ -217,7 +217,7 @@ function Page:process(config, req, response, params)
                    '</li></div>'
         end),
         multipart_info = table.ireduce(multipart_info, "", function(total, i, item)
-            return total .. item:ireduce("", function(total, i, line)
+            return total .. table.ireduce(item, "", function(total, i, line)
                 return total .. '<div class="line"><li class="cell">' .. line .. '</li></div>'
             end)
         end),
