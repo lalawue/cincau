@@ -56,7 +56,7 @@ function Page:_processUrlEncodedData(post_args)
             is_input = true
         end
     end
-    if enc1 and enc2 then
+    if type(enc1) == "string" and type(enc2) == "string" and enc1:len() > 0 and enc2:len() > 0 then
         Model:pushEncodes(enc1, enc2)
     end
     return is_input
@@ -188,27 +188,21 @@ function Page:_htmlSpec()
                     "engine type: ",
                     engine_type
                 },
-                div {
-                    { class = "line" },
-                    p {
-                        { class = "cell" },
+                div {{ class = "line" },
+                    p {{ class = "cell" },
                         "] &nbsp; try POST text in db: &nbsp;",
                     },
-                    form {
-                        { class="cell", action="", method="POST" },
+                    form {{ class="cell", action="", method="POST" },
                         input { type="text", name="input", placeholder="" },
                         input { type="submit", value="submit" }
                     },
                 },
                 br,
-                div {
-                    { class = "line" },
-                    p {
-                        {class = "cell"},
-                        "] &nbsp; try urlencoded text: &nbsp;",
+                div {{ class = "line" },
+                    p {{class = "cell"},
+                        "] &nbsp; try 'application/x-www-form-urlencoded' text: &nbsp;",
                     },
-                    form {
-                        { class="cell", action="", method="POST", enctype="application/x-www-form-urlencoded" },
+                    form {{ class="cell", action="", method="POST", enctype="application/x-www-form-urlencoded" },
                         input { type="text", name="enc1" },
                         input { type="text", name="enc2" },
                         input { type="submit", value="submit" }

@@ -12,6 +12,10 @@ local MasterPage = PageCore.MasterPage
 
 local router = require("router_core").new()
 
+router:get("/images/:filename/", function(config, req, response, params)
+    MasterPage.staticContent(response, "app/static/" .. params.filename, "image/png")
+end)
+
 -- get root
 router:get("/", function(config, req, response, params)
     MasterPage.process("page_index", config, req, response, params)

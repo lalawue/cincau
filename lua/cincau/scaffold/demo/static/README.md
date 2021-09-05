@@ -64,7 +64,7 @@ located in /tmp/demo.
 
 ## Database
 
-as a minimalist web framework, default provide [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
+as a minimalist web framework, default provide [Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
 
 you can try playground 'post text in db', it will store data in sqlite3.
 

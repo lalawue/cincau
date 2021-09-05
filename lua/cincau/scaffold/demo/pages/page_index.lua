@@ -39,8 +39,7 @@ function Page:htmlSpec()
                 ul {
                     page_features,
                 },
-                div {
-                    { class = "footer" },
+                div {{ class = "footer" },
                     page_footer,
                 }
             }
