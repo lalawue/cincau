@@ -33,7 +33,7 @@ then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the p
 
 config files stores in:
 
-- app/config.mooc
+- app/config.lua
 - config/nginx.conf (only nginx engine)
 - config/mime.types (only nginx engine)
 
@@ -41,17 +41,20 @@ you can set app/config.debug_on == true, to disable controllers, views cache.
 
 ## MVC
 
-cincau using MVC (model view controller) pattern, each client request going through these steps below:
+cincau using MVC (model view controller) pattern, here we call controller as page, and page contains html representation
+and business logic.
+
+each client request going through these steps below:
 
 - http server parse raw data into http method, path, headers and body content
-- router match http path to proper controller to process
-- controller is the center of business logic, using model data and view template to generate output page
-- using template library [etlua](https://github.com/leafo/etlua), also used by [Lapis](https://github.com/leafo/lapis)
+- router match http path to proper page to process
+- page is the center of business logic, using model data and view template to generate html output
+- using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
 - response to client
 
-when you write a new page, just add route match url, add new controller for business logic, and a view template for rendering, with model provided data.
+when you write a new page, just add route match url, create a page class for business logic and html representation, then render output.
 
-more example refers to demo project generate by 
+more example refers to demo project generate by
 
 ```sh
 $ cincau.sh /tmp/demo [mnet|nginx]
@@ -61,9 +64,9 @@ located in /tmp/demo.
 
 ## Database
 
-as a minimalist web framework, default provide sqlite3 connection library.
+as a minimalist web framework, default provide [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
 
-that may be enough for a small web site.
+you can try playground 'post text in db', it will store data in sqlite3.
 
 # Technical Details
 
@@ -125,5 +128,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
 - [lalawue/lua-html-tags](https://github.com/lalawue/lua-html-tags), Lua base DSL for writing HTML documents
+- [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM), Lua 4Days ORM for sqlite3
 
 EOF

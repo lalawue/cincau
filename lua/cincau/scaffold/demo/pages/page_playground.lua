@@ -13,6 +13,10 @@ local PageBase = require("page_core").Controller
 
 local Page = MoocClass("page_playground", PageBase)
 
+function Page:init(config)
+    Model:loadModel(config)
+end
+
     -- fetch req multipart info to multipart_info table
 function Page:_processMultiPartInfo(req, multipart_info)
     for _, info in ipairs(req.multipart_info) do
@@ -103,61 +107,6 @@ function Page:_getMultipartShowBlock(config)
         <br />]]
 end
 
-function Page:_pageContent()
-    return {
-        html {
-            include "app/templates/head_tpl.lua",
-            body {
-                h1 { page_title },
-                hr,
-                p {
-                    "engine type: ",
-                    engine_type
-                },
-                div {
-                    { class = "line" },
-                    p {
-                        { class = "cell" },
-                        "] &nbsp; try POST text: &nbsp;",                        
-                    },
-                    form {
-                        { class="cell", action="", method="POST" },
-                        input { type="text", name="input", placeholder="" },
-                        input { type="submit", value="submit" }
-                    },                    
-                },
-                br,
-                div {
-                    { class = "line" },
-                    p {
-                        {class = "cell"},
-                        "] &nbsp; try urlencoded text: &nbsp;",
-                    },
-                    form {
-                        { class="cell", action="", method="POST", enctype="application/x-www-form-urlencoded" },
-                        input { type="text", name="enc1" },
-                        input { type="text", name="enc2" },
-                        input { type="submit", value="submit" }                        
-                    }
-                },
-                br,
-                multipart_show_block,
-                dns_show_block,
-                hr,
-                ul {
-                    dns_query_result,
-                    input_result,
-                    encodes_result,
-                    multipart_info,
-                }
-            }
-        }
-    }
-end 
-
--- public interface
---
-
 function Page:process(config, req, response, params)
     local multipart_info = {}
     local dns_query = {}
@@ -177,7 +126,7 @@ function Page:process(config, req, response, params)
     end
 
     -- render page content
-    local page_content = Render:render(self._pageContent, {
+    local page_content = Render:render(self._htmlSpec, {
         css_path = "/styles/playground.css",
         script_content = [[if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
@@ -225,6 +174,59 @@ function Page:process(config, req, response, params)
 
     -- append body as chunked data
     response:appendBody(page_content)
+end
+
+-- html content
+function Page:_htmlSpec()
+    return {
+        html {
+            include "app/templates/head_tpl.lua",
+            body {
+                h1 { page_title },
+                hr,
+                p {
+                    "engine type: ",
+                    engine_type
+                },
+                div {
+                    { class = "line" },
+                    p {
+                        { class = "cell" },
+                        "] &nbsp; try POST text in db: &nbsp;",
+                    },
+                    form {
+                        { class="cell", action="", method="POST" },
+                        input { type="text", name="input", placeholder="" },
+                        input { type="submit", value="submit" }
+                    },
+                },
+                br,
+                div {
+                    { class = "line" },
+                    p {
+                        {class = "cell"},
+                        "] &nbsp; try urlencoded text: &nbsp;",
+                    },
+                    form {
+                        { class="cell", action="", method="POST", enctype="application/x-www-form-urlencoded" },
+                        input { type="text", name="enc1" },
+                        input { type="text", name="enc2" },
+                        input { type="submit", value="submit" }
+                    }
+                },
+                br,
+                multipart_show_block,
+                dns_show_block,
+                hr,
+                ul {
+                    dns_query_result,
+                    input_result,
+                    encodes_result,
+                    multipart_info,
+                }
+            }
+        }
+    }
 end
 
 return Page

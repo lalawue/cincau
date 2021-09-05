@@ -5,11 +5,17 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+local lfs = require("lfs")
+
 local Model = {
     _inputs = {},
     _encodes = {}
 }
 Model.__index = Model
+
+function Model:loadModel(config)
+    lfs.mkdir(config.db_path)
+end
 
 function Model:pushInput(data)
     self._inputs[#self._inputs + 1] = data

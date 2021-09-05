@@ -5,28 +5,18 @@ cincau was a minimalist, fast and high configurable web framework for [LuaJIT](h
 
 ## Install
 
-first, export like
+using [LuaRocks](https://luarocks.org/), then create a demo project in /tmp/demo, using mnet as network engine
 
 ```sh
-$ export LUAJIT_INC_DIR=/usr/local/include
-$ export LUAJIT_LIB_DIR=/usr/local/lib
-$ export LUAJIT_LIB_NAME=luajit
-$ export PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1g/lib/pkgconfig
+$ luarocks install cincau
+$ cincau /tmp/demo
 ```
-
-then run command below in sequence:
-
-- sh build_vender.sh
-- make install
-- cincau.sh /tmp/demo [ mnet | nginx ]
-
-the last command will create a demo project in /tmp/demo.
-
 ## Running
 
-in /tmp/demo, just 
+just 
 
 ```sh
+$ cd /tmp/demo
 $ ./run_app.sh [ start | stop | reload ]
 ```
 
@@ -51,17 +41,20 @@ you can set app/config.debug_on == true, to disable controllers, views cache.
 
 ## MVC
 
-cincau using MVC (model view controller) pattern, each client request going through these steps below:
+cincau using MVC (model view controller) pattern, here we call controller as page, and page contains html representation
+and business logic.
+
+each client request going through these steps below:
 
 - http server parse raw data into http method, path, headers and body content
-- router match http path to proper controller to process
-- controller is the center of business logic, using model data and view template to generate output page
-- using template library [etlua](https://github.com/leafo/etlua), also used by [Lapis](https://github.com/leafo/lapis)
+- router match http path to proper page to process
+- page is the center of business logic, using model data and view template to generate html output
+- using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
 - response to client
 
-when you write a new page, just add route match url, add new controller for business logic, and a view template for rendering, with model provided data.
+when you write a new page, just add route match url, create a page class for business logic and html representation, then render output.
 
-more example refers to demo project generate by 
+more example refers to demo project generate by
 
 ```sh
 $ cincau.sh /tmp/demo [mnet|nginx]
@@ -71,11 +64,9 @@ located in /tmp/demo.
 
 ## Database
 
-builtin support lua-resp get/set from Redis, or you can choose sqlite3 as database, just
+as a minimalist web framework, default provide [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
 
-```sh
-$ luarocks install ffi-sqlite3
-```
+you can try playground 'post text in db', it will store data in sqlite3.
 
 # Technical Details
 
@@ -85,7 +76,7 @@ some technical detail about POST method, query DNS, and raise HTTP Request for m
 
 take look at demo project, run and click playground link.
 
-details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
+details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/lua/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
 
 POST "multipart/form-data" example only appears for mnet engine type.
 
@@ -105,7 +96,10 @@ only for mnet engine type.
 ```sh
 local mediator = require("bridge.mediator") -- only provided for mnet engine_type
 local option = {
-    reciever = function (header_tbl, data_string)
+    recv_cb = function (header_tbl, data_string)
+        if data_string == nil then
+            -- data finished
+        end
     end,
 }
 local header_tbl, data_str = mediator.requestURL("http://www.baidu.com", option)
@@ -134,5 +128,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
 - [lalawue/lua-html-tags](https://github.com/lalawue/lua-html-tags), Lua base DSL for writing HTML documents
+- [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM), Lua 4Days ORM for sqlite3
 
 EOF

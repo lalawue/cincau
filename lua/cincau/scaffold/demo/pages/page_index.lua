@@ -17,7 +17,7 @@ function Page:process(config, req, response, params)
     response:setHeader("Content-Type", "text/html")
     -- render page content
     local features = {"minimalist", "fast", "high configurable", "for LuaJIT", "on mnet or openresty (nginx)"}
-    local page_content = Render:render(self.pageContent, {
+    local page_content = Render:render(self.htmlSpec, {
         css_path = "/styles/index.css",
         page_title = "Cincau web framework",
         page_features = table.ireduce(features, "", function(total, i, value)
@@ -30,7 +30,7 @@ function Page:process(config, req, response, params)
 end
 
 -- using default tags
-function Page:pageContent()
+function Page:htmlSpec()
     return {
         html {
             include "app/templates/head_tpl.lua",

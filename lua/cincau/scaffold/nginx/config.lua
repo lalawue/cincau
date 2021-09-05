@@ -26,5 +26,6 @@ return {
     ipport = "", -- defined by config/nginx.conf
     logger = Logger,
     debug_on = false, -- debug framework, close cache
-    session_outdate = 300 -- session oudated seconds
+    session_outdate = 300, -- session oudated seconds
+    db_path = "database/" -- database dir
 }

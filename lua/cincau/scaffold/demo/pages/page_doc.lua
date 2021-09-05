@@ -22,7 +22,7 @@ function Page:process(config, req, response, params)
     -- set header before appendBody
     response:setHeader("Content-Type", "text/html")
     -- render page content
-    local page_content = Render:render(self.pageContent, {
+    local page_content = Render:render(self.htmlSpec, {
         css_path = "/styles/doc.css",
         page_title = self:upperCaseFirstChar(params.name) .. " documents",
         page_content = Model:getParagraphs()
@@ -37,7 +37,7 @@ function Page:upperCaseFirstChar(str)
 end
 
 -- using default tags
-function Page:pageContent()
+function Page:htmlSpec()
     return {
         html {
             include "app/templates/head_tpl.lua",
