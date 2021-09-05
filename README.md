@@ -112,18 +112,18 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 
 - [golgote/neturl](https://github.com/golgote/neturl), URL and Query string parser, builder, normalizer for Lua
 - [APItools/router.lua](https://github.com/APItools/router.lua), A barebones router for Lua. It matches urls and executes lua functions.
-- [leafo/etlua](https://github.com/leafo/etlua), Embedded Lua templates
 - [mpx/lua-cjson](https://github.com/mpx/lua-cjson), Lua CJSON is a fast JSON encoding/parsing module for Lua
 - [cyx/cookie.lua](https://github.com/cyx/cookie.lua), basic cookie building / parsing for lua
 - [Tieske/date](https://github.com/Tieske/date), Date & Time module for Lua 5.x
 - [Tieske/uuid](https://github.com/Tieske/uuid/), A pure Lua uuid generator (modified from a Rackspace module)
 - [jsolman/luajit-mime-base64](https://github.com/jsolman/luajit-mime-base64), Fast Mime base64 encoding and decoding implemented in LuaJIT
-- [sonoro1234/luafilesystem](https://github.com/sonoro1234/luafilesystem), Reimplement luafilesystem via LuaJIT FFI with unicode facilities
 - [hamishforbes/lua-ffi-zlib](https://github.com/hamishforbes/lua-ffi-zlib)
 - [pkulchenko/serpent](https://github.com/pkulchenko/serpent), Lua serializer and pretty printer
-- [ColonelThirtyTwo/lsqlite3-ffi](https://github.com/ColonelThirtyTwo/lsqlite3-ffi), Lua SQLite using LuaJIT's FFI library
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
+- [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
+- [lalawue/linked-list](https://github.com/lalawue/linked-list.lua), doubly linked list for Lua
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
-- [lalawue/mooncake](https://github.com/lalawue/mooncake), a Swift like programming language compiles to Lua
+- [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
+- [lalawue/lua-html-tags](https://github.com/lalawue/lua-html-tags), Lua base DSL for writing HTML documents
 
 EOF
