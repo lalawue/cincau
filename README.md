@@ -76,7 +76,7 @@ some technical detail about POST method, query DNS, and raise HTTP Request for m
 
 take look at demo project, run and click playground link.
 
-details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [ctrl_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/controllers/ctrl_playground.lua) and view exmaple [view_playground.etlua](https://github.com/lalawue/lua/cincau/blob/master/cincau/scaffold/demo/views/view_playground.etlua).
+details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [page_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/pages/page_playground.lua).
 
 POST "multipart/form-data" example only appears for mnet engine type.
 
