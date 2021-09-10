@@ -49,7 +49,9 @@ struct MasterPage {
             }
             ctrl = lib(config)
             assert(type(ctrl) == "table", "page not exist")
-            if not _debugOn(config) {
+            if _debugOn(config) {
+                package.loaded[libname] = nil
+            } else {
                 Self._pages[name] = ctrl
             }
         }
