@@ -5,6 +5,12 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+type = type
+tostring = tostring
+coResume = coroutine.resume
+coYield = coroutine.yield
+coRuning = coroutine.running
+
 struct ThreadBroker {
 
     _threads = {}
@@ -26,8 +32,8 @@ struct ThreadBroker {
     static fn _dummy_func() {
     }
 
-    -- Usage: turn callback into coroutine sequence
-    -- func_thread(ret_func)
+    -- Usage: turn callback into coroutine sequence, return value from ret_func
+    -- function func_thread(ret_func)
     --     .. do anything ..
     --     ret_func(ret_value_1, ret_value_2, ...)
     -- end
@@ -35,13 +41,13 @@ struct ThreadBroker {
         guard type(func_thread) == "function" else {
             return
         }
-        co = coroutine.running()
+        co = coRuning()
         if co {
             ret_func = { ... in
-                coroutine.resume(co, ...)
+                coResume(co, ...)
             }
             func_thread(ret_func)
-            return coroutine.yield()
+            return coYield()
         } else {
             return func_thread(Self._dummy_func)
         }

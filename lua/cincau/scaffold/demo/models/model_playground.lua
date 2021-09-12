@@ -7,10 +7,11 @@
 
 local lfs = require("lfs")
 local DBClass = require("sql-orm")
+local Redis = require("bridge.redis_cmd")
 
 local Model = {
     _conn = false,
-    _encodes = {}
+    _redis_options = { ipv4 = '127.0.0.1', port = 6379, keep_alive = false },
 }
 Model.__index = Model
 
@@ -73,11 +74,18 @@ function Model:allInputs()
 end
 
 function Model:pushEncodes(v1, v2)
-    self._encodes[#self._encodes + 1] = { v1, v2 }
+    if v1 and v2 then
+        Redis.runCMD(self._redis_options, { "SET", v1, v2 })
+    end
 end
 
 function Model:allEncodes()
-    return self._encodes
+    local tbl = {}
+    local keys = Redis.runCMD(self._redis_options, { "KEYS", "*" })
+    for i, k in ipairs(keys) do
+        tbl[i] = { k, Redis.runCMD(self._redis_options, { "GET", k }) or ""}
+    end
+    return tbl
 end
 
 return Model

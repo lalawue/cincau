@@ -138,7 +138,7 @@ function Page:process(config, req, response, params)
             if dns_query[1] and dns_query[2] then
                 return [[<div class="line"><li>domain: ]] ..
                                 tostring(dns_query[1]) ..
-                                [[</li><li>ip: ]] .. 
+                                [[</li><li>ip: ]] ..
                                 tostring(dns_query[2]) ..
                                 [[</li></div>]]
             else

@@ -7,84 +7,93 @@
 
 import NetCore from "ffi-mnet"
 import Resp from "resp"
+import ThreadBroker from "bridge.thread_broker"
 
-fType = type
-fUnpack = unpack or table.unpack
+type = type
+unpack = unpack or table.unpack
+tostring = tostring
+coResume = coroutine.resume
+coYield = coroutine.yield
+coRuning = coroutine.running
 
 struct RedisCmd {
 
     _data = ""
     _chann = false
 
-    --[[
-        optino should be { ipv4 = '127.0.0.1', port = 6379, keep_alive = true, reuse_info used by runCMD }
-        cmd_tbl should be { "SET", "KEY", "VALUE" },
-        ret_func should be function(ret_value), ret_value = nil means server side disconnect
-    ]]
     static fn _dummy_func() {
     }
 
-    static fn runCMD(option, cmd_tbl, ret_func) {
-        if fType(cmd_tbl) ~= "table" {
-            return false
+    --[[
+        optino should be { ipv4 = '127.0.0.1', port = 6379, keep_alive = true, reuse_info used by runCMD }
+        cmd_tbl should be { "SET", "KEY", "VALUE" },
+        return 'true|false, msg|nil' pairs, and false means server side disconnect or param error
+    ]]
+    static fn runCMD(option, cmd_tbl) {
+        if type(cmd_tbl) ~= "table" {
+            return
         }
         -- prepare input
-        ipv4 = fType(option.ipv4) == "string" and option.ipv4 or "127.0.0.1"
+        ipv4 = type(option.ipv4) == "string" and option.ipv4 or "127.0.0.1"
         port = option.port and option.port or 6379
-        ret_func = fType(ret_func) == "function" and ret_func or Self._dummy_func
         -- open chann
         Self._data = ""
         Self._chann = option.reuse_info or NetCore.openChann("tcp")
         msg = ""
         if #cmd_tbl > 0 {
-            msg = Resp.encode(fUnpack(cmd_tbl))
+            msg = Resp.encode(unpack(cmd_tbl))
         } else {
             msg = Resp.encode(nil)
         }
+
         if Self._chann:state() == "state_connected" {
-            if fType(msg) == "string" {
+            if type(msg) == "string" {
                 Self._chann:send(msg)
                 msg = nil
-                return true
+                coYield()
             } else {
-                return false
+                return
             }
         }
-        callback = { chann, event_name, accept_chann, c_msg in
-            if event_name == "event_connected" {
-                if fType(msg) == "string" {
-                    chann:send(msg)
-                    msg = nil
-                } else {
-                    ret_func(nil)
-                }
-            } elseif event_name == "event_recv" {
-                Self._data = Self._data .. chann:recv()
-                consumed, output, typ = Resp.decode(Self._data)
-                if consumed == Self._data:len() {
-                    Self._data = ""
-                    if not option.keep_alive {
-                        option.reuse_info = nil
-                        chann:close()
+
+        return ThreadBroker.callThread({ ret_func in
+            callback = { chann, event_name, accept_chann, c_msg in
+                if event_name == "event_connected" {
+                    if type(msg) == "string" {
+                        chann:send(msg)
+                        msg = nil
                     } else {
-                        option.reuse_info = chann
+                        ret_func(nil)
                     }
-                    ret_func(output)
-                } elseif consumed == Resp.EILSEQ {
-                    -- Found illegal byte sequence
+                } elseif event_name == "event_recv" {
+                    Self._data = Self._data .. chann:recv()
+                    consumed, output, typ = Resp.decode(Self._data)
+                    if consumed == Self._data:len() {
+                        Self._data = ""
+                        if not option.keep_alive {
+                            option.reuse_info = nil
+                            chann:close()
+                        } else {
+                            option.reuse_info = chann
+                        }
+                        ret_func(output)
+                    } elseif consumed == Resp.EILSEQ {
+                        -- Found illegal byte sequence
+                        Self._data = ""
+                        chann:close()
+                        ret_func(nil)
+                    } else {
+                        table.dump(output)
+                    }
+                } elseif event_name == "event_disconnect" {
                     Self._data = ""
                     chann:close()
                     ret_func(nil)
                 }
-            } elseif event_name == "event_disconnect" {
-                Self._data = ""
-                chann:close()
-                ret_func(nil)
             }
-        }
-        Self._chann:setCallback(callback)
-        Self._chann:connect(ipv4, port)
-        return true
+            Self._chann:setCallback(callback)
+            Self._chann:connect(ipv4, port)
+        })
     }
 }
 
