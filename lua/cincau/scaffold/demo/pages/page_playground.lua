@@ -131,6 +131,7 @@ function Page:process(config, req, response, params)
         script_content = [[if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
         }]],
+        page_title = "Playground",
         engine_type = config.engine_type,
         multipart_show_block = self:_getMultipartShowBlock(config),
         dns_show_block = self:_getDnsShowBlock(config),
