@@ -5,6 +5,11 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+type = type
+pairs = pairs
+ipairs = ipairs
+tostring = tostring
+
 local _status_code_msg = {
     ["100"] : "Continue",
     ["200"] : "OK",

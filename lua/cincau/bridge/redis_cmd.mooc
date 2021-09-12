@@ -8,6 +8,8 @@
 import NetCore from "ffi-mnet"
 import Resp from "resp"
 
+fType = type
+fUnpack = unpack or table.unpack
 
 struct RedisCmd {
 
@@ -23,32 +25,34 @@ struct RedisCmd {
     }
 
     static fn runCMD(option, cmd_tbl, ret_func) {
-        if type(cmd_tbl) ~= "table" {
+        if fType(cmd_tbl) ~= "table" {
             return false
         }
         -- prepare input
-        ipv4 = type(option.ipv4) == "string" and option.ipv4 or "127.0.0.1"
+        ipv4 = fType(option.ipv4) == "string" and option.ipv4 or "127.0.0.1"
         port = option.port and option.port or 6379
-        ret_func = type(ret_func) == "function" and ret_func or Self._dummy_func
+        ret_func = fType(ret_func) == "function" and ret_func or Self._dummy_func
         -- open chann
         Self._data = ""
         Self._chann = option.reuse_info or NetCore.openChann("tcp")
         msg = ""
         if #cmd_tbl > 0 {
-            msg = Resp.encode(unpack(cmd_tbl))
+            msg = Resp.encode(fUnpack(cmd_tbl))
         } else {
             msg = Resp.encode(nil)
         }
         if Self._chann:state() == "state_connected" {
-            if type(msg) == "string" {
+            if fType(msg) == "string" {
                 Self._chann:send(msg)
                 msg = nil
+                return true
+            } else {
+                return false
             }
-            return
         }
         callback = { chann, event_name, accept_chann, c_msg in
             if event_name == "event_connected" {
-                if type(msg) == "string" {
+                if fType(msg) == "string" {
                     chann:send(msg)
                     msg = nil
                 } else {

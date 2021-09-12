@@ -7,6 +7,13 @@
 
 import UrlCore from "base.url_core"
 
+type = type
+pairs = pairs
+ipairs = ipairs
+string = string
+tonumber = tonumber
+print = print
+
 -- path as '/hello/word?q=3&r=4'
 fn _parsePath(path) {
     tbl = UrlCore.parse(path)
