@@ -39,40 +39,46 @@ config files stores in:
 
 you can set app/config.debug_on == true, to disable controllers, views cache.
 
-## MVC
+## Server-Side Rendering (SSR)
 
-cincau using MVC (model view controller) pattern, here we call controller as page, and page contains html representation
+the demo project is quite simple, mostly require [server-side rendering](https://techstacker.com/server-side-rendering-ssr-pros-and-cons/), an old school technology.
+
+### Routing
+
+demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in app/main.lua.
+
+when you create a new page, first consider witch URL it will use, then add a URL match in router.
+
+### Page Structure (MVC)
+
+demo using MVC (model view controller) pattern , here we call controller as page, and page contains html representation
 and business logic.
 
 each client request going through these steps below:
 
 - http server parse raw data into http method, path, headers and body content
 - router match http path to proper page to process
-- page is the center of business logic, using model data and view template to generate html output
-- using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
-- response to client
+- page is the center for business logic, using model data and view template to generate html output
+- default using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
+- response HTML to client
 
-when you write a new page, just add route match url, create a page class for business logic and html representation, then render output.
-
-more example refers to demo project generate by
-
-```sh
-$ cincau.sh /tmp/demo [mnet|nginx]
-```
-
-located in /tmp/demo.
+see app/pages/page_index.lua, and more complicate example is app/pages/page_playground.lua.
 
 ## Database
 
-### Relational
+default provide sqlite, lua-bitcask and redis connection support.
 
-as a minimalist web framework, default provide [Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
+### Relational ORM
+
+as a minimalist web framework, the bundle provide [Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
 
 you can try playground 'post text in db', it will store data in sqlite3.
 
-### NOSQL
+### NoSQL
 
- - 
+the bundle provide redis with (lua-resp)[https://github.com/lalawue/lua-resp] or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
+
+you can try playground 'try 'application/x-www-form-urlencoded' text in db', default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
 
 # Technical Details
 
@@ -99,21 +105,7 @@ only for mnet engine type.
 
 ## Raise HTTP Request
 
-```sh
-local mediator = require("bridge.mediator") -- only provided for mnet engine_type
-local option = {
-    recv_cb = function (header_tbl, data_string)
-        if data_string == nil then
-            -- data finished
-        end
-    end,
-}
-local header_tbl, data_str = mediator.requestURL("http://www.baidu.com", option)
-```
-
-when setting option.reciever function, no data_str return.
-
-only for mnet engine type.
+recommand using [lua-curl](https://luarocks.org/modules/moteus/lua-curl).
 
 # Thanks
 
