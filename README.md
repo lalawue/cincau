@@ -75,7 +75,7 @@ you can try playground 'post text in db', it will store data in sqlite3.
 
 ### NoSQL
 
-the bundle provide redis with (lua-resp)[https://github.com/lalawue/lua-resp] or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
+the bundle provide redis with [lua-resp](https://github.com/lalawue/lua-resp) or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
 
 you can try playground 'try 'application/x-www-form-urlencoded' text in db', default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
 
