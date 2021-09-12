@@ -1,7 +1,8 @@
 package = 'cincau'
-version = 'scm-1'
+version = '0.5.20210912-1'
 source = {
-   url = 'git+https://github.com/lalawue/cincau.git'
+   url = 'git+https://github.com/lalawue/cincau.git',
+   tag = "0.5.20210912"
 }
 description = {
    summary = 'A minimalist, fast and high configurable web framework for LuaJIT on mnet or nginx',
