@@ -8,10 +8,14 @@
 local lfs = require("lfs")
 local DBClass = require("sql-orm")
 local Redis = require("bridge.redis_cmd")
+local Bitcask = require("bitcask")
 
 local Model = {
     _conn = false,
-    _redis_options = { ipv4 = '127.0.0.1', port = 6379, keep_alive = false },
+    _bitcask = false,
+
+    -- uncomment to use redis
+    --_redis_options = { ipv4 = '127.0.0.1', port = 6379, keep_alive = false },
 }
 Model.__index = Model
 
@@ -44,6 +48,13 @@ function Model:loadModel(config)
         data = Field.CharField({ max_length = 32, unique = true }),
     })
     config.logger.info("open post database")
+
+    if not self._redis_options then
+        self._bitcask = Bitcask.opendb({
+            dir = "database/bitcask",
+            file_size = 1024
+        })
+    end
 end
 
 function Model:pushInput(data)
@@ -74,16 +85,27 @@ function Model:allInputs()
 end
 
 function Model:pushEncodes(v1, v2)
-    if v1 and v2 then
-        Redis.runCMD(self._redis_options, { "SET", v1, v2 })
+    if self._bitcask then
+        self._bitcask:set(v1, v2)
+    else
+        if v1 and v2 then
+            Redis.runCMD(self._redis_options, { "SET", v1, v2 })
+        end
     end
 end
 
 function Model:allEncodes()
     local tbl = {}
-    local keys = Redis.runCMD(self._redis_options, { "KEYS", "*" })
-    for i, k in ipairs(keys) do
-        tbl[i] = { k, Redis.runCMD(self._redis_options, { "GET", k }) or ""}
+    if self._bitcask then
+        local keys = self._bitcask:allKeys()
+        for i, k in ipairs(keys) do
+            tbl[i] = { k, self._bitcask:get(k) or ""}
+        end
+    else
+        local keys = Redis.runCMD(self._redis_options, { "KEYS", "*" })
+        for i, k in ipairs(keys) do
+            tbl[i] = { k, Redis.runCMD(self._redis_options, { "GET", k }) or ""}
+        end
     end
     return tbl
 end

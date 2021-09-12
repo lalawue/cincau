@@ -200,7 +200,7 @@ function Page:_htmlSpec()
                 br,
                 div {{ class = "line" },
                     p {{class = "cell"},
-                        "] &nbsp; try 'application/x-www-form-urlencoded' text: &nbsp;",
+                        "] &nbsp; try 'application/x-www-form-urlencoded' text in db: &nbsp;",
                     },
                     form {{ class="cell", action="", method="POST", enctype="application/x-www-form-urlencoded" },
                         input { type="text", name="enc1" },

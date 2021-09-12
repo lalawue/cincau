@@ -18,9 +18,10 @@ dependencies = {
    "linked-list",
    "mnet",
    "ffi-hyperparser",
-   "lua-resp",
    "html-tags",
    "sql-orm",
+   "lua-resp",
+   "lua-bitcask"
 }
 build = {
    type = "builtin",
