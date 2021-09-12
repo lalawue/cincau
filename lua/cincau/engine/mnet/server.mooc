@@ -5,6 +5,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+import Base from "base.scratch"
 import NetCore from "ffi-mnet"
 import DnsCore from "ffi-mdns"
 import HttpParser from "ffi-hyperparser"
@@ -15,6 +16,14 @@ import FileManager from "base.file_manager"
 import ThreadBroker from "bridge.thread_broker"
 import Mediator from "bridge.mediator"
 import SessionMgnt from "session.session_mgnt"
+
+xpCall = xpcall
+toString = tostring
+setMetatable = setmetatable
+coCreate = coroutine.create
+coResume = coroutine.resume
+mRandom = math.random
+tblConcat = table.concat
 
 -- close chann and destroy http parser
 fn _clientDestroy(chann) {
@@ -63,7 +72,7 @@ fn _storeMultiPartData(cnt, http_tbl) {
         return false
     }
     contents = http_tbl.contents
-    raw_data = contents and table.concat(contents) or ""
+    raw_data = contents and tblConcat(contents) or ""
     Request.multiPartReadBody(
         fd_tbl,
         raw_data,
@@ -72,7 +81,7 @@ fn _storeMultiPartData(cnt, http_tbl) {
             if data and info and info.filepath {
                 FileManager.appendFile(info.filepath, data)
             } elseif filename and filename:len() > 0 {
-                filepath = "tmp/" .. tostring(math.random(100000)) .. _suffix4(filename)
+                filepath = "tmp/" .. tostring(mRandom(100000)) .. _suffix4(filename)
                 cnt.multipart_info[#cnt.multipart_info + 1] = {
                     :filename,
                     :filepath,
@@ -83,11 +92,6 @@ fn _storeMultiPartData(cnt, http_tbl) {
     )
     http_tbl.contents = nil
     return true
-}
-
-fn _onError(msg) {
-    print("\nPANIC : " .. tostring(msg) .. "\n")
-    print(debug.traceback())
 }
 
 -- response option
@@ -122,7 +126,7 @@ fn _onClientEventCallback(chann, event_name, _) {
             if _storeMultiPartData(cnt, http_tbl) {
                 multipart_info = cnt.multipart_info
             } elseif http_tbl.contents {
-                content = table.concat(http_tbl.contents)
+                content = tblConcat(http_tbl.contents)
                 http_tbl.contents = nil
             }
             -- create callback info
@@ -136,14 +140,14 @@ fn _onClientEventCallback(chann, event_name, _) {
             req:updateRemoteIp(chann:addr().ip)
             _updateRequest(req)
             -- create response
-            option = setmetatable({}, ResponseOption)
+            option = setMetatable({}, ResponseOption)
             option.fn_chunked_callback = { data in
                 chann:send(data)
             }
             response = Response(option)
-            co = coroutine.create({ _ in
+            co = coCreate({ _ in
                 -- callback
-                ret, emsg = xpcall(http_callback, _onError, cnt.config, req, response)
+                ret, emsg = xpCall(http_callback, Base.tracebackHandler, cnt.config, req, response)
                 -- finish response
                 response:finishResponse()
                 -- reset resources
@@ -151,7 +155,7 @@ fn _onClientEventCallback(chann, event_name, _) {
             })
             -- broker take thread
             ThreadBroker.addThread(chann, co)
-            coroutine.resume(co)
+            coResume(co)
         }
     } elseif event_name == "event_disconnect" {
         _clientDestroy(chann)
@@ -166,7 +170,7 @@ struct Serv {
     svr_tcp = false
 
     -- run server, http_callback(config, req, response)
-    fn run(config, http_callback) {
+    static fn run(config, http_callback) {
         logger = config.logger
         addr = NetCore.parseIpPort(config.ipport)
         guard type(addr.ip) == "string" and type(addr.port) == "number" else {
@@ -180,9 +184,9 @@ struct Serv {
         -- create bind
         NetCore.init()
         DnsCore.init(config)
-        self.svr_tcp = NetCore.openChann("tcp")
-        self.svr_tcp:listen(addr.ip, addr.port, 1024)
-        self.svr_tcp:setCallback({ _, event_name, accept in
+        Self.svr_tcp = NetCore.openChann("tcp")
+        Self.svr_tcp:listen(addr.ip, addr.port, 1024)
+        Self.svr_tcp:setCallback({ _, event_name, accept in
             if event_name == "event_accept" and accept ~= nil {
                 accept._cnt = {
                     config : config,

@@ -30,7 +30,7 @@ reload_server()
 {
     which $1 > /dev/null
     if [ "$?" = "0" ]; then
-        eval $(luarocks path)    
+        eval $(luarocks path)
         echo "reload cincau web framework [nginx]"
         kill -HUP $(cat $PWD/tmp/cincau-nginx.pid)
         exit $?

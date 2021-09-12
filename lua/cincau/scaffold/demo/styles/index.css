@@ -15,7 +15,7 @@ ul {
     left: -40%;
     text-align: left;
 }
-.footer {
-    margin-top: 1.70in;
-    margin-left: 41.5%;
+footer {
+    text-align: center;
+    margin-top: 2in;
 }
