@@ -51,8 +51,7 @@ when you create a new page, first consider witch URL it will use, then add a URL
 
 ### Page Structure (MVC)
 
-demo using MVC (model view controller) pattern , here we call controller as page, and page contains html representation
-and business logic.
+demo using MVC (model view controller) pattern , here we call controller as page, and page contains html representation and business logic.
 
 each client request going through these steps below:
 
