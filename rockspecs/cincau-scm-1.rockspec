@@ -22,6 +22,7 @@ dependencies = {
    "sql-orm",
    "lua-resp",
    "lua-bitcask",
+   "lua-cjson",
 }
 build = {
    type = "builtin",
