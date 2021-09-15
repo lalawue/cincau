@@ -47,7 +47,7 @@ the demo project is quite simple, mostly require [server-side rendering](https:/
 
 demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in app/main.lua.
 
-when you create a new page, first consider witch URL it will use, then add a URL match in router.
+when you create a new page, first consider which URL it will use, then add a URL match in router.
 
 ### Page Structure (MVC)
 
@@ -75,7 +75,7 @@ you can try playground 'post text in db', it will store data in sqlite3.
 
 ### NoSQL
 
-the bundle provide redis with (lua-resp)[https://github.com/lalawue/lua-resp] or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
+the bundle provide redis with [lua-resp](https://github.com/lalawue/lua-resp) or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
 
 you can try playground 'try 'application/x-www-form-urlencoded' text in db', default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
 
