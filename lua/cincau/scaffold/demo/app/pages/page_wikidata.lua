@@ -18,7 +18,9 @@ local tostring = tostring
 local Page = MoocClass("page_wiki", BasePage)
 
 function Page:init(config)
-    FileManager.mkdir(config.wiki_path)
+    self.wiki_path = config.dataPath(config.dir.wiki)
+    self.wiki_dir = config.dir.wiki
+    FileManager.mkdir(self.wiki_path)
 end
 
 function Page:process(config, req, response, params)
@@ -50,7 +52,7 @@ function Page:process(config, req, response, params)
         end
     else
         do
-            local dir = config.wiki_path
+            local dir = self.wiki_path
             for i=1, #path_comps - 1 do
                 dir = dir .. path_comps[i] .. "/"
                 FileManager.mkdir(dir)
@@ -75,9 +77,9 @@ function Page:process(config, req, response, params)
 end
 
 function Page:siteMap(config, req, response, params)
-    local tbl = FileManager.travelDir(config.wiki_path, { file = true, directory = true })
+    local tbl = FileManager.travelDir(self.wiki_path, { file = true, directory = true })
     local out = {}
-    self:travelDirTable("", config.wiki_path, tbl, out)
+    self:travelDirTable("", self.wiki_path, self.wiki_dir, tbl, out)
     local text = concat(out, '\n')
     config.logger.info(text)
     response:setHeader("Content-Type", "application/json")
@@ -87,14 +89,15 @@ function Page:siteMap(config, req, response, params)
     }))
 end
 
-function Page:travelDirTable(indent, path, tbl, out)
+function Page:travelDirTable(indent, path, dir, tbl, out)
     for i, v in ipairs(tbl) do
         if i > 1 then
             if type(v) == "table" then
                 out[#out + 1] = indent .. "- **" .. v[1] .. '/**'
-                self:travelDirTable(indent .. "  ", path .. v[1] .. '/', v, out)
+                self:travelDirTable(indent .. "  ", path .. v[1] .. '/', dir .. v[1] .. '/', v, out)
             elseif v:sub(1, 1) ~= '.' then
-                out[#out + 1] = indent .. "- [" .. v .. '](' .. path .. v .. ')'
+                local fname = v:sub(1, v:len() - 3)
+                out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
             end
         end
     end

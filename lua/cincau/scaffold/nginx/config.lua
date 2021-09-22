@@ -21,12 +21,20 @@ Logger.printf = function(level, fmt, ...)
     end
 end
 
-return {
+local config = {
     engine_type = "nginx",
     ipport = "", -- defined by config/nginx.conf
     logger = Logger,
     debug_on = false, -- debug framework, close cache
     session_outdate = 300, -- session oudated seconds
-    db_path = "datas/database/", -- database dir
-    wiki_path = "datas/wiki/", -- wiki dir
+    dir = {
+        database = "database/",
+        wiki = "wiki/",
+    },
 }
+
+config.dataPath = function(dir)
+    return "datas/" .. dir
+end
+
+return config
