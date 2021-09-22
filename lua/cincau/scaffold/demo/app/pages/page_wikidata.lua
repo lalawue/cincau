@@ -19,7 +19,6 @@ local Page = MoocClass("page_wiki", BasePage)
 
 function Page:init(config)
     self.wiki_path = config.dataPath(config.dir.wiki)
-    self.wiki_dir = config.dir.wiki
     FileManager.mkdir(self.wiki_path)
 end
 
@@ -33,7 +32,7 @@ function Page:process(config, req, response, params)
         return
     end
 
-    local path = self:fullPath(config, path_comps)
+    local path = self:fullPath(path_comps)
 
     config.logger.info("%s %s", req.method, path)
 
@@ -79,7 +78,7 @@ end
 function Page:siteMap(config, req, response, params)
     local tbl = FileManager.travelDir(self.wiki_path, { file = true, directory = true })
     local out = {}
-    self:travelDirTable("", self.wiki_path, self.wiki_dir, tbl, out)
+    self:travelDirTable("", self.wiki_path, tbl, out)
     local text = concat(out, '\n')
     config.logger.info(text)
     response:setHeader("Content-Type", "application/json")
@@ -89,13 +88,14 @@ function Page:siteMap(config, req, response, params)
     }))
 end
 
-function Page:travelDirTable(indent, path, dir, tbl, out)
+function Page:travelDirTable(indent, path, tbl, out)
     for i, v in ipairs(tbl) do
         if i > 1 then
             if type(v) == "table" then
                 out[#out + 1] = indent .. "- **" .. v[1] .. '/**'
-                self:travelDirTable(indent .. "  ", path .. v[1] .. '/', dir .. v[1] .. '/', v, out)
+                self:travelDirTable(indent .. "  ", path .. v[1] .. '/', v, out)
             elseif v:sub(1, 1) ~= '.' then
+                local dir = "#!" .. path:sub(self.wiki_path:len())
                 local fname = v:sub(1, v:len() - 3)
                 out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
             end
@@ -117,8 +117,8 @@ function Page:pathCompos(req)
     end
 end
 
-function Page:fullPath(config, path_comps)
-    return config.wiki_path .. concat(path_comps, "/") .. ".md"
+function Page:fullPath(path_comps)
+    return self.wiki_path .. concat(path_comps, "/") .. ".md"
 end
 
 return Page
