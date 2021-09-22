@@ -27,7 +27,6 @@ local Table, Field, tpairs, Or
 local PostT
 
 function Model:loadModel(config)
-    lfs.mkdir(config.db_path)
     if self._conn then
         return
     end
@@ -55,7 +54,7 @@ function Model:loadModel(config)
 
     if not self._redis_options then
         self._bitcask = Bitcask.opendb({
-            dir = "database/bitcask",
+            dir = config.db_path .. "/bitcask",
             file_size = 1024
         })
     end
