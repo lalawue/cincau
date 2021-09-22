@@ -39,7 +39,13 @@ router:get("/playground", _playground)
 router:post("/playground", _playground)
 
 function router:pageNotFound(config, req, response, params)
-    config.logger.err("page not found method:%s path:%s", req.method, req.path)
+    if req.path == "/favicon.ico" then
+        MasterPage.staticContent(response, "datas/images/favicon.png", "image/png")
+    else
+        response:setStatus(404)
+        response:setHeader("Content-Type", "text/html")
+        response:appendBody([[<html><head><meta http-equiv="Refresh" content="0; URL=/"></head></html>]])
+    end
 end
 
 return router

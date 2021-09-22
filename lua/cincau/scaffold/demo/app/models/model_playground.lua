@@ -5,10 +5,10 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local lfs = require("lfs")
 local DBClass = require("sql-orm")
 local Redis = require("bridge.redis_cmd")
 local Bitcask = require("bitcask")
+local FileManager = require("base.file_manager")
 
 local type = type
 local ipairs = ipairs
@@ -27,12 +27,13 @@ local Table, Field, tpairs, Or
 local PostT
 
 function Model:loadModel(config)
+    FileManager.mkdir(config.db_path)
     if self._conn then
         return
     end
     self._conn = DBClass.new({
         newtable = true,
-        path = config.db_path .. "/playground_db.sqlite",
+        path = config.db_path .. "playground_db.sqlite",
         type = "sqlite3",
         TRACE = true,
         DEBUG = true,
@@ -54,7 +55,7 @@ function Model:loadModel(config)
 
     if not self._redis_options then
         self._bitcask = Bitcask.opendb({
-            dir = config.db_path .. "/bitcask",
+            dir = config.db_path .. "bitcask",
             file_size = 1024
         })
     end
