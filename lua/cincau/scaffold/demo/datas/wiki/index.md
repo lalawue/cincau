@@ -16,7 +16,7 @@ these links can create dir, try edit this page to see source.
 
 ## Technical Details
 
-`app/pages/page_wiki.lua` provide a HTML page container, and `datas/js/wiki_cnt.js` request markdown text from `app/pages/page_wikidata.lua`, then rende with markdown engine.
+`app/pages/page_wiki.lua` provide a HTML page container, and `datas/js/wiki_cnt.js` request markdown text from `app/pages/page_wikidata.lua`, then render with markdown engine.
 
 - using markdown editor [SimpleMDE Markdown Editor](https://simplemde.com/)
 - using client-side JavaScript framework [Mithril](https://mithril.js.org/)
