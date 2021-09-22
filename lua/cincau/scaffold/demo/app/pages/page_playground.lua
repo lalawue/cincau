@@ -126,7 +126,7 @@ function Page:process(config, req, response, params)
     end
 
     -- render page content
-    local page_content = Render:render(self._htmlSpec, {
+    local page_content = Render:render(self.htmlSpec, {
         css_path = "/css/playground.css",
         script_content = [[if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
@@ -178,7 +178,7 @@ function Page:process(config, req, response, params)
 end
 
 -- html content
-function Page:_htmlSpec()
+function Page:htmlSpec()
     return {
         html {
             include "app/templates/head_tpl.lua",

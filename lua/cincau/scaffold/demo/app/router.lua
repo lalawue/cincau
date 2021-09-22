@@ -20,6 +20,10 @@ router:get("/css/:filename/", function(config, req, response, params)
     MasterPage.staticContent(response, "datas/css/" .. params.filename)
 end)
 
+router:get("/js/:filename/", function(config, req, response, params)
+    MasterPage.staticContent(response, "datas/js/" .. params.filename, "application/javascript")
+end)
+
 -- get root
 router:get("/", function(config, req, response, params)
     MasterPage.process("page_index", config, req, response, params)
@@ -38,6 +42,18 @@ end
 router:get("/playground", _playground)
 router:post("/playground", _playground)
 
+-- wiki get/post
+router:get("/wiki", function(config, req, response, params)
+    MasterPage.process("page_wiki", config, req, response, params)
+end)
+
+local function  _wikidata(config, req, response, params)
+    MasterPage.process("page_wikidata", config, req, response, params)
+end
+router:get("/wikidata", _wikidata)
+router:post("/wikidata", _wikidata)
+
+-- page not found
 function router:pageNotFound(config, req, response, params)
     if req.path == "/favicon.ico" then
         MasterPage.staticContent(response, "datas/images/favicon.png", "image/png")
