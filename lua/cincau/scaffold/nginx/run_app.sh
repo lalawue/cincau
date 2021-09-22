@@ -2,6 +2,8 @@
 #
 # app launcher by lalawue
 
+PID_FILE="tmp/cincau-nginx.pid"
+
 start_server()
 {
     mkdir -p $PWD/tmp
@@ -21,7 +23,9 @@ stop_server()
     which $1 > /dev/null
     if [ "$?" = "0" ]; then
         echo "stop cincau web framework [nginx]"
-        $1 -s stop -p $PWD/ -c config/nginx.conf
+        if [ -f $PID_FILE ]; then
+            $1 -s stop -p $PWD/ -c config/nginx.conf
+        fi
         exit $?
     fi
 }
@@ -30,10 +34,14 @@ reload_server()
 {
     which $1 > /dev/null
     if [ "$?" = "0" ]; then
-        eval $(luarocks path)
-        echo "reload cincau web framework [nginx]"
-        kill -HUP $(cat $PWD/tmp/cincau-nginx.pid)
-        exit $?
+        if [ -f $PID_FILE ]; then
+            eval $(luarocks path)
+            echo "reload cincau web framework [nginx]"
+            kill -HUP $(cat $PWD/tmp/cincau-nginx.pid)
+            exit $?
+        else
+            start_server $1
+        fi
     fi
 }
 
