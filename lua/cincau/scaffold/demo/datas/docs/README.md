@@ -1,7 +1,7 @@
 
 # About
 
-cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/cn/) ([nginx](https://www.nginx.com)).
+cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/) ([nginx](https://www.nginx.com)).
 
 ## Install
 
@@ -25,6 +25,7 @@ then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the p
 # Demo Project
 
 - app/: contains server entry and business logic
+- datas/: contains images, css, js and other documents
 - config/: only appears in nginx engine type
 - logs/: contains running log
 - tmp/: for temporary files
@@ -61,7 +62,13 @@ each client request going through these steps below:
 - default using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
 - response HTML to client
 
-see app/pages/page_index.lua, and more complicate example is app/pages/page_playground.lua.
+see `app/pages/page_index.lua`, and more complicate example is `app/pages/page_playground.lua`.
+
+## Single Page Application (SPA)
+
+the demo project also provide a SPA page example, with container `app/pages/page_wiki.lua` and data backend `app/pages/page_wikidata.lua`.
+
+you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some example in index page.
 
 ## Database
 

@@ -115,7 +115,7 @@ function Page:pathCompos(req)
 end
 
 function Page:fullPath(config, path_comps)
-    return config.wiki_path .. concat(path_comps, "/")
+    return config.wiki_path .. concat(path_comps, "/") .. ".md"
 end
 
 return Page
