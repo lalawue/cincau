@@ -42,18 +42,15 @@ end
 -- create demo app
 local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     print("---")
+    -- copy app and datas
+    _copyFile(core_dir .. "/scaffold/demo/*", proj_dir)
     local app_dir = proj_dir .. "/app/"
-    _mkDir(app_dir)
     -- copy engine
     local engine_dir = core_dir .. "/engine/" .. engine_type
     _copyFile(engine_dir .. "/server.mooc", app_dir .. "/server.mooc")
-    -- copy others
-    _copyFile(core_dir .. "/scaffold/demo/*", app_dir)
     -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
-    -- copy datas
-    _copyFile(scaffold_dir .. "/datas", proj_dir)
 end
 
 -- create project skeleton
