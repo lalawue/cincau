@@ -18,7 +18,7 @@ Model.__index = Model
 
     -- load model
 function  Model:loadModel()
-    local content = FileManager.readFile("app/static/README.md")
+    local content = FileManager.readFile("datas/docs/README.md")
     local paragraphs = {}
     for _, v in ipairs(content:split("\n")) do
         if v:len() > 0 then

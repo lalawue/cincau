@@ -52,6 +52,8 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/config.lua", app_dir .. "/config.lua")
+    -- copy datas
+    _copyFile(scaffold_dir .. "/datas", proj_dir)
 end
 
 -- create project skeleton

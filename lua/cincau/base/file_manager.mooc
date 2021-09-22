@@ -72,7 +72,6 @@ struct FileManager {
                 }
             }
         }
-        table.dump(tbl)
         return tbl
     }
 

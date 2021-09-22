@@ -25,9 +25,9 @@ start_server()
     sleep 1
     kill -0 $CINCAU_PID
     if [ $? = "0" ]; then
-	echo $CINCAU_PID > $PID_FILE
+	    echo $CINCAU_PID > $PID_FILE
     else
-	echo "fail to start !!!"
+	    echo "fail to start !!!"
     fi
 }
 

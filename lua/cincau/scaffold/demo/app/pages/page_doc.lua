@@ -23,7 +23,7 @@ function Page:process(config, req, response, params)
     response:setHeader("Content-Type", "text/html")
     -- render page content
     local page_content = Render:render(self.htmlSpec, {
-        css_path = "/styles/doc.css",
+        css_path = "/css/doc.css",
         page_title = self:upperCaseFirstChar(params.name) .. " documents",
         page_content = Model:getParagraphs()
     })

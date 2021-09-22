@@ -27,5 +27,5 @@ return {
     logger = Logger,
     debug_on = false, -- debug framework, close cache
     session_outdate = 300, -- session oudated seconds
-    db_path = "database/" -- database dir
+    db_path = "datas/database/" -- database dir
 }

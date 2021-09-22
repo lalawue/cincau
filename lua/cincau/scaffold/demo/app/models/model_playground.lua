@@ -10,6 +10,10 @@ local DBClass = require("sql-orm")
 local Redis = require("bridge.redis_cmd")
 local Bitcask = require("bitcask")
 
+local type = type
+local ipairs = ipairs
+local assert = assert
+
 local Model = {
     _conn = false,
     _bitcask = false,

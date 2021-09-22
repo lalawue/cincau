@@ -127,7 +127,7 @@ function Page:process(config, req, response, params)
 
     -- render page content
     local page_content = Render:render(self._htmlSpec, {
-        css_path = "/styles/playground.css",
+        css_path = "/css/playground.css",
         script_content = [[if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
         }]],

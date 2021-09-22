@@ -13,17 +13,16 @@ local MasterPage = PageCore.MasterPage
 local router = require("router_core").new()
 
 router:get("/images/:filename/", function(config, req, response, params)
-    MasterPage.staticContent(response, "app/static/" .. params.filename, "image/png")
+    MasterPage.staticContent(response, "datas/images/" .. params.filename, "image/png")
+end)
+
+router:get("/css/:filename/", function(config, req, response, params)
+    MasterPage.staticContent(response, "datas/css/" .. params.filename)
 end)
 
 -- get root
 router:get("/", function(config, req, response, params)
     MasterPage.process("page_index", config, req, response, params)
-end)
-
--- get stylesheet files
-router:get("/styles/:filename/", function(config, req, response, params)
-    MasterPage.staticContent(response, "app/styles/" .. params.filename)
 end)
 
 -- jump to doc and input doc name
