@@ -1,7 +1,7 @@
 package = 'cincau'
 version = '0.6.20210923-1'
 source = {
-   url = 'git+https://github.com/lalawue/cincau.git'
+   url = 'git+https://github.com/lalawue/cincau.git',
    tag = '0.6.20210923'
 }
 description = {
