@@ -68,7 +68,7 @@ see `app/pages/page_index.lua`, and more complicate example is `app/pages/page_p
 
 the demo project also provide a SPA page example, with container `app/pages/page_wiki.lua` and data backend `app/pages/page_wikidata.lua`.
 
-you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some example in index page.
+you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some examples in index page.
 
 ## Database
 
