@@ -23,7 +23,8 @@ function Page:process(config, req, response, params)
         page_features = table.ireduce(features, "", function(total, i, value)
             return total .. '<li>' .. value .. '</li>\n'
         end),
-        page_footer = 'get <a href="doc/cincau">documents</a>, try <a href="playground">playground</a>, or visited in <a href="https://github.com/lalawue/cincau">github</a>.',
+        page_footer = [[get <a href="doc/cincau">doc</a>, try <a href="playground">playground</a>,
+<a href="wiki">wiki</a>, or visit <a href="https://github.com/lalawue/cincau">github</a>.]],
     })
     -- append body as chunked data
     response:appendBody(page_content)
@@ -40,7 +41,7 @@ function Page:htmlSpec()
                     page_features,
                 },
                 footer {
-                    page_footer,
+                    page_footer
                 }
             }
         }
