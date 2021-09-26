@@ -29,8 +29,6 @@ fn string:split(sSeparator, nMax, bRegexp) {
             nMax = nMax - 1
         }
         aRecord[nField] = self:sub(nStart)
-    } else {
-        aRecord[1] = ""
     }
     return aRecord
 }
