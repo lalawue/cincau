@@ -44,7 +44,6 @@ struct FileManager {
     -- travel dir files, tbl_modes should be { "file" = true, "directory" = true }
     -- return dirs / files in recursive table, and dir name in table[1]
     static fn travelDir(dir_path, tbl_modes) {
-        print(dir_path)
         if type(dir_path) ~= "string" or type(tbl_modes) ~= "table" {
             return Self._dummy_tbl
         }
