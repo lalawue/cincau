@@ -80,7 +80,7 @@ struct MasterPage {
     }
 
     -- default 'Content-Type: text/plain;', append etag base path and modified time
-    static fn staticContent(config, response, path, content_type) {
+    static fn staticContent(config, req, response, path, content_type) {
         if type(path) ~= "string" {
             return
         }
@@ -93,12 +93,22 @@ struct MasterPage {
             config.logger.err("static content non exist: %s", path)
             return
         }
-        etag = Self._etags[path]
-        if not etag {
-            etag = Base64.base64_encode(path .. tostring(st.modification))
-            Self._etags[path] = config.debug_on and nil or etag
+        if config.debug_on {
+            response:setHeader("Cache-Control", "max-age=no-store")
+        } else {
+            etag = Self._etags[path]
+            if etag {
+            } else {
+                etag = "W/" .. Base64.base64_encode(path .. tostring(st.modification))
+                Self._etags[path] = etag
+            }
+            response:setHeader("Cache-Control", "max-age=" .. tostring(config.resources_max_age or 900))
+            response:setHeader("ETag", etag)
+            if req.header["If-None-Match"] == etag {
+                response:setStatus(304)
+                return
+            }
         }
-        response:setHeader("ETag", etag)
         if path:sub(path:len() - 2) == ".gz" {
             response:setHeader("Content-Encoding", "gzip")
         }

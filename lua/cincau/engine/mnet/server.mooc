@@ -96,13 +96,13 @@ fn _storeMultiPartData(cnt, http_tbl) {
 }
 
 -- response option
-local ResponseOption = {
+local response_option = {
     en_chunked_length : true, -- append chunked body length
     fn_chunked_callback : false,
     fn_set_header : false, -- construct header
     fn_set_status : false
 }
-ResponseOption.__index = ResponseOption
+response_option.__index = response_option
 
 -- receive client data then parse to http method, path, header, content
 fn _onClientEventCallback(chann, event_name, _) {
@@ -141,7 +141,7 @@ fn _onClientEventCallback(chann, event_name, _) {
             req:updateRemoteIp(chann:addr().ip)
             _updateRequest(req)
             -- create response
-            option = setmetatable({}, ResponseOption)
+            option = setmetatable({}, response_option)
             option.fn_chunked_callback = { data in
                 chann:send(data)
             }

@@ -11,16 +11,19 @@ type = type
 pairs = pairs
 ipairs = ipairs
 tostring = tostring
+strfmt = string.format
 
 local _status_code_msg = {
     ["100"] : "Continue",
     ["200"] : "OK",
     ["301"] : "Moved Permanently",
     ["302"] : "Moved Temporarily",
+    ["304"] : "Not Modified",
     ["307"] : "Temporary Redirect",
     ["401"] : "Unauthorized",
     ["403"] : "Forbidden",
     ["404"] : "Not Found",
+    ["412"] : "Precondition Failed",
     ["500"] : "Internal Server Error"
 }
 
@@ -48,11 +51,11 @@ fn _makeHeader(self) {
         content = "HTTP/1.1 500 " .. _status_code_msg["500"] .. "\r\n"
     }
     for k, v in pairs(http.header) {
-        content = content .. string.format("%s: %s\r\n", k, v)
+        content = content .. strfmt("%s: %s\r\n", k, v)
     }
     if http.cookies {
         for _, v in ipairs(http.cookies) {
-            content = content .. string.format("Set-Cookie: %s\r\n", v)
+            content = content .. strfmt("Set-Cookie: %s\r\n", v)
         }
     }
     content = content .. "\r\n"
@@ -60,7 +63,7 @@ fn _makeHeader(self) {
 }
 
 fn _hexlen(str) {
-    return string.format("%X", str:len())
+    return strfmt("%X", str:len())
 }
 
 class ResponseCore {

@@ -15,7 +15,7 @@ import SessionMgnt from "session.session_mgnt"
 import Version from "base.version"
 
 -- response option
-Response_option = {
+response_option = {
     en_output_header : false, -- construct header by nginx
     en_chunked_length : false, -- chunked body length by nginx
     fn_chunked_callback : { data in
@@ -71,7 +71,7 @@ struct Serv {
         req:updateRemoteIp(ngx.var.remote_addr)
         _updateRequest(req, is_multipart_formdata)
         -- create response
-        response = Response(Response_option)
+        response = Response(response_option)
         -- callback
         ret, emsg = xpcall(http_callback, Base.tracebackHandler, config, req, response)
         if not ret {
