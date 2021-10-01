@@ -13,15 +13,15 @@ local MasterPage = PageCore.MasterPage
 local router = require("router_core").new()
 
 router:get("/images/:filename/", function(config, req, response, params)
-    MasterPage.staticContent(response, "datas/images/" .. params.filename, "image/png")
+    MasterPage.staticContent(config, response, "datas/images/" .. params.filename, "image/png")
 end)
 
 router:get("/css/:filename/", function(config, req, response, params)
-    MasterPage.staticContent(response, "datas/css/" .. params.filename)
+    MasterPage.staticContent(config, response, "datas/css/" .. params.filename)
 end)
 
 router:get("/js/:filename/", function(config, req, response, params)
-    MasterPage.staticContent(response, "datas/js/" .. params.filename, "application/javascript")
+    MasterPage.staticContent(config, response, "datas/js/" .. params.filename, "application/javascript")
 end)
 
 -- get root
@@ -56,7 +56,7 @@ router:post("/wikidata", _wikidata)
 -- page not found
 function router:pageNotFound(config, req, response, params)
     if req.path == "/favicon.ico" then
-        MasterPage.staticContent(response, "datas/images/favicon.png", "image/png")
+        MasterPage.staticContent(config, response, "datas/images/favicon.png", "image/png")
     else
         response:setStatus(404)
         response:setHeader("Content-Type", "text/html")

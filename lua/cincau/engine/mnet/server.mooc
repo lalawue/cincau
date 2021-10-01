@@ -17,13 +17,13 @@ import ThreadBroker from "bridge.thread_broker"
 import Mediator from "bridge.mediator"
 import SessionMgnt from "session.session_mgnt"
 
-xpCall = xpcall
-toString = tostring
-setMetatable = setmetatable
+xpcall = xpcall
+tostring = tostring
+setmetatable = setmetatable
 coCreate = coroutine.create
 coResume = coroutine.resume
-mRandom = math.random
-tblConcat = table.concat
+mathRandom = math.random
+tableConcat = table.concat
 
 -- close chann and destroy http parser
 fn _clientDestroy(chann) {
@@ -72,7 +72,7 @@ fn _storeMultiPartData(cnt, http_tbl) {
         return false
     }
     contents = http_tbl.contents
-    raw_data = contents and tblConcat(contents) or ""
+    raw_data = contents and tableConcat(contents) or ""
     Request.multiPartReadBody(
         fd_tbl,
         raw_data,
@@ -81,7 +81,7 @@ fn _storeMultiPartData(cnt, http_tbl) {
             if data and info and info.filepath {
                 FileManager.appendFile(info.filepath, data)
             } elseif filename and filename:len() > 0 {
-                filepath = "tmp/" .. tostring(mRandom(100000)) .. _suffix4(filename)
+                filepath = "tmp/" .. tostring(mathRandom(100000)) .. _suffix4(filename)
                 cnt.multipart_info[#cnt.multipart_info + 1] = {
                     :filename,
                     :filepath,
@@ -126,7 +126,7 @@ fn _onClientEventCallback(chann, event_name, _) {
             if _storeMultiPartData(cnt, http_tbl) {
                 multipart_info = cnt.multipart_info
             } elseif http_tbl.contents {
-                content = tblConcat(http_tbl.contents)
+                content = tableConcat(http_tbl.contents)
                 http_tbl.contents = nil
             }
             -- create callback info
@@ -140,14 +140,17 @@ fn _onClientEventCallback(chann, event_name, _) {
             req:updateRemoteIp(chann:addr().ip)
             _updateRequest(req)
             -- create response
-            option = setMetatable({}, ResponseOption)
+            option = setmetatable({}, ResponseOption)
             option.fn_chunked_callback = { data in
                 chann:send(data)
             }
             response = Response(option)
             co = coCreate({ _ in
                 -- callback
-                ret, emsg = xpCall(http_callback, Base.tracebackHandler, cnt.config, req, response)
+                ret, emsg = xpcall(http_callback, Base.tracebackHandler, cnt.config, req, response)
+                if not ret {
+                    response:setStatus(500)
+                }
                 -- finish response
                 response:finishResponse()
                 -- reset resources

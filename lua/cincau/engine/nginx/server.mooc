@@ -73,6 +73,9 @@ struct Serv {
         response = Response(Response_option)
         -- callback
         ret, emsg = xpcall(http_callback, Base.tracebackHandler, config, req, response)
+        if not ret {
+            response:setStatus(500)
+        }
         -- finish response
         response:finishResponse()
     }

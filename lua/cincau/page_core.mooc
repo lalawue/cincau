@@ -9,7 +9,14 @@
 --
 
 import Base from "base.scratch"
+import Base64 from "base.mime_base64"
 import FileManager from "base.file_manager"
+
+type = type
+assert = assert
+tostring = tostring
+xpcall = xpcall
+pkg_loaded = package.loaded
 
 fn _debugOn(config) {
     return config and config.debug_on
@@ -33,45 +40,60 @@ class BasePage {
 --
 struct MasterPage {
 
-    -- hold all named page instance
+    -- hold page instance
     _pages = {}
+    -- hold static content etags
+    _etags = {}
 
-    static fn process(name, config, ...) {
+    static fn process(name, config, req, response, params) {
         assert(type(name) == "string", "invalid controller name")
+        -- assume all page business under pages dir
         ctrl = Self._pages[name]
-        if type(ctrl) ~= "table" {
-            -- assume all page business under pages dir
+        if not ctrl {
             libname = "pages." .. name
-            ret, lib = xpcall(require, Base.tracebackHandler, libname)
+            ret, lib = xpcall(require, Base.tracebackHandler ,libname)
             if not ret {
-                config.logger.err("failed to load page '%s':%s", libname, lib)
+                response:setStatus(500)
                 return
             }
             ctrl = lib(config)
             assert(type(ctrl) == "table", "page not exist")
             if _debugOn(config) {
-                package.loaded[libname] = nil
+                pkg_loaded[libname] = nil
             } else {
                 Self._pages[name] = ctrl
             }
         }
         -- process data
-        ctrl:process(config, ...)
+        ctrl:process(config, req, response, params)
+        return
     }
 
-    -- default 'Content-Type: text/plain;'
-    static fn staticContent(response, path, content_type) {
+    -- default 'Content-Type: text/plain;', append etag base path and modified time
+    static fn staticContent(config, response, path, content_type) {
         if type(path) ~= "string" {
             return
         }
-        content_type = content_type or "text/plain"
-        response:setHeader("Content-Type", content_type)
-        if FileManager.stat(path) {
-            response:appendBody(FileManager.readFile(path))
-        } elseif FileManager.stat(path .. ".gz") {
-            response:setHeader("Content-Encoding", "gzip")
-            response:appendBody(FileManager.readFile(path .. ".gz"))
+        st = FileManager.stat(path)
+        if not st {
+            path ..= ".gz"
+            st = FileManager.stat(path)
         }
+        guard st else {
+            config.logger.err("static content non exist: %s", path)
+            return
+        }
+        etag = Self._etags[path]
+        if not etag {
+            etag = Base64.base64_encode(path .. tostring(st.modification))
+            Self._etags[path] = config.debug_on and nil or etag
+        }
+        response:setHeader("ETag", etag)
+        if path:sub(path:len() - 1) == ".gz" {
+            response:setHeader("Content-Encoding", "gzip")
+        }
+        response:setHeader("Content-Type", content_type or "text/plain")
+        response:appendBody(FileManager.readFile(path))
     }
 }
 
