@@ -12,6 +12,7 @@ import Request from "engine.request_core"
 import Response from "engine.response_core"
 import FileManager from "base.file_manager"
 import SessionMgnt from "session.session_mgnt"
+import Version from "base.version"
 
 -- response option
 Response_option = {
@@ -75,6 +76,14 @@ struct Serv {
         ret, emsg = xpcall(http_callback, Base.tracebackHandler, config, req, response)
         if not ret {
             response:setStatus(500)
+            response:appendBody("
+                <html>
+                    <body style=\"center\">
+                        <h1>Server Internal Error</h1>
+                        <footer>\(Version.version)</footer>
+                    </body>
+                </html>
+            ")
         }
         -- finish response
         response:finishResponse()

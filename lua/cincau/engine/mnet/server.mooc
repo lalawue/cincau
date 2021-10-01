@@ -16,6 +16,7 @@ import FileManager from "base.file_manager"
 import ThreadBroker from "bridge.thread_broker"
 import Mediator from "bridge.mediator"
 import SessionMgnt from "session.session_mgnt"
+import Version from "base.version"
 
 xpcall = xpcall
 tostring = tostring
@@ -150,6 +151,14 @@ fn _onClientEventCallback(chann, event_name, _) {
                 ret, emsg = xpcall(http_callback, Base.tracebackHandler, cnt.config, req, response)
                 if not ret {
                     response:setStatus(500)
+                    response:appendBody("
+                        <html>
+                            <body style=\"center\">
+                                <h1>Server Internal Error</h1>
+                                <footer>\(Version.version)</footer>
+                            </body>
+                        </html>
+                    ")
                 }
                 -- finish response
                 response:finishResponse()

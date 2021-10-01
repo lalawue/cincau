@@ -5,6 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+import Version from "base.version"
+
 type = type
 pairs = pairs
 ipairs = ipairs
@@ -83,7 +85,7 @@ class ResponseCore {
         self.opt = option
         self.http = { header : {} } -- { header, status_code }
         self:setStatus(200)
-        self:setHeader("Server", "Cincua/v20211001")
+        self:setHeader("Server", Version.version)
         self:setHeader("Transfer-Encoding", "chunked")
     }
 
