@@ -99,7 +99,7 @@ struct MasterPage {
             Self._etags[path] = config.debug_on and nil or etag
         }
         response:setHeader("ETag", etag)
-        if path:sub(path:len() - 1) == ".gz" {
+        if path:sub(path:len() - 2) == ".gz" {
             response:setHeader("Content-Encoding", "gzip")
         }
         response:setHeader("Content-Type", content_type or "text/plain")
