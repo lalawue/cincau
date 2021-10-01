@@ -115,13 +115,7 @@ class ResponseCore {
         _makeHeader(self)
         opt = self.opt
         http = self.http
-        if http.status_code == 500 {
-            msg = "<html><h1>500 Internal Server Error</h1></html>"
-            if opt.en_chunked_length {
-                msg = _hexlen(msg) .. "\r\n" .. msg .. "\r\n"
-            }
-            opt.fn_chunked_callback(msg)
-        } elseif data:len() > 0 {
+        if data:len() > 0 {
             if opt.en_chunked_length {
                 data = _hexlen(data) .. "\r\n" .. data .. "\r\n"
             }

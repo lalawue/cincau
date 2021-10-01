@@ -53,7 +53,8 @@ struct MasterPage {
             libname = "pages." .. name
             ret, lib = xpcall(require, Base.tracebackHandler ,libname)
             if not ret {
-                response:setStatus(500)
+                response:setStatus(404)
+                response:appendBody("<html><h1>Not Found</h1></html>")
                 return
             }
             ctrl = lib(config)
