@@ -106,11 +106,7 @@ end
 function Page:pathCompos(req)
     if req.query.f then
         local tbl = (req.query.d or ""):split("/")
-        if #tbl > 0 and tbl[#tbl]:len() > 0 then
-            tbl[#tbl + 1] = req.query.f
-        else
-            tbl[#tbl] = req.query.f
-        end
+        tbl[#tbl + 1] = req.query.f
         return tbl
     else
         return {}
