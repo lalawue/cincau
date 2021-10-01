@@ -151,14 +151,15 @@ fn _onClientEventCallback(chann, event_name, _) {
                 ret, emsg = xpcall(http_callback, Base.tracebackHandler, cnt.config, req, response)
                 if not ret {
                     response:setStatus(500)
-                    response:appendBody("
+                    response:appendBody([[
                         <html>
-                            <body style=\"center\">
+                            <body>
+                                <style>h1,footer{text-align:center;}</style>
                                 <h1>Server Internal Error</h1>
-                                <footer>\(Version.version)</footer>
+                                <footer>]] .. Version.version .. [[</footer>
                             </body>
                         </html>
-                    ")
+                    ]])
                 }
                 -- finish response
                 response:finishResponse()

@@ -54,7 +54,15 @@ struct MasterPage {
             ret, lib = xpcall(require, Base.tracebackHandler ,libname)
             if not ret {
                 response:setStatus(404)
-                response:appendBody("<html><h1>Not Found</h1></html>")
+                response:appendBody([[
+                    <html>
+                        <body>
+                            <style>h1,footer{text-align:center;}</style>
+                            <h1>Not Found</h1>
+                            <footer>]] .. Version.version .. [[</footer>
+                        </body>
+                    </html>
+                ]])
                 return
             }
             ctrl = lib(config)

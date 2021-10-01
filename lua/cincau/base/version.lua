@@ -1,3 +1,3 @@
 return {
-    version = "Cincau/20211001"
+    version = "cincau/0.6.20211001"
 }
