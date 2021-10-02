@@ -9,12 +9,13 @@ import FileSystem from "lfs"
 import Zlib from "base.ffi_zlib"
 
 type = type
+print = print
 ioOpen = io.open
 osRemove = os.remove
 osRename = os.rename
-mathMin = math.min
 tableConcat = table.concat
 tableSort = table.sort
+mathMin = math.min
 
 struct FileManager {
     _sandboxed = false
@@ -33,9 +34,9 @@ struct FileManager {
             ret = ret or path:find("..", 1, true)
             if ret and Self._logger {
                 Self._logger.err("invalid path: '%s', out of sandbox", path)
-                print(debug.traceback())
-                os.exit(1)
             }
+            print(debug.traceback())
+            os.exit(1)
         }
     }
 
@@ -52,6 +53,7 @@ struct FileManager {
     -- travel dir files, tbl_modes should be { "file" = true, "directory" = true }
     -- return dirs / files in recursive table, and dir name in table.dir_name
     static fn travelDir(dir_path, tbl_modes) {
+        Self.validatePath(dir_path)
         if type(dir_path) ~= "string" or type(tbl_modes) ~= "table" {
             return Self._dummy_tbl
         }

@@ -99,7 +99,7 @@ struct MasterPage {
             etag = Self._etags[path]
             if etag {
             } else {
-                etag = "W/" .. Base64.base64_encode(path .. tostring(st.modification))
+                etag = 'W/"' .. Base64.base64_encode(path .. tostring(st.modification)) .. '"'
                 Self._etags[path] = etag
             }
             response:setHeader("Cache-Control", "max-age=" .. tostring(config.resources_max_age or 900))
