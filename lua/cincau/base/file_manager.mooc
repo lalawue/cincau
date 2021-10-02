@@ -29,15 +29,19 @@ struct FileManager {
     }
 
     static fn validatePath(path) {
-        if Self._sandboxed and path {
-            ret = path:find("/", 1, true) == 1
-            ret = ret or path:find("..", 1, true)
-            if ret and Self._logger {
-                Self._logger.err("invalid path: '%s', out of sandbox", path)
-            }
-            print(debug.traceback())
-            os.exit(1)
+        guard Self._sandboxed and path else {
+            return
         }
+        ret = path:find("/", 1, true) == 1
+        ret = ret or path:find("..", 1, true)
+        guard ret else {
+            return
+        }
+        if Self._logger {
+            Self._logger.err("invalid path: '%s', out of sandbox", path)
+        }
+        print(debug.traceback())
+        os.exit(1)
     }
 
     static fn stat(path) {
