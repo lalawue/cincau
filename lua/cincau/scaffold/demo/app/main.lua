@@ -9,6 +9,7 @@ require("app.env")
 local Base = require("base.scratch")
 
 local function runApp()
+    print("version: ", require("base.version").version)
     local Config = require("config")
     local Server = require("server")
     local Router = require("router")
