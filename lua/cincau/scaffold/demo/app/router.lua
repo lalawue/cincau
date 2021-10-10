@@ -44,11 +44,11 @@ router:post("/playground", _playground)
 
 -- wiki get/post
 router:get("/wiki", function(config, req, response, params)
-    MasterPage.process("page_wiki", config, req, response, params)
+    MasterPage.process("wiki.page_wiki", config, req, response, params)
 end)
 
-local function  _wikidata(config, req, response, params)
-    MasterPage.process("page_wikidata", config, req, response, params)
+local function _wikidata(config, req, response, params)
+    MasterPage.process("wiki.page_wikidata", config, req, response, params)
 end
 router:get("/wikidata", _wikidata)
 router:post("/wikidata", _wikidata)
