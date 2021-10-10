@@ -90,15 +90,13 @@ end
 
 function Page:travelDirTable(indent, path, tbl, out)
     for i, v in ipairs(tbl) do
-        if i > 1 then
-            if type(v) == "table" then
-                out[#out + 1] = indent .. "- **" .. v[1] .. '/**'
-                self:travelDirTable(indent .. "  ", path .. v[1] .. '/', v, out)
-            elseif v:sub(1, 1) ~= '.' then
-                local dir = "#!" .. path:sub(self.wiki_path:len())
-                local fname = v:sub(1, v:len() - 3)
-                out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
-            end
+        if type(v) == "table" then
+            out[#out + 1] = indent .. "- **" .. v.dir_name .. '/**'
+            self:travelDirTable(indent .. "  ", path .. v.dir_name .. '/', v, out)
+        elseif v:sub(1, 1) ~= '.' then
+            local dir = "#!" .. path:sub(self.wiki_path:len())
+            local fname = v:sub(1, v:len() - 3)
+            out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
         end
     end
 end
