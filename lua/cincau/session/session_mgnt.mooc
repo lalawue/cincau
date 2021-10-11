@@ -25,17 +25,25 @@ struct Session {
     _sessions = {}
     _lst = List.new()
 
+    --
+    static fn uuidFromReq(req, skey) {
+        guard req and skey else {
+            return
+        }
+        return req.cookies[skey]
+    }
+
     -- check session exist, from req
     static fn inSession(req, skey) {
-        if not req or not skey {
+        guard req and skey else {
             return false
         }
         uuid = req.cookies[skey]
-        sinfo = Self._sessions[uuid]
-        if sinfo and sinfo.tm {
-            _updateTime(Self._lst, sinfo.tm)
+        uu_session = Self._sessions[uuid]
+        if uu_session and uu_session.tm {
+            _updateTime(Self._lst, uu_session.tm)
         }
-        return (sinfo and true) or false
+        return (uu_session and true) or false
     }
 
     --[[ store session info to response using 'Set-Cookie'
@@ -54,7 +62,7 @@ struct Session {
     ]]
     static fn createSession(req, response, skey, options) {
         if not response or Self.inSession(req, skey) {
-            return false
+            return
         }
         -- set cookie to respoinse
         uuid = UUIDCore.new()
@@ -63,14 +71,13 @@ struct Session {
         -- set cookie to req
         req.cookies[skey] = uuid
         -- create session table
-        now = os.time()
         tm = {
-            time : now,
+            time : os.time(),
             uuid : uuid
         }
         Self._sessions[uuid] = { :tm }
         Self._lst:pushl(tm)
-        return true
+        return uuid
     }
 
     -- check in session first, clear session hkey, hval table
@@ -79,43 +86,52 @@ struct Session {
             return false
         }
         uuid = req.cookies[skey]
-        sinfo = Self._sessions[uuid]
-        if uuid and sinfo {
-            Self._lst:remove(sinfo.tm)
+        uu_session = Self._sessions[uuid]
+        if uuid and uu_session {
+            Self._lst:remove(uu_session.tm)
             Self._sessions[uuid] = nil
         }
         return true
     }
 
+    -- clear session with UUID
+    static fn clearSessionUUID(uuid) {
+        guard uuid else {
+            return
+        }
+        uu_session = Self._sessions[uuid]
+        if uu_session {
+            Self._lst:remove(uu_session.tm)
+            Self._sessions[uuid] = nil
+        }
+    }
+
     -- check in session first, get hval from session with hkey
     static fn getValue(req, skey, hkey) {
-        if not req or not skey or not hkey {
-            return nil
+        guard req and skey and hkey else {
+            return
         }
         uuid = req.cookies[skey]
-        sinfo = Self._sessions[uuid]
-        if not uuid or not sinfo {
-            return nil
+        uu_session = Self._sessions[uuid]
+        guard uuid and uu_session else {
+            return
         }
-        _updateTime(Self._lst, sinfo.tm)
-        return sinfo[hkey]
+        _updateTime(Self._lst, uu_session.tm)
+        return uu_session[hkey]
     }
 
     -- check in session first, set hkey, hval
     static fn setValue(req, skey, hkey, hval) {
-        if not req or not skey {
-            return false
-        }
-        if not hkey or not hval {
+        guard req and skey and hkey and hval else {
             return false
         }
         uuid = req.cookies[skey]
-        sinfo = Self._sessions[uuid]
-        if not uuid or not sinfo {
+        uu_session = Self._sessions[uuid]
+        guard uuid and uu_session else {
             return false
         }
-        sinfo[hkey] = hval
-        _updateTime(Self._lst, sinfo.tm)
+        uu_session[hkey] = hval
+        _updateTime(Self._lst, uu_session.tm)
         return true
     }
 
