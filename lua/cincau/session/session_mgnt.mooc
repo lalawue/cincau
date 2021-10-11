@@ -19,7 +19,9 @@ fn _updateTime(lst, tm) {
     lst:pushl(tm)
 }
 
+-- session info in cookies
 struct Session {
+
     _sessions = {}
     _lst = List.new()
 
@@ -48,7 +50,7 @@ struct Session {
     local expected =
         "foo=bar; Max-Age=3600; Domain=.example.com; " ..
         "Path=/; Expires=Wed, 23 Apr 2014 13:01:14 GMT; " ..
-        "HttpOnly; Secure
+        "HttpOnly; Secure"
     ]]
     static fn createSession(req, response, skey, options) {
         if not response or Self.inSession(req, skey) {
@@ -66,8 +68,22 @@ struct Session {
             time : now,
             uuid : uuid
         }
-        Self._sessions[uuid] = { tm : tm }
+        Self._sessions[uuid] = { :tm }
         Self._lst:pushl(tm)
+        return true
+    }
+
+    -- check in session first, clear session hkey, hval table
+    static fn clearSession(req, skey) {
+        guard req and skey else {
+            return false
+        }
+        uuid = req.cookies[skey]
+        sinfo = Self._sessions[uuid]
+        if uuid and sinfo {
+            Self._lst:remove(sinfo.tm)
+            Self._sessions[uuid] = nil
+        }
         return true
     }
 
@@ -100,20 +116,6 @@ struct Session {
         }
         sinfo[hkey] = hval
         _updateTime(Self._lst, sinfo.tm)
-        return true
-    }
-
-    -- check in session first, clear session hkey, hval table
-    static fn clearSession(req, skey) {
-        if not req or not skey {
-            return false
-        }
-        uuid = req.cookies[skey]
-        sinfo = Self._sessions[uuid]
-        if uuid and sinfo {
-            Self._lst:remove(sinfo.tm)
-            Self._sessions[uuid] = nil
-        }
         return true
     }
 
