@@ -9,7 +9,7 @@
 --
 
 import Cookie from "session.cookie_core"
-import UUIDCore from "session.uuid_core"
+import UUIDCore from "base.uuid_core"
 import List from "linked-list"
 
 -- update time struct, push to last
