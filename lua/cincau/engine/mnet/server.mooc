@@ -197,6 +197,7 @@ struct Serv {
         -- create bind
         NetCore.init()
         DnsCore.init(config)
+        SessionMgnt.init()
         Self.svr_tcp = NetCore.openChann("tcp")
         Self.svr_tcp:listen(addr.ip, addr.port, 1024)
         Self.svr_tcp:setCallback({ _, event_name, accept in

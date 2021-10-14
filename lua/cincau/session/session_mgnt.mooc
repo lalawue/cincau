@@ -25,6 +25,10 @@ struct Session {
     _sessions = {}
     _lst = List.new()
 
+    static fn init() {
+        UUIDCore.seed()
+    }
+
     --
     static fn uuidFromReq(req, skey) {
         guard req and skey else {

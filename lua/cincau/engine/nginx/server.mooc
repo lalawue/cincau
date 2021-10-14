@@ -41,6 +41,7 @@ fn _updateRequest(req, is_multipart_formdata) {
 
 -- setup env
 math.randomseed(os.time())
+SessionMgnt.init()
 
 -- Serv instance
 struct Serv {
