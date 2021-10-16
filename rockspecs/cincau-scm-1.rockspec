@@ -18,7 +18,6 @@ dependencies = {
    "linked-list",
    "mnet",
    "ffi-hyperparser",
-   "html-tags",
    "sql-orm",
    "lua-resp",
    "lua-bitcask",
