@@ -14,7 +14,17 @@ for path in package.path:gmatch("[^;]+") do
     if f then
         f:close()
         local core_dir = path .. "cincau/"
-        package.path = package.path .. ";" .. core_dir .. "?.lua;app/?.lua"
+        local path_tbl = {
+            core_dir .. '?.lua',
+            core_dir .. '?/init.lua',
+            'app/?.lua',
+            'app/?/init.lua',
+            'lib/share/lua/5.1/?.lua',
+            'lib/share/lua/5.1/?/init.lua',
+            '',
+        }
+        package.path = table.concat(path_tbl, ';') .. package.path
+	    package.cpath = "lib/lib/lua/5.1/?.so;" .. package.cpath
         load_lib = true
         break
     end
