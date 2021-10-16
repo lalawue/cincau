@@ -51,13 +51,6 @@ fn table.readonly(tbl, err_message) {
     )
 }
 
-fn table.ireduce(tbl, total, func) {
-    for i, v in ipairs(tbl) {
-        total = func(total, i, v)
-    }
-    return total
-}
-
 fn _deep_copy(object, lookup_table) {
     if type(object) ~= "table" {
         return object

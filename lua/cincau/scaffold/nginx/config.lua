@@ -5,19 +5,22 @@ local Log = ngx.log
 local Logger = require("base.logger")
 local Serpent = require("base.serpent")
 
+local type = type
+local sfmt = string.format
+
 -- redefine
 table.dump = function(tbl)
     Log(ERR, Serpent.block(tbl))
 end
 
 io.printf = function(fmt, ...)
-    Log(ERR, string.format(fmt, ...))
+    Log(ERR, sfmt(fmt, ...))
 end
 
 -- redefine logger printf
 Logger.printf = function(level, fmt, ...)
     if Logger.validLevel(level) and type(fmt) == "string" then
-        Log(ERR, Logger._level_msg[level] .. " " .. string.format(fmt, ...))
+        Log(ERR, Logger._level_msg[level] .. " " .. sfmt(fmt, ...))
     end
 end
 

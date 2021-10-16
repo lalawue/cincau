@@ -5,11 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
--- view core render template using proper rendering engine
---
-
-import FileManager from "base.file_manager"
-import CoreTags from "html-tags"
+-- view core TEngine template using lua-resty-template
+import TEngine from "base.template"
 
 fn _debugOff(config) {
     return (config == nil) or (not config.debug_on)
@@ -17,9 +14,17 @@ fn _debugOff(config) {
 
 struct ViewCore {
 
-    -- render file
-    fn render(fn_or_string, page_env) {
-        return CoreTags.render(fn_or_string, page_env)
+    fn setup(config) {
+        TEngine.caching(_debugOff(config))
+    }
+
+    -- return render content
+    fn render(view, context, is_file) {
+        if is_file {
+            return TEngine.process_file(view, context)
+        } else {
+            return TEngine.process_string(view, context)
+        }
     }
 }
 
