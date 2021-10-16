@@ -33,10 +33,15 @@ local function _mkDir(dir)
     _runCmd(cmd)
 end
 
-local function _copyFile(src, dest)
+local function _copyFile(src, dest, path)
     local cmd = "cp -af " .. src .. " " .. dest
     print(cmd)
-    _runCmd(cmd)
+    if path then
+        local content = FileManager.readFile(src)
+        FileManager.saveFile(dest, content:gsub('CINCAU_NGINX_TEMPLATE_ROOT', path))
+    else
+        _runCmd(cmd)
+    end
 end
 
 -- create demo app
@@ -72,7 +77,7 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
         local conf_dir = proj_dir .. "/config"
         _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
-        _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
+        _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf", proj_dir)
     end
     -- create app dir
     _createAppSkeleton(core_dir, proj_dir, engine_type)
