@@ -5,6 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+dbgInfo = debug.getinfo
+
 struct Logger {
 
     _fp = false
@@ -47,8 +49,9 @@ struct Logger {
             if not Self._fp {
                 Self._fp = io.open(Self._dir .. "cincau_mnet.log", "wb")
             }
+            fname = dbgInfo(2, 'S').source:match("[^/]*.%w$") .. ' '
             fp = Self._fp or io.stdout
-            fp:write(msg .. "\n")
+            fp:write(fname .. msg .. "\n")
             fp:flush()
         }
     }
