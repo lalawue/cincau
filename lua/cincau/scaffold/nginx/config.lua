@@ -1,26 +1,30 @@
 --
 -- cincau web framework nginx config
-local ERR = ngx.ERR
-local Log = ngx.log
+local NGXLog = ngx.log
 local Logger = require("base.logger")
 local Serpent = require("base.serpent")
 
 local type = type
 local sfmt = string.format
 
+Logger._level_msg[Logger.ERR] = ngx.ERR
+Logger._level_msg[Logger.WARN] = ngx.WARN
+Logger._level_msg[Logger.INFO] = ngx.INFO
+Logger._level_msg[Logger.DEBUG] = ngx.DEBUG
+
 -- redefine
 table.dump = function(tbl)
-    Log(ERR, Serpent.block(tbl))
+    NGXLog(ngx.DEBUG, Serpent.block(tbl))
 end
 
 io.printf = function(fmt, ...)
-    Log(ERR, sfmt(fmt, ...))
+    NGXLog(ngx.DEBUG, sfmt(fmt, ...))
 end
 
 -- redefine logger printf
 Logger.printf = function(level, fmt, ...)
     if Logger.validLevel(level) and type(fmt) == "string" then
-        Log(ERR, Logger._level_msg[level] .. " " .. sfmt(fmt, ...))
+        NGXLog(Logger._level_msg[level], sfmt(fmt, ...))
     end
 end
 

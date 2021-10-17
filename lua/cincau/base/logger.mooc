@@ -7,6 +7,9 @@
 
 dbgInfo = debug.getinfo
 
+mmax = math.max
+mmin = math.min
+
 struct Logger {
 
     _fp = false
@@ -30,8 +33,8 @@ struct Logger {
     }
 
     static fn setLevel(level) {
-        level = math.max(Self.ERR, level)
-        level = math.min(Self.DEBUG, level)
+        level = mmax(Self.ERR, level)
+        level = mmin(Self.DEBUG, level)
         Self._level = level
     }
 

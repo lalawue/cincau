@@ -37,7 +37,7 @@ if load_lib then
     CincauServer = require("server")
     CincauRouter = require("router")
     CincauTracebackHandler = require("base.scratch").tracebackHandler
-    CincauConfig.logger.info("version: %s", require("base.version").version)
+    io.printf("version: %s", require("base.version").version)
     CincauEnginType = ngx and "nginx" or "mnet"
 else
     print("Can not found cincau core dir, exit !")
