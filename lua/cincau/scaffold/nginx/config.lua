@@ -31,18 +31,27 @@ end
 local config = {
     engine_type = "nginx",
     ipport = "", -- defined by config/nginx.conf
+
     logger = Logger,
+    log_level = 3, -- debug, refers to base.logger
+
     debug_on = false, -- debug framework, close cache
+
     session_outdate = 300, -- session oudated seconds
     resources_max_age = 900, -- resources cache-control max-age
+
     dir = {
         database = "database/",
         wiki = "wiki/",
     },
-}
 
-config.dataPath = function(dir)
-    return "datas/" .. dir
-end
+    dataPath = function(dir)
+        return "datas/" .. dir
+    end,
+
+    tmpPath = function(dir)
+        return 'tmp/' .. dir
+    end,
+}
 
 return config
