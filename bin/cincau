@@ -44,5 +44,6 @@ os.exit(0)
 
 ::FOUND_CORE_DIR::
 print("version:", require("base.version").version)
+require("moocscript.core")
 local Proj = require("cincau_prepare")
 Proj.createProjectSkeleton(core_dir, proj_dir, engine_type)
