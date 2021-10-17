@@ -39,6 +39,7 @@ if load_lib then
     CincauTracebackHandler = require("base.scratch").tracebackHandler
     io.printf("version: %s", require("base.version").version)
     CincauEnginType = ngx and "nginx" or "mnet"
+    require("base.template").caching(not CincauConfig.debug_on)
 else
     print("Can not found cincau core dir, exit !")
     assert(nil)

@@ -34,16 +34,17 @@ for path in package.path:gmatch("[^;]+") do
         f:close()
         core_dir = path .. "cincau/"
         package.path = package.path .. ";" .. core_dir .. "?.lua"
-
-        goto FOUND_CORE_DIR
+        break
     end
     print(path)
 end
-print("Can not found cincau core dir, exit !")
-os.exit(0)
 
-::FOUND_CORE_DIR::
-print("version:", require("base.version").version)
-require("moocscript.core")
-local Proj = require("cincau_prepare")
-Proj.createProjectSkeleton(core_dir, proj_dir, engine_type)
+if core_dir then
+    print("version:", require("base.version").version)
+    require("moocscript.core")
+    local Proj = require("cincau_prepare")
+    Proj.createProjectSkeleton(core_dir, proj_dir, engine_type)
+else
+    print("Can not found cincau core dir, exit !")
+    os.exit(0)
+end
