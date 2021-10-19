@@ -20,7 +20,7 @@ start_server()
 
     # running app
     echo "start cincau web framework [mnet]"    
-    luajit $PROJ_PATH/app/main.lua $* & > /dev/null
+    luajit $PROJ_PATH/app/app_main.lua $* & > /dev/null
     CINCAU_PID=$!
     sleep 1
     kill -0 $CINCAU_PID
