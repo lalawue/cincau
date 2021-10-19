@@ -5,42 +5,29 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local load_lib = false
-
 for path in package.path:gmatch("[^;]+") do
     local len = path:len()
-    path = path:sub(1, len - 5)
+    local path = path:sub(1, len - 5)
     local f = io.open(path .. "cincau/page_core.mooc", "r")
     if f then
         f:close()
-        local core_dir = path .. "cincau/"
-        local path_tbl = {
-            core_dir .. '?.lua',
-            core_dir .. '?/init.lua',
-            'app/?.lua',
-            'app/?/init.lua',
-            'lib/share/lua/5.1/?.lua',
-            'lib/share/lua/5.1/?/init.lua',
-            '',
-        }
-        package.path = table.concat(path_tbl, ';') .. package.path
-	    package.cpath = "lib/lib/lua/5.1/?.so;" .. package.cpath
-        load_lib = true
+        package.path = path .. "cincau/?.lua;" .. package.path
+        package.path = 'app/?.lua;' .. package.path
         break
     end
 end
 
-if load_lib then
+if package.path:find('cincau') then
     require("moocscript.core")
     require("base.scratch")
     CincauEnginType = ngx and "nginx" or "mnet"
-    CincauConfig = require("config")
+    CincauConfig = require("app_config")
     if CincauEnginType == "nginx" then
         CincauServer = require("engine.nginx.server")
     else
         CincauServer = require("engine.mnet.server")
     end
-    CincauRouter = require("router")
+    CincauRouter = require("app_router")
     CincauTracebackHandler = require("base.scratch").tracebackHandler
     io.printf("version: %s", require("base.version").version)
     require("base.template").caching(not CincauConfig.debug_on)

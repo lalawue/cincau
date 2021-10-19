@@ -6,7 +6,8 @@
 --
 
 if not CincauEnginType then
-    require("app.env")
+    package.path = package.path .. ";app/?.lua"
+    require("app_env")
 end
 
 local Server = CincauServer
