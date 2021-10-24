@@ -59,7 +59,7 @@ each client request going through these steps below:
 - http server parse raw data into http method, path, headers and body content
 - router match http path to proper page to process
 - page is the center for business logic, using model data and view template to generate html output
-- default using template library [lua-html-tags](https://github.com/lalawue/lua-html-tags)
+- default using template library [lua-resty-template](https://github.com/bungle/lua-resty-template)
 - response HTML to client
 
 see `app/pages/page_index.lua`, and more complicate example is `app/pages/page_playground.lua`.
@@ -126,12 +126,12 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [jsolman/luajit-mime-base64](https://github.com/jsolman/luajit-mime-base64), Fast Mime base64 encoding and decoding implemented in LuaJIT
 - [hamishforbes/lua-ffi-zlib](https://github.com/hamishforbes/lua-ffi-zlib)
 - [pkulchenko/serpent](https://github.com/pkulchenko/serpent), Lua serializer and pretty printer
+- [bungle/lua-resty-template](https://github.com/bungle/lua-resty-template), Templating Engine (HTML) for Lua and OpenResty.
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
 - [lalawue/linked-list](https://github.com/lalawue/linked-list.lua), doubly linked list for Lua
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
-- [lalawue/lua-html-tags](https://github.com/lalawue/lua-html-tags), Lua base DSL for writing HTML documents
 - [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM), Lua 4Days ORM for sqlite3
 
 EOF
