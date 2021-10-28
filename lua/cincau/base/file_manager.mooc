@@ -69,7 +69,8 @@ struct FileManager {
         do {
             s, e = dir_path:reverse():find("/", 1, true)
             if s {
-                tbl.dir_name = dir_path:sub(dir_path:len() - s + 2)
+                tbl.name = dir_path:sub(dir_path:len() - s + 2)
+                tbl.attr = attr
             }
         }
         for fname in FileSystem.dir(dir_path) {
@@ -79,7 +80,7 @@ struct FileManager {
                     dir = Self.travelDir(dir_path .. "/" .. fname, tbl_modes)
                     tbl[#tbl + 1] = dir
                 } else {
-                    tbl[#tbl + 1] = fname
+                    tbl[#tbl + 1] = { name = fname, =attr }
                 }
             }
         }
@@ -179,9 +180,7 @@ struct FileManager {
     }
 
     static fn _compNames(t1, t2) {
-        n1 = type(t1) == "table" and t1.dir_name or t1
-        n2 = type(t2) == "table" and t2.dir_name or t2
-        return n1 < n2
+        return n1.name < n2.name
     }
 }
 
