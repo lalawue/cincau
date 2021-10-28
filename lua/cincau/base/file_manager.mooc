@@ -179,8 +179,8 @@ struct FileManager {
         return tableConcat(tbl)
     }
 
-    static fn _compNames(t1, t2) {
-        return n1.name < n2.name
+    static fn _compNames(t1, t1) {
+        return t1.name < t1.name
     }
 }
 

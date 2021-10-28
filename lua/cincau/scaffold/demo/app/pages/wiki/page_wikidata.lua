@@ -96,7 +96,7 @@ function Page:travelDirTable(indent, path, tbl, out)
             self:travelDirTable(indent .. "  ", path .. v.name .. '/', v, out)
         else
             local dir = "#!" .. path:sub(self.wiki_path:len())
-            local fname = v:sub(1, v.name:len() - 3)
+            local fname = v.name:sub(1, v.name:len() - 3)
             out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
         end
     end
