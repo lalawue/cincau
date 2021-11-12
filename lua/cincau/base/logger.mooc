@@ -5,31 +5,44 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-dbgInfo = debug.getinfo
+import Time from "base.ffi_time"
 
+dbgInfo = debug.getinfo
 mmax = math.max
 mmin = math.min
+sfmt = string.format
+print = print
+type = type
+tostring = tostring
 
 struct Logger {
 
     _fp = false
     _level = 2 -- default info level
-    _dir = "logs/"
+
+    _utc = false
+    _fname_tbl = {}
+
+    _last_min = -1
+    _last_fmt = ''
+
+    _level_msg = {
+        0 : "[err]",
+        1 : "[warn]",
+        2 : "[info]",
+        3 : "[debug]"
+    }
+
+    -- MARK: public
 
     ERR = 0
     WARN = 1
     INFO = 2
     DEBUG = 3
 
-    _level_msg = {
-        0 : "[ERR]",
-        1 : "[WARN]",
-        2 : "[INFO]",
-        3 : "[DEBUG]"
-    }
-
-    static fn getOutputDir() {
-        return Self._dir
+    static fn setDir(dir, fname) {
+        dir = tostring(dir) or ''
+        Self._fp = io.open(dir .. (fname or "cincau.log"), "w+")
     }
 
     static fn setLevel(level) {
@@ -38,25 +51,19 @@ struct Logger {
         Self._level = level
     }
 
-    static fn validLevel(level) {
-        if level < Self.ERR or level > Self._level {
-            return false
-        }
-        return true
+    static fn setUTC(utc) {
+        Self._utc = utc
     }
 
     static fn printf(level, fmt, ...) {
-        if Self.validLevel(level) and type(fmt) == "string" {
-            msg = Self._level_msg[level] .. " " .. string.format(fmt, ...)
-            print(msg)
-            if not Self._fp {
-                Self._fp = io.open(Self._dir .. "cincau_mnet.log", "wb")
-            }
-            fname = dbgInfo(2, 'S').source:match("[^/]*.%w$") .. ' '
-            fp = Self._fp or io.stdout
-            fp:write(fname .. msg .. "\n")
-            fp:flush()
+        guard Self._validLevel(level) and type(fmt) == "string" else {
+            return
         }
+        fp = Self._fp or io.stdout
+        fname = Self._getFname()
+        tm = Self._getTM()
+        msg = Self._level_msg[level] .. tm .. fname .. sfmt(fmt, ...)
+        fp:write(msg .. "\n")
     }
 
     static fn err(fmt, ...) {
@@ -73,6 +80,36 @@ struct Logger {
 
     static fn debug(fmt, ...) {
         Self.printf(Self.DEBUG, fmt, ...)
+    }
+
+    -- MARK: internal
+
+    static fn _validLevel(level) {
+        return level >= Self.ERR and level <= Self._level
+    }
+
+    static fn _getFname() {
+        info = dbgInfo(4, 'S')
+        fname = Self._fname_tbl[info]
+        if fname {
+            return fname
+        }
+        fname = ' ' .. info.source:match("[^/]*.%w$") .. ' '
+        Self._fname_tbl[info] = fname
+        return fname
+    }
+
+    static fn _getTM() {
+        m = Time.tmCompat(Self._utc)
+        if m.tm_min != Self._last_min {
+            Self._last_min = m.tm_min
+            Self._last_fmt = sfmt(" %4d-%02d-%02d %02d:%02d:", m.tm_year, m.tm_mon, m.tm_mday, m.tm_hour, m.tm_min)
+        }
+        return Self._last_fmt .. Self._lastSec(tostring(m.tm_sec))
+    }
+
+    static fn _lastSec(sec_str) {
+        return (sec_str:len() >= 2) and sec_str or ('0' .. sec_str)
     }
 }
 

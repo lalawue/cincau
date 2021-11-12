@@ -24,8 +24,9 @@ struct tm {
 
 typedef int32_t time_t;
 time_t time(time_t *dst_time);
-struct tm *gmtime(const time_t *src_time);
 time_t timegm(struct tm *timeptr);
+struct tm *gmtime(const time_t *src_time);
+struct tm *localtime(const time_t *timep);
 ]])
 
 sfmt = string.format
@@ -39,7 +40,12 @@ struct M {
         return ffi.C.timegm(ffi.C.gmtime(pt))
     }
 
-    --[[ return UTC struct tm as gmtime()
+    -- return local time()
+    static fn timeLocal() {
+        return ffi.C.time()
+    }
+
+    --[[ return UTC/Local struct tm as gmtime()
     int tm_sec;     /* seconds (0 - 60) */
     int tm_min;     /* minutes (0 - 59) */
     int tm_hour;    /* hours (0 - 23) */
@@ -49,23 +55,23 @@ struct M {
     int tm_wday;    /* day of week (Sunday = 0) */
     int tm_yday;    /* day of year (0 - 365) */
     ]]
-    static fn tmUTC() {
+    static fn tmTime(utc) {
         pt = ffi.new("time_t[1]")
         ffi.C.time(pt)
-        return ffi.C.gmtime(pt)
+        return utc and ffi.C.gmtime(pt) or ffi.C.localtime(pt)
     }
 
     -- return '2020-03-08T01:27:30Z', https://www.ietf.org/rfc/rfc3339.txt
-    static fn dateTimeStringUTC() {
-        m = Self.tmUTC()
+    static fn dateTimeString(utc) {
+        m = utc and Self.tmTime(utc)
         m.tm_year = m.tm_year + 1900
         m.tm_mon = m.tm_mon + 1
         return sfmt("%4d-%02d-%02dT%02d:%02d:%02dZ", m.tm_year, m.tm_mon, m.tm_mday, m.tm_hour, m.tm_min, m.tm_sec)
     }
 
     -- tm_year as 2020, tm_mon from 1 - 12
-    static fn tmCompatUTC() {
-        m = Self.tmUTC()
+    static fn tmCompat(utc) {
+        m = Self.tmTime(utc)
         m.tm_year = m.tm_year + 1900
         m.tm_mon = m.tm_mon + 1
         return m
