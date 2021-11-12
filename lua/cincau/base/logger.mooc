@@ -40,9 +40,9 @@ struct Logger {
     INFO = 2
     DEBUG = 3
 
-    static fn setDir(dir, fname) {
+    static fn setDir(dir, fname, mode) {
         dir = tostring(dir) or ''
-        Self._fp = io.open(dir .. (fname or "cincau.log"), "w+")
+        Self._fp = io.open(dir .. (fname or "cincau.log"), mode or "a+")
     }
 
     static fn setLevel(level) {
