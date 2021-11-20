@@ -14,6 +14,9 @@ DnsCore = _engine_valid and require("ffi-mdns") or {}
 Browser = _engine_valid and require("bridge.http_browser")
 RedisCmd = _engine_valid and require("bridge.redis_cmd")
 
+type = type
+pairs = pairs
+
 struct Mediator {
 
     _callbacks = setmetatable({}, {__mode : "k"})
@@ -32,7 +35,7 @@ struct Mediator {
     }
 
     -- check_stop return true to finish loop, and run finalizer in the end
-    static fn _addServLoopCallback(key, check_stop, finalizer) {
+    static fn addServLoopCallback(key, check_stop, finalizer) {
         if key and type(check_stop) == "function" {
             Self._callbacks[key] = { :check_stop, :finalizer }
         }
@@ -81,7 +84,7 @@ struct Mediator {
             }
             brw = Browser()
             ret = brw:requestURL(url, url_opt)
-            Self._addServLoopCallback(brw, { _ in
+            Self.addServLoopCallback(brw, { _ in
                 return brw:onLoopEvent()
             }, nil)
         })
