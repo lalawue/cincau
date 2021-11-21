@@ -38,10 +38,10 @@ fn _validateOption(opt) {
 
 -- makeup header before appendBody
 fn _makeHeader(self) {
-    if self.opt.fn_set_header or self._has_make_header {
+    if self.opt.fn_set_header or self.has_make_header {
         return
     }
-    self._has_make_header = true -- mark make
+    self.has_make_header = true -- mark make
     content = ""
     http = self.http
     status_msg = _status_code_msg[tostring(http.status_code)]
@@ -66,10 +66,13 @@ fn _hexlen(str) {
     return strfmt("%X", str:len())
 }
 
+--[[
+    for construct response data
+]]
 class ResponseCore {
     opt = false
     http = false
-    _has_make_header = false
+    has_make_header = false
 
     --[[
     option as
@@ -128,11 +131,15 @@ class ResponseCore {
         }
     }
 
+    -- create new response instance for a new one after finish
     fn finishResponse() {
         _makeHeader(self)
         if self.opt.en_chunked_length {
             self.opt.fn_chunked_callback("0\r\n\r\n")
         }
+        self.opt.fn_chunked_callback = nil
+        self.opt = false
+        self.http = false
     }
 }
 
