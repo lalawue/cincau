@@ -40,7 +40,8 @@ struct Logger {
     DEBUG = 3
 
     static fn setDir(dir, fname, mode) {
-        dir = tostring(dir) or ''
+        dir = tostring(dir) or './'
+        os.execute('mkdir -p ' .. dir)
         Self._fp = io.open(dir .. (fname or "cincau.log"), mode or "a+")
     }
 

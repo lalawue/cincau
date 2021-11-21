@@ -57,7 +57,7 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     end
     -- create proj dirs
     print("--")
-    local proj_tbl = {"/tmp", "/" .. Logger.getOutputDir()}
+    local proj_tbl = {"/tmp", "/logs"}
     for _, v in ipairs(proj_tbl) do
         _mkDir(proj_dir .. v)
     end
