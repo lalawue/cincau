@@ -76,7 +76,6 @@ struct MasterPage {
         }
         -- process data
         ctrl:process(config, req, response, params)
-        return
     }
 
     -- default 'Content-Type: text/plain;', append etag base path and modified time
