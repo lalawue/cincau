@@ -13,20 +13,39 @@ coRuning = coroutine.running
 
 struct ThreadBroker {
 
-    _threads = {}
+    _threads = {}--setmetatable({}, { __mode = 'k' })
+    _listener = {}--setmetatable({}, { __mode = 'k' })
 
     -- keep thread context in list
     static fn addThread(key, co) {
-        if type(co) == "thread" {
-            Self._threads[tostring(key)] = co
+        guard key and type(co) == "thread" else {
+            return
+        }
+        key = tostring(key)
+        Self._threads[key] = co
+        for _, func in ipairs(Self._listener) {
+            func(key, 'add')
         }
     }
 
     -- remove thread context
     static fn removeThread(key) {
-        if key {
-            Self._threads[tostring(key)] = nil
+        guard key else {
+            return
         }
+        key = tostring(key)
+        Self._threads[key] = nil
+        for _, func in ipairs(Self._listener) {
+            func(key, 'remove')
+        }
+    }
+
+    -- debug purpose, callback(key, 'add') or callback(key, 'remove')
+    static fn addListener(callback) {
+        guard type(callback) == 'function' else {
+            return
+        }
+        Self._listener[#Self._listener + 1] = callback
     }
 
     static fn _dummy_func() {
