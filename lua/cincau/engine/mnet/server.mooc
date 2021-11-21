@@ -18,6 +18,7 @@ import Mediator from "bridge.mediator"
 import SessionMgnt from "session.session_mgnt"
 import Version from "base.version"
 
+pairs = pairs
 xpcall = xpcall
 tostring = tostring
 setmetatable = setmetatable
@@ -38,8 +39,12 @@ fn _clientDestroy(chann) {
 fn _clientReset(chann) {
     cnt = chann._cnt
     cnt.http_parser:reset()
-    cnt.fd_tbl = {}
-    cnt.multipart_info = {}
+    for k, _ in pairs(cnt.fd_tbl) {
+        cnt.fd_tbl[k] = nil
+    }
+    for k, _ in pairs(cnt.multipart_info) {
+        cnt.multipart_info[k] = nil
+    }
     ThreadBroker.removeThread(chann)
 }
 
@@ -69,7 +74,7 @@ fn _storeMultiPartData(cnt, http_tbl) {
     fd_tbl = cnt.fd_tbl
     method = http_tbl.method
     header = http_tbl.header
-    if not Request.isMultiPartFormData(fd_tbl, method, header) {
+    guard Request.isMultiPartFormData(fd_tbl, method, header) else {
         return false
     }
     contents = http_tbl.contents
@@ -161,7 +166,8 @@ fn _onClientEventCallback(chann, event_name, _) {
                         </html>
                     ]])
                 }
-                -- finish response
+                -- finish request & response
+                req:finishRequest()
                 response:finishResponse()
                 -- reset resources
                 _clientReset(chann)
@@ -207,7 +213,7 @@ struct Serv {
                     http_callback : http_callback,
                     http_parser : HttpParser.createParser("REQUEST"),
                     fd_tbl : {},
-                    multipart_info : {}
+                    multipart_info : {},
                 }
                 accept:setCallback(_onClientEventCallback)
             }
