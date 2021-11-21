@@ -68,6 +68,19 @@ class RequestCore {
         }
     }
 
+    -- destory all reference
+    fn finishRequest() {
+        self.method = false
+        self.path = false
+        self.query = false
+        self.header = false
+        self.body = ""
+        self.multipart_info = false
+        self.cookies = false
+        self.remote_ip = false
+        self.post_args = false
+    }
+
     -- remote addr
     fn updateRemoteIp(remote_addr) {
         headers = self.header
