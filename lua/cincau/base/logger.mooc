@@ -86,12 +86,12 @@ struct Logger {
 
     static fn _getFname() {
         info = dbgInfo(4, 'S')
-        fname = Self._fname_tbl[info]
+        fname = Self._fname_tbl[info.source]
         if fname {
             return fname
         }
         fname = ' ' .. info.source:match("[^/]*.%w$") .. ' '
-        Self._fname_tbl[info] = fname
+        Self._fname_tbl[info.source] = fname
         return fname
     }
 
