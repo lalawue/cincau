@@ -10,6 +10,14 @@ import FileManager from "base.file_manager"
 import UrlCore from "base.url_core"
 import HttpParser from "ffi-hyperparser"
 
+type = type
+sfmt = string.format
+pairs = pairs
+concat = table.concat
+require = require
+tonumber = tonumber
+coRunning = coroutine.running
+
 -- act like curl, accept encoding gzip
 fn _buildHttpRequest(method, url_info, option, data) {
     if type(method) ~= "string" {
@@ -26,7 +34,7 @@ fn _buildHttpRequest(method, url_info, option, data) {
         }
     }
     tbl = {}
-    tbl[#tbl + 1] = string.format("%s %s HTTP/1.1", method, sub_path)
+    tbl[#tbl + 1] = sfmt("%s %s HTTP/1.1", method, sub_path)
     if url_info.host {
         tbl[#tbl + 1] = "Host: " .. url_info.host
     }
@@ -46,7 +54,7 @@ fn _buildHttpRequest(method, url_info, option, data) {
     if data {
         tbl[#tbl + 1] = data
     }
-    return table.concat(tbl, "\r\n")
+    return concat(tbl, "\r\n")
 }
 
 fn _processRecvData(brw, data) {
@@ -66,9 +74,9 @@ fn _constructContent(http_tbl, option, is_finish) {
     encoding_desc = http_tbl.header["Content-Encoding"]
     is_gzip = encoding_desc == "gzip"
     if is_gzip and is_finish {
-        output_content = FileManager.inflate(table.concat(http_tbl.contents))
+        output_content = FileManager.inflate(concat(http_tbl.contents))
     } elseif not is_gzip {
-        output_content = table.concat(http_tbl.contents)
+        output_content = concat(http_tbl.contents)
     }
     if output_content:len() > 0 {
         http_tbl.contents = nil
@@ -84,7 +92,7 @@ struct Browser {
 
     -- create browser in coroutine
     fn init() {
-        if coroutine.running() == nil {
+        if coRunning() == nil {
             return false
         }
     }
@@ -193,7 +201,7 @@ struct Browser {
 
     -- return true/false, http header, data, one at a time
     fn postURL(site_url, data) {
-        if type(site_url) ~= "string" or not coroutine.running() {
+        if type(site_url) ~= "string" or not coRunning() {
             return false
         }
         return false
