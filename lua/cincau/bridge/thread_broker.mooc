@@ -11,10 +11,13 @@ coResume = coroutine.resume
 coYield = coroutine.yield
 coRuning = coroutine.running
 
+--[[
+    Thread broker for coroutines
+]]
 struct ThreadBroker {
 
-    _threads = {}--setmetatable({}, { __mode = 'k' })
-    _listener = {}--setmetatable({}, { __mode = 'k' })
+    _threads = {}
+    _listener = {}
 
     -- keep thread context in list
     static fn addThread(key, co) {

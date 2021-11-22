@@ -137,7 +137,6 @@ class ResponseCore {
         if self.opt.en_chunked_length {
             self.opt.fn_chunked_callback("0\r\n\r\n")
         }
-        self.opt.fn_chunked_callback = nil
         self.opt = false
         self.http = false
     }

@@ -12,9 +12,11 @@ import Cookie from "session.cookie_core"
 import UUIDCore from "base.uuid_core"
 import List from "linked-list"
 
+otime = os.time
+
 -- update time struct, push to last
 fn _updateTime(lst, tm) {
-    tm.time = os.time()
+    tm.time = otime()
     lst:remove(tm)
     lst:pushl(tm)
 }
@@ -76,7 +78,7 @@ struct Session {
         req.cookies[skey] = uuid
         -- create session table
         tm = {
-            time : os.time(),
+            time : otime(),
             uuid : uuid
         }
         Self._sessions[uuid] = { :tm }
@@ -141,13 +143,13 @@ struct Session {
 
     -- clear outdate session
     static fn clearOutdate(seconds) {
-        now = os.time()
+        now = otime()
         repeat {
             tm = Self._lst:first()
             if not tm or now - tm.time < seconds {
                 break
             }
-            Self._lst:popf(tm)
+            Self._lst:popf()
             Self._sessions[tm.uuid] = nil
         } until tm == nil
     }

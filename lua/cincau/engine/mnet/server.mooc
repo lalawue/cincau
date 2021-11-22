@@ -107,7 +107,6 @@ local response_option = {
     fn_set_header : false, -- construct header
     fn_set_status : false
 }
-response_option.__index = response_option
 
 -- receive client data then parse to http method, path, header, content
 fn _onClientEventCallback(chann, event_name, _) {
@@ -136,27 +135,27 @@ fn _onClientEventCallback(chann, event_name, _) {
                 http_tbl.contents = nil
             }
             -- create callback info
-            http_callback = cnt.http_callback
-            guard http_callback else {
+            guard cnt.http_callback else {
                 return
             }
-
             -- create req
-            req = Request(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
-            req:updateRemoteIp(chann:addr().ip)
-            _updateRequest(req)
+            cnt._req = Request(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
+            cnt._req:updateRemoteIp(chann:addr().ip)
+            _updateRequest(cnt._req)
             -- create response
-            option = setmetatable({}, response_option)
-            option.fn_chunked_callback = { data in
-                chann:send(data)
+            if not cnt.option {
+                cnt.option = table.clone(response_option)
+                cnt.option.fn_chunked_callback = { data in
+                    chann:send(data)
+                }
             }
-            response = Response(option)
+            cnt._resp = Response(cnt.option)
+            --
             co = coCreate({ _ in
-                -- callback
-                ret, emsg = xpcall(http_callback, Base.tracebackHandler, cnt.config, req, response)
+                ret, _ = xpcall(cnt.http_callback, Base.tracebackHandler, cnt.config, cnt._req, cnt._resp)
                 if not ret {
-                    response:setStatus(500)
-                    response:appendBody([[
+                    cnt._resp:setStatus(500)
+                    cnt._resp:appendBody([[
                         <html>
                             <body>
                                 <style>h1,footer{text-align:center;}</style>
@@ -167,14 +166,18 @@ fn _onClientEventCallback(chann, event_name, _) {
                     ]])
                 }
                 -- finish request & response
-                req:finishRequest()
-                response:finishResponse()
+                cnt._req:finishRequest()
+                cnt._resp:finishResponse()
+                cnt._req = nil
+                cnt._resp = nil
+                cnt = nil
                 -- reset resources
                 _clientReset(chann)
             })
             -- broker take thread
             ThreadBroker.addThread(chann, co)
             coResume(co)
+            co = nil
         }
     } elseif event_name == "event_disconnect" {
         _clientDestroy(chann)

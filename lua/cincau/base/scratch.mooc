@@ -33,6 +33,10 @@ fn string:split(sSeparator, nMax, bRegexp) {
     return aRecord
 }
 
+type = type
+print = print
+setmetatable = setmetatable
+
 -- table
 --
 
