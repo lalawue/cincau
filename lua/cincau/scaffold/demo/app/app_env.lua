@@ -11,13 +11,12 @@ for path in package.path:gmatch("[^;]+") do
     local f = io.open(path .. "cincau/page_core.mooc", "r")
     if f then
         f:close()
-        package.path = path .. "cincau/?.lua;" .. package.path
-        package.path = 'app/?.lua;' .. package.path
+        package.path = "app/?.lua;" .. path .. "cincau/?.lua;" .. package.path
         break
     end
 end
 
-if package.path:find('cincau') then
+if package.path:find("/cincau/") then
     require("moocscript.core")
     require("base.scratch")
     CincauEnginType = ngx and "nginx" or "mnet"
