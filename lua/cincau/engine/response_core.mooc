@@ -5,13 +5,13 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-import Version from "base.version"
+import Version from "cincau.base.version"
 
-type = type
-pairs = pairs
-ipairs = ipairs
-tostring = tostring
-strfmt = string.format
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local tostring = tostring
+local strfmt = string.format
 
 local _status_code_msg = {
     ["100"] : "Continue",

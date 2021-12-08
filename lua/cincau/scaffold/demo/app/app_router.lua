@@ -7,10 +7,10 @@
 
 -- master controller will cache all using instance controllers
 --
-local PageCore = require("page_core")
+local PageCore = require("cincau.page_core")
 local MasterPage = PageCore.MasterPage
 
-local router = require("router_core").new()
+local router = require("cincau.router_core").new()
 
 local function staticGet(config, req, response, path, content_type)
     config.logger.info("static GET %s", path)

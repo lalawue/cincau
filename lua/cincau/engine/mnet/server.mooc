@@ -5,27 +5,27 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-import Base from "base.scratch"
+import Base from "cincau.base.scratch"
 import NetCore from "ffi-mnet"
 import DnsCore from "ffi-mdns"
 import HttpParser from "ffi-hyperparser"
-import Request from "engine.request_core"
-import Response from "engine.response_core"
-import UrlCore from "base.url_core"
-import FileManager from "base.file_manager"
-import ThreadBroker from "bridge.thread_broker"
-import Mediator from "bridge.mediator"
-import SessionMgnt from "session.session_mgnt"
-import Version from "base.version"
+import Request from "cincau.engine.request_core"
+import Response from "cincau.engine.response_core"
+import UrlCore from "cincau.base.url_core"
+import FileManager from "cincau.base.file_manager"
+import ThreadBroker from "cincau.bridge.thread_broker"
+import Mediator from "cincau.bridge.mediator"
+import SessionMgnt from "cincau.session.session_mgnt"
+import Version from "cincau.base.version"
 
-pairs = pairs
-xpcall = xpcall
-tostring = tostring
-setmetatable = setmetatable
-coCreate = coroutine.create
-coResume = coroutine.resume
-mathRandom = math.random
-tableConcat = table.concat
+local pairs = pairs
+local xpcall = xpcall
+local tostring = tostring
+local setmetatable = setmetatable
+local coCreate = coroutine.create
+local coResume = coroutine.resume
+local mathRandom = math.random
+local tableConcat = table.concat
 
 -- close chann and destroy http parser
 fn _clientDestroy(chann) {

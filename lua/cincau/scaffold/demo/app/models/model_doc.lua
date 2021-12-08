@@ -5,7 +5,7 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local FileManager = require("base.file_manager")
+local FileManager = require("cincau.base.file_manager")
 
 local _format = string.format
 

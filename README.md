@@ -9,7 +9,7 @@ using [LuaRocks](https://luarocks.org/), then create a demo project in /tmp/demo
 
 ```sh
 $ luarocks install cincau
-$ cincau /tmp/demo
+$ cincau mnet /tmp/demo
 ```
 ## Running
 
@@ -103,7 +103,7 @@ POST "multipart/form-data" example only appears for mnet engine type.
 like POST something, run and click playground link, usage:
 
 ```sh
-local mediator = require("bridge.mediator") -- only provided for mnet engine_type
+local mediator = require("cincau.bridge.mediator") -- only provided for mnet engine_type
 local ipv4 = mediator.queryDomain(domain)
 ```
 

@@ -7,8 +7,8 @@
 
 local CJson = require("cjson")
 local MoocClass = require("moocscript.class")
-local BasePage = require("page_core").BasePage
-local FileManager = require("base.file_manager")
+local BasePage = require("cincau.page_core").BasePage
+local FileManager = require("cincau.base.file_manager")
 
 local type = type
 local ipairs = ipairs

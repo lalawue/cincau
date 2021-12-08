@@ -8,8 +8,8 @@
 -- session was server in memory kv store, can keep any thing
 --
 
-import Cookie from "session.cookie_core"
-import UUIDCore from "base.uuid_core"
+import Cookie from "cincau.session.cookie_core"
+import UUIDCore from "cincau.base.uuid_core"
 import List from "linked-list"
 
 otime = os.time

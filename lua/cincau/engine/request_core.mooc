@@ -5,14 +5,14 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-import UrlCore from "base.url_core"
+import UrlCore from "cincau.base.url_core"
 
-type = type
-pairs = pairs
-ipairs = ipairs
-string = string
-tonumber = tonumber
-print = print
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local string = string
+local tonumber = tonumber
+local print = print
 
 -- path as '/hello/word?q=3&r=4'
 fn _parsePath(path) {

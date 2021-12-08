@@ -8,10 +8,10 @@
 -- controller was a business logic block for data processing
 --
 
-import Base from "base.scratch"
-import Base64 from "base.mime_base64"
-import FileManager from "base.file_manager"
-import Version from "base.version"
+import Base from "cincau.base.scratch"
+import Base64 from "cincau.base.mime_base64"
+import FileManager from "cincau.base.file_manager"
+import Version from "cincau.base.version"
 
 type = type
 assert = assert
@@ -52,7 +52,7 @@ struct MasterPage {
         ctrl = Self._pages[name]
         if not ctrl {
             libname = "pages." .. name
-            ret, lib = xpcall(require, Base.tracebackHandler ,libname)
+            ret, lib = xpcall(require, Base.tracebackHandler, libname)
             if not ret {
                 response:setStatus(404)
                 response:appendBody([[

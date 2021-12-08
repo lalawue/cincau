@@ -5,8 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local Logger = require("base.logger")
-local FileManager = require("base.file_manager")
+local Logger = require("cincau.base.logger")
+local FileManager = require("cincau.base.file_manager")
 
 -- check input params
 local function _check_params(core_dir, proj_dir, engine_type)

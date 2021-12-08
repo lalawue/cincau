@@ -7,14 +7,14 @@
 
 import NetCore from "ffi-mnet"
 import Resp from "resp"
-import ThreadBroker from "bridge.thread_broker"
+import ThreadBroker from "cincau.bridge.thread_broker"
 
-type = type
-unpack = unpack or table.unpack
-tostring = tostring
-coResume = coroutine.resume
-coYield = coroutine.yield
-coRuning = coroutine.running
+local type = type
+local unpack = unpack or table.unpack
+local tostring = tostring
+local coResume = coroutine.resume
+local coYield = coroutine.yield
+local coRuning = coroutine.running
 
 struct RedisCmd {
 

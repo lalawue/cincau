@@ -5,7 +5,7 @@ local config = {
     engine_type = "mnet",
     ipport = "127.0.0.1:8080", -- mnet listen ip:port
 
-    logger = require("base.logger"),
+    logger = require("cincau.base.logger"),
     log_level = 3, -- debug, refers to base.logger
 
     debug_on = false, -- debug framework, close cache

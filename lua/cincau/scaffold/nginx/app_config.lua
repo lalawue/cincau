@@ -1,8 +1,8 @@
 --
 -- cincau web framework nginx config
 local NGXLog = ngx.log
-local Logger = require("base.logger")
-local Serpent = require("base.serpent")
+local Logger = require("cincau.base.logger")
+local Serpent = require("cincau.base.serpent")
 
 local type = type
 local sfmt = string.format

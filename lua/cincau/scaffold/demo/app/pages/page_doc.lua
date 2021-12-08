@@ -5,10 +5,10 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local Render = require("view_core")
-local Model = require("models.model_doc")
+local Render = require("cincau.view_core")
+local Model = require("app.models.model_doc")
 local MoocClass = require("moocscript.class")
-local BasePage = require("page_core").BasePage
+local BasePage = require("cincau.page_core").BasePage
 
 local Page = MoocClass("page_doc", BasePage)
 

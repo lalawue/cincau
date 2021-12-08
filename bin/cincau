@@ -4,47 +4,29 @@
 -- detect env
 --
 
-local proj_dir, engine_type = ...
+local engine_type, proj_dir = ...
 
 if not jit then
     print("Only support LuaJIT !")
     os.exit(0)
 end
 
-if not proj_dir then
-    print("Usage: cincau /tmp/demo [mnet|nginx]")
+if engine_type ~= "mnet" and engine_type ~= "nginx" then
+    print("Usage: cincau [mnet|nginx] /tmp/demo")
     os.exit(0)
 end
 
-if not engine_type then
-    engine_type = "mnet"
-end
-
 --
--- find core_dir
+-- create cincau project skeleton
 --
 
-local core_dir = nil
-
-for path in package.path:gmatch("[^;]+") do
-    local len = path:len()
-    path = path:sub(1, len - 5)
-    local f = io.open(path .. "cincau/page_core.mooc", "r")
-    if f then
-        f:close()
-        core_dir = path .. "cincau/"
-        package.path = package.path .. ";" .. core_dir .. "?.lua"
-        break
-    end
-    print(path)
-end
-
-if core_dir then
-    print("version:", require("base.version").version)
+local ver = pcall(require, 'cincau.base.version')
+if ver then
+    print("version:", ver.version)
     require("moocscript.core")
     local Proj = require("cincau_prepare")
     Proj.createProjectSkeleton(core_dir, proj_dir, engine_type)
 else
-    print("Can not found cincau core dir, exit !")
+    print("Can not found cincau, exit !")
     os.exit(0)
 end

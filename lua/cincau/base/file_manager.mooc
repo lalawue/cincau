@@ -6,16 +6,16 @@
 --
 
 import FileSystem from "lfs"
-import Zlib from "base.ffi_zlib"
+import Zlib from "cincau.base.ffi_zlib"
 
-type = type
-print = print
-ioOpen = io.open
-osRemove = os.remove
-osRename = os.rename
-tableConcat = table.concat
-tableSort = table.sort
-mathMin = math.min
+local type = type
+local print = print
+local ioOpen = io.open
+local osRemove = os.remove
+local osRename = os.rename
+local tableConcat = table.concat
+local tableSort = table.sort
+local mathMin = math.min
 
 struct FileManager {
     _sandboxed = false

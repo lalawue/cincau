@@ -5,11 +5,11 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local Render = require("view_core")
-local Mediator = require("bridge.mediator")
+local Render = require("cincau.view_core")
+local Mediator = require("cincau.bridge.mediator")
 local MoocClass = require("moocscript.class")
-local Model = require("models.model_playground")
-local PageBase = require("page_core").Controller
+local Model = require("app.models.model_playground")
+local PageBase = require("cincau.page_core").Controller
 
 local type = type
 local pairs = pairs

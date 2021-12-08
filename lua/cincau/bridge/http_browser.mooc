@@ -5,18 +5,18 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-import TcpRaw from "bridge.tcp_stream.tcp_raw"
-import FileManager from "base.file_manager"
-import UrlCore from "base.url_core"
+import TcpRaw from "cincau.bridge.tcp_stream.tcp_raw"
+import FileManager from "cincau.base.file_manager"
+import UrlCore from "cincau.base.url_core"
 import HttpParser from "ffi-hyperparser"
 
-type = type
-sfmt = string.format
-pairs = pairs
-concat = table.concat
-require = require
-tonumber = tonumber
-coRunning = coroutine.running
+local type = type
+local sfmt = string.format
+local pairs = pairs
+local concat = table.concat
+local require = require
+local tonumber = tonumber
+local coRunning = coroutine.running
 
 -- act like curl, accept encoding gzip
 fn _buildHttpRequest(method, url_info, option, data) {
@@ -144,7 +144,7 @@ struct Browser {
             ipv4 = url_info.host:match("(" .. ipv4_pattern .. ")")
             port = url_info.port
         } else {
-            ret = require("bridge.mediator").queryDomain(url_info.host)
+            ret = require("cincau.bridge.mediator").queryDomain(url_info.host)
             if not ret {
                 return false
             }

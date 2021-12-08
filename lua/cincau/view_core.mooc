@@ -6,7 +6,7 @@
 --
 
 -- view core TEngine template using lua-resty-template
-import TEngine from "base.template"
+import TEngine from "cincau.base.template"
 
 fn _debugOff(config) {
     return (config == nil) or (not config.debug_on)

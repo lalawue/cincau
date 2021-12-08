@@ -7,12 +7,12 @@
 export ngx
 assert(ngx)
 
-import Base from "base.scratch"
-import Request from "engine.request_core"
-import Response from "engine.response_core"
-import FileManager from "base.file_manager"
-import SessionMgnt from "session.session_mgnt"
-import Version from "base.version"
+import Base from "cincau.base.scratch"
+import Request from "cincau.engine.request_core"
+import Response from "cincau.engine.response_core"
+import FileManager from "cincau.base.file_manager"
+import SessionMgnt from "cincau.session.session_mgnt"
+import Version from "cincau.base.version"
 
 -- response option
 response_option = {

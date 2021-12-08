@@ -6,9 +6,9 @@
 --
 
 local DBClass = require("sql-orm")
-local Redis = require("bridge.redis_cmd")
 local Bitcask = require("bitcask")
-local FileManager = require("base.file_manager")
+local Redis = require("cincau.bridge.redis_cmd")
+local FileManager = require("cincau.base.file_manager")
 
 local type = type
 local ipairs = ipairs

@@ -8,14 +8,17 @@
 -- this module only for mnet
 --
 
-ThreaBroker = require("bridge.thread_broker")
-_engine_valid = require("app_config").engine_type == "mnet"
-DnsCore = _engine_valid and require("ffi-mdns") or {}
-Browser = _engine_valid and require("bridge.http_browser")
-RedisCmd = _engine_valid and require("bridge.redis_cmd")
+export CincauEnginType
 
-type = type
-pairs = pairs
+ThreaBroker = require("cincau.bridge.thread_broker")
+assert(CincauEnginType)
+_engine_valid = CincauEnginType == "mnet"
+DnsCore = _engine_valid and require("ffi-mdns") or {}
+Browser = _engine_valid and require("cincau.bridge.http_browser")
+RedisCmd = _engine_valid and require("cincau.bridge.redis_cmd")
+
+local type = type
+local pairs = pairs
 
 struct Mediator {
 

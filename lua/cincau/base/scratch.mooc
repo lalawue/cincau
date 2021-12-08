@@ -7,7 +7,7 @@
 
 -- export to global
 
-import Serpent from "base.serpent"
+import Serpent from "cincau.base.serpent"
 
 -- string
 --
@@ -33,9 +33,9 @@ fn string:split(sSeparator, nMax, bRegexp) {
     return aRecord
 }
 
-type = type
-print = print
-setmetatable = setmetatable
+local type = type
+local print = print
+local setmetatable = setmetatable
 
 -- table
 --
