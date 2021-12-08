@@ -5,9 +5,9 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-local ver = pcall(reqiure, "cincau.base.version")
+local status, ver = pcall(require, "cincau.base.version")
 
-if ver then
+if status then
     require("moocscript.core")
     require("cincau.base.scratch")
     CincauEnginType = ngx and "nginx" or "mnet"

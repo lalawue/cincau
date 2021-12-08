@@ -13,10 +13,10 @@ import Base64 from "cincau.base.mime_base64"
 import FileManager from "cincau.base.file_manager"
 import Version from "cincau.base.version"
 
-type = type
-assert = assert
-tostring = tostring
-xpcall = xpcall
+local type = type
+local assert = assert
+local tostring = tostring
+local xpcall = xpcall
 pkg_loaded = package.loaded
 
 fn _debugOn(config) {
@@ -51,7 +51,7 @@ struct MasterPage {
         -- assume all page business under pages dir
         ctrl = Self._pages[name]
         if not ctrl {
-            libname = "pages." .. name
+            libname = "app.pages." .. name
             ret, lib = xpcall(require, Base.tracebackHandler, libname)
             if not ret {
                 response:setStatus(404)
