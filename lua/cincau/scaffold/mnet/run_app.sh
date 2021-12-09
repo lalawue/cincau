@@ -2,7 +2,7 @@
 #
 # app launcher by lalawue
 
-# proj path and core path 
+# proj path and core path
 PROJ_PATH=$(dirname $0)
 
 start_server()
@@ -14,13 +14,21 @@ start_server()
     if [ -f $PID_FILE ]; then
         echo "app already running with pid $(cat $PID_FILE)"
         exit 0
-    fi 
-
-    eval $(luarocks path)
+    fi
 
     # running app
-    echo "start cincau web framework [mnet]"    
-    luajit $PROJ_PATH/app/app_main.lua $* & > /dev/null
+    if [ -f 'bin/app_main' ]; then
+        echo "start cincau binary web framework [mnet]"
+        export LUA_PATH=""
+        export LUA_CPATH="lib/?.so"
+        export LD_LIBRARY_PATH=$PWD/lib
+        export DYLD_LIBRARY_PATH=$PWD/lib
+        ./bin/app_main $* & > /dev/null
+    else
+        echo "start cincau web framework [mnet]"
+        eval $(luarocks path)
+        luajit $PROJ_PATH/app/app_main.lua $* & > /dev/null
+    fi
     CINCAU_PID=$!
     sleep 1
     kill -0 $CINCAU_PID
@@ -64,4 +72,3 @@ case $1 in
     echo "$0 [start|stop|reload]"
     ;;
 esac
-

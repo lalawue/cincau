@@ -1,12 +1,13 @@
-package = 'cincau'
+package = 'proj-scm'
 version = 'scm-1'
 source = {
    url = 'git+https://github.com/lalawue/cincau.git'
 }
 description = {
-   summary = 'A minimalist, fast and high configurable web framework for LuaJIT on mnet or nginx',
+   summary = 'A project dependency description base on cincau luarock spec',
    detailed = [[
-      cincau was a minimalist, fast and high configurable web framework for LuaJIT on mnet or nginx
+      A project dependency description base on cincau luarock spec,
+      for create clean library directory
    ]],
    homepage = 'https://github.com/lalawue/cincau',
    maintainer = 'lalawue <suchaaa@gmail.com>',
@@ -27,11 +28,4 @@ build = {
    type = "builtin",
    modules = {
       ["cincau_prepare"] = "bin/cincau_prepare.lua"
-   },
-   install = {
-      bin = {
-         "bin/cincau",
-         "bin/cincau_build"
-      }
    }
-}

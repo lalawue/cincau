@@ -1,0 +1,117 @@
+#!/usr/bin/env luajit
+
+import Utils from "moocscript.utils"
+
+build_path = ... or '/tmp/demo_build'
+
+fn dir(path) {
+    return build_path .. (path or '')
+}
+
+fn write(path, content) {
+    print('write ' .. path .. ', length: ' .. tostring(content:len()))
+    return Utils.writeFile(path, content)
+}
+
+fn execute(...) {
+    print(...)
+    os.execute(...)
+}
+
+fn install(lib) {
+    execute("luarocks install --tree " .. dir("/in") .. " " .. lib)
+}
+
+-- MARK: install libraries
+install("devop/proj-scm-1.rockspec")
+
+-- MARK: translate all mooc to lua, and copy resouces
+sfmt = string.format
+proj_content = sfmt([[
+fn fn_filter(path) {
+    if path:find('bin') {
+        return false
+    }
+    if path:find('luarocks') {
+        return false
+    }
+    if path:find('scaffold') or path:find('cincau_prepare') {
+        return false
+    }
+    if path:find('mnet-chann.lua') {
+        return false
+    }
+    return true
+}
+fn fn_code_after(path, code) {
+    return code
+}
+fn fn_raw_after(path) {
+    return path:find('app/templates') or path:find('app/res')
+}
+return {
+    {
+        name : "luarocks",
+        proj_dir : "%s",
+        proj_out : "%s",
+        fn_filter: fn_filter,
+        fn_after : fn_code_after,
+    },
+    {
+        name : "app",
+        proj_export : "app_config.mooc",
+        proj_dir : "app",
+        proj_out : "%s/app",
+        fn_filter: fn_filter,
+        fn_after : fn_code_after,
+    },
+    {
+        name : "res",
+        proj_dir : "app",
+        proj_out : "%s/build/app",
+        fn_filter : fn_raw_after,
+    }
+}
+]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())
+
+write(dir('/proj_config.mooc'), proj_content)
+execute('moocscript -p ' .. dir('/proj_config.mooc'))
+
+-- MARK: update version, binary mark
+print('--')
+execute([[echo "return '$(date +"%Y-%m-%dT%H:%M:%SZ")'" > ]] .. dir('/out/app/app_version.lua'))
+execute([[echo "return true" > ]] .. dir('/out/app/app_binary.lua'))
+
+-- MARK: use a modified luastatic to pack all .lua
+fn buildBinary(main_lua, out_binary, excludes, src_path) {
+    print('--')
+    execute("rm -f " .. dir("/lua_sources.txt"))
+    do {
+        cmd = sfmt('cd %s;', dir()) .. sfmt([[find out -name '*.lua' | grep -v '%s']], main_lua)
+        for _, v in ipairs(excludes or {}) {
+            cmd ..= sfmt("| grep -v '%s'", v)
+        }
+        cmd ..= [[| cut -b5- >> lua_sources.txt]]
+        execute(cmd)
+    }
+    do {
+        cmd = sfmt('cd %s; ', dir('/out')) ..
+            sfmt([[LUASTATIC_SOURCE_PATH="%s" ]], src_path) ..
+            sfmt([[cincau_build %s $(cat ../lua_sources.txt | xargs) ]], main_lua) ..
+            [[$(luarocks config variables.LUA_LIBDIR)/$(luarocks config variables.LUALIB) ]] ..
+            sfmt([[-I$(luarocks config variables.LUA_INCDIR) -o %s]], out_binary)
+        execute(cmd)
+    }
+}
+
+buildBinary('app/app_main.lua', 'app_main', nil, 'share/lua/5.1/;')
+
+-- MARK: copy binary and libraries
+print('--')
+execute(sfmt('mkdir -p %s;', dir('/build/bin')))
+execute(sfmt('mv %s/app_main %s', dir('/out'), dir('/build/bin')))
+execute(sfmt('strip %s/*', dir('/build/bin')))
+execute(sfmt('cp -a %s %s', dir('/out/lib/lua/5.1/'), dir('/build/lib/')))
+
+-- MARK: pack a tar.gz
+execute(sfmt("cd %s; tar czf %s/out_%s.tar.gz *", dir('/build'), dir(), os.date('%Y%m%d_%H%M%S'), os.time()))
