@@ -125,7 +125,6 @@ buildBinary('app/app_main.lua', 'app_main', nil, 'share/lua/5.1/;')
 print('--')
 execute(sfmt('mkdir -p %s;', dir('/build/bin')))
 execute(sfmt('mv %s/app_main %s', dir('/out'), dir('/build/bin')))
-execute(sfmt('strip %s/*', dir('/build/bin')))
 execute(sfmt('cp -a %s %s', dir('/out/lib/lua/5.1/'), dir('/build/lib/')))
 execute(sfmt('cp run_app.sh %s', dir('/build/run_app.sh')))
 

@@ -70,6 +70,8 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
         _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
         _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
+    else
+        _runCmd("chmod +x " .. proj_dir .. "/devop/build_binary.mooc")
     end
     -- create app dir
     _createAppSkeleton(core_dir, proj_dir, engine_type)
