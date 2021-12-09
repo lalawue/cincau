@@ -18,7 +18,7 @@ start_server()
 
     # running app
     if [ -f 'bin/app_main' ]; then
-        echo "start cincau binary web framework [mnet]"
+        echo "start cincau bianry web framework [mnet]"
         export LUA_PATH=""
         export LUA_CPATH="lib/?.so"
         export LD_LIBRARY_PATH=$PWD/lib

@@ -1,4 +1,4 @@
-package = 'proj-scm'
+package = 'proj'
 version = 'scm-1'
 source = {
    url = 'git+https://github.com/lalawue/cincau.git'
@@ -29,3 +29,4 @@ build = {
    modules = {
       ["cincau_prepare"] = "bin/cincau_prepare.lua"
    }
+}

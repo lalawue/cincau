@@ -20,9 +20,12 @@ if status then
     CincauRouter = require("app.app_router")
     CincauTracebackHandler = require("cincau.base.scratch").tracebackHandler
     print("version: " .. ver.version)
+    if pcall(require, 'app.app_binary') then
+        print("  build: " .. require('app.app_version'))
+    end
     require("cincau.base.template").caching(not CincauConfig.debug_on)
 else
-    print("Can not found cincau core dir, exit !")
+    print("Can not found cincau core dir: ", ver)
     assert(nil)
     os.exit(0)
 end
