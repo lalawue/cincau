@@ -48,6 +48,13 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
     _copyFile(scaffold_dir .. "/app_config.lua", app_dir .. "/app_config.lua")
+    -- copy devop
+    local devop_dir = proj_dir .. "/devop"
+    if engine_type == 'mnet' then
+        _runCmd("chmod +x " .. devop_dir .. "/build_binary.mooc")
+    end
+    _copyFile(scaffold_dir .. "/run_app.sh", devop_dir .. "/run_app.sh")
+    _runCmd("chmod +x " .. devop_dir .. "/run_app.sh")
 end
 
 -- create project skeleton
@@ -61,17 +68,12 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     for _, v in ipairs(proj_tbl) do
         _mkDir(proj_dir .. v)
     end
-    -- copy scaffold
-    local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
-    _copyFile(scaffold_dir .. "/run_app.sh", proj_dir .. "/run_app.sh")
-    _runCmd("chmod +x " .. proj_dir .. "/run_app.sh")
+    -- copy nginx config
     if engine_type == "nginx" then
         local conf_dir = proj_dir .. "/config"
         _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
         _copyFile(scaffold_dir .. "/nginx.conf", conf_dir .. "/nginx.conf")
-    else
-        _runCmd("chmod +x " .. proj_dir .. "/devop/build_binary.mooc")
     end
     -- create app dir
     _createAppSkeleton(core_dir, proj_dir, engine_type)

@@ -27,6 +27,14 @@ fn install(lib) {
     execute("luarocks install --tree " .. dir("/in") .. " " .. lib)
 }
 
+fn fexist(path) {
+    f = io.open(path, 'rb')
+    if f {
+        f:close()
+        return true
+    }
+}
+
 -- MARK: clear temp files
 execute("rm -rf " .. dir('/out'))
 execute("rm -rf " .. dir('/build'))
@@ -36,6 +44,11 @@ print("--")
 
 -- MARK: install libraries
 install("devop/proj-scm-1.rockspec")
+
+if not fexist(dir('/in/bin/cincau')) {
+    print("!!! failed to install cincau")
+    os.exit(0)
+}
 
 -- MARK: translate all mooc to lua, and copy resouces
 sfmt = string.format
@@ -88,6 +101,11 @@ return {
 write(dir('/proj_config.mooc'), proj_content)
 execute('moocscript -p ' .. dir('/proj_config.mooc'))
 
+if not fexist(dir('/out/app/app_main.lua')) {
+    print("!!! failed to copy lua")
+    os.exit(0)
+}
+
 -- MARK: update version, binary mark
 print('--')
 execute([[echo "return '$(date +"%Y-%m-%dT%H:%M:%SZ")'" > ]] .. dir('/out/app/app_version.lua'))
@@ -121,12 +139,23 @@ fn buildBinary(main_lua, out_binary, excludes, src_path) {
 
 buildBinary('app/app_main.lua', 'app_main', nil, 'share/lua/5.1/;')
 
+if not fexist('/out/app_main') {
+    print("!!! failed to generate binary")
+    os.exit(0)
+}
+
 -- MARK: copy binary and libraries
 print('--')
 execute(sfmt('mkdir -p %s;', dir('/build/bin')))
+execute(sfmt('mkdir -p %s;', dir('/build/devop')))
 execute(sfmt('mv %s/app_main %s', dir('/out'), dir('/build/bin')))
 execute(sfmt('cp -a %s %s', dir('/out/lib/lua/5.1/'), dir('/build/lib/')))
-execute(sfmt('cp run_app.sh %s', dir('/build/run_app.sh')))
+execute(sfmt('cp devop/run_app.sh %s', dir('/build/devop/')))
 
 -- MARK: pack a tar.gz
-execute(sfmt("cd %s; tar czf %s/out_%s.tar.gz *", dir('/build'), dir(), os.date('%Y%m%d_%H%M%S'), os.time()))
+do {
+    output = sfmt("out_%s.tar.gz", os.date('%Y%m%d_%H%M%S'))
+    execute(sfmt("cd %s; tar czf %s/%s *", dir('/build'), dir(), output))
+    print("--")
+    print(sfmt("output %s/%s with %s", dir(), output, dir('/build')))
+}

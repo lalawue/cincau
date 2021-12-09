@@ -17,7 +17,7 @@ just
 
 ```sh
 $ cd /tmp/demo
-$ ./run_app.sh [ start | stop | reload ]
+$ ./devop/run_app.sh [ start | stop | reload ]
 ```
 
 then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the page, try visit documents link.
