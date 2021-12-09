@@ -2,9 +2,6 @@
 #
 # app launcher by lalawue
 
-# proj path and core path
-PROJ_PATH=$(dirname $0)
-
 start_server()
 {
     mkdir -p $PWD/tmp
@@ -27,7 +24,7 @@ start_server()
     else
         echo "start cincau web framework [mnet]"
         eval $(luarocks path)
-        luajit $PROJ_PATH/app/app_main.lua $* & > /dev/null
+        luajit $PWD/app/app_main.lua $* & > /dev/null
     fi
     CINCAU_PID=$!
     sleep 1

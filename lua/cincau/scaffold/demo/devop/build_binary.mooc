@@ -45,8 +45,8 @@ print("--")
 -- MARK: install libraries
 install("devop/proj-scm-1.rockspec")
 
-if not fexist(dir('/in/bin/cincau')) {
-    print("!!! failed to install cincau")
+if not fexist(dir('/in/bin/moocscript')) {
+    print("!!! failed to install project cincau dependency")
     os.exit(0)
 }
 
@@ -139,7 +139,7 @@ fn buildBinary(main_lua, out_binary, excludes, src_path) {
 
 buildBinary('app/app_main.lua', 'app_main', nil, 'share/lua/5.1/;')
 
-if not fexist('/out/app_main') {
+if not fexist(dir('/out/app_main')) {
     print("!!! failed to generate binary")
     os.exit(0)
 }
@@ -157,5 +157,5 @@ do {
     output = sfmt("out_%s.tar.gz", os.date('%Y%m%d_%H%M%S'))
     execute(sfmt("cd %s; tar czf %s/%s *", dir('/build'), dir(), output))
     print("--")
-    print(sfmt("output %s/%s with %s", dir(), output, dir('/build')))
+    print(sfmt("output '%s/%s' with dir '%s'", dir(), output, dir('/build')))
 }
