@@ -5,7 +5,7 @@ import Utils from "moocscript.utils"
 build_path = ...
 
 if not build_path {
-    print("Usage: ./devop/build_binary.mooc /tmp/demo_build")
+    print("Usage: ./devop/build_binary.mooc [output_dir]")
     os.exit(0)
 }
 
@@ -71,9 +71,6 @@ fn fn_filter(path) {
 fn fn_code_after(path, code) {
     return code
 }
-fn fn_raw_after(path) {
-    return path:find('app/templates')
-}
 return {
     {
         name : "luarocks",
@@ -88,11 +85,6 @@ return {
         proj_out : "%s/app",
         fn_filter: fn_filter,
         fn_after : fn_code_after,
-    },
-    {
-        name : "datas",
-        proj_dir : "datas",
-        proj_out : "%s/build/datas"
     }
 }
 ]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())

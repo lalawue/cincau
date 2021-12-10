@@ -1,7 +1,7 @@
 
 # About
 
-cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/) ([nginx](https://www.nginx.com)).
+cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/).
 
 ## Install
 
@@ -21,6 +21,19 @@ $ ./devop/run_app.sh [ start | stop | reload ]
 ```
 
 then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the page, try visit documents link.
+
+## Bundle Binary
+
+with mnet engine, you can bundle all required .lua/.mooc source and .so, too easy to update and shipping, just
+
+```sh
+$ ./devop/build_binary.mooc /tmp/build/
+...
+--
+output '/tmp/build/out_20211210_230838.tar.gz' with dir '/tmp/build/build'
+```
+
+the bundling process was controled by ./devop/build_binary.mooc, when you need more rocks in final bundle from https://luarocks.org/, edit ./devop/proj-scm-1.rockspec.
 
 # Demo Project
 
