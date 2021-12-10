@@ -32,7 +32,7 @@ $ ./devop/build_binary.mooc /tmp/build/
 --
 output '/tmp/build/out_20211210_230838.tar.gz' with dir '/tmp/build/build'
 ```
-the bundling process was controled by ./devop/build_binary.mooc, when you need more rocks in final bundle from https://luarocks.org/, edit ./devop/proj-scm-1.rockspec.
+the bundling process was controled by ./devop/build_binary.mooc, when you need more rocks in final bundle from [https://luarocks.org/](https://luarocks.org/), edit ./devop/proj-scm-1.rockspec.
 
 # Demo Project
 
