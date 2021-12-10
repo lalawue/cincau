@@ -90,10 +90,9 @@ return {
         fn_after : fn_code_after,
     },
     {
-        name : "res",
-        proj_dir : "app",
-        proj_out : "%s/build/app",
-        fn_filter : fn_raw_after,
+        name : "datas",
+        proj_dir : "datas",
+        proj_out : "%s/build/datas"
     }
 }
 ]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())

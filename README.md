@@ -127,6 +127,7 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [hamishforbes/lua-ffi-zlib](https://github.com/hamishforbes/lua-ffi-zlib)
 - [pkulchenko/serpent](https://github.com/pkulchenko/serpent), Lua serializer and pretty printer
 - [bungle/lua-resty-template](https://github.com/bungle/lua-resty-template), Templating Engine (HTML) for Lua and OpenResty.
+- [ers35/luastatic](https://github.com/ers35/luastatic), Build a standalone executable from a Lua program.
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
 - [lalawue/linked-list](https://github.com/lalawue/linked-list.lua), doubly linked list for Lua

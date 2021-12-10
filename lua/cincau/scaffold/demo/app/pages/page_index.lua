@@ -29,7 +29,7 @@ end
 function Page:templateHTML()
     return
 [[<html>
-{(app/templates/head.html)}
+{(datas/templates/head.html)}
 <body>
     <h1>{{ page_title }}</h1>
     <ul>
