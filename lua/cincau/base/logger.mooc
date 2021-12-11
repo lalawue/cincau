@@ -52,7 +52,7 @@ struct Logger {
     }
 
     static fn printf(level, fmt, ...) {
-        guard Self._validLevel(level) and type(fmt) == "string" else {
+        guard Self.isValidLevel(level) and type(fmt) == "string" else {
             return
         }
         fp = Self._fp or io.stdout
@@ -80,7 +80,7 @@ struct Logger {
 
     -- MARK: internal
 
-    static fn _validLevel(level) {
+    static fn isValidLevel(level) {
         return level >= Self.ERR and level <= Self._level
     }
 

@@ -24,6 +24,8 @@ if status then
         print("  build: " .. require('app.app_version'))
     end
     require("cincau.base.template").caching(not CincauConfig.debug_on)
+elseif ngx and ngx.log then
+    ngx.log(ngx.ERR, "can not find cincau")
 else
     print("Can not found cincau core dir: ", ver)
     assert(nil)

@@ -23,7 +23,7 @@ end
 
 -- redefine logger printf
 Logger.printf = function(level, fmt, ...)
-    if Logger.validLevel(level) and type(fmt) == "string" then
+    if Logger.isValidLevel(level) and type(fmt) == "string" then
         NGXLog(Logger._level_msg[level], sfmt(fmt, ...))
     end
 end
