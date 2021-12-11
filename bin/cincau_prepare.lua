@@ -70,6 +70,7 @@ local function _createProjectSkeleton(core_dir, proj_dir, engine_type)
     end
     -- copy nginx config
     if engine_type == "nginx" then
+        local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
         local conf_dir = proj_dir .. "/config"
         _mkDir(conf_dir)
         _copyFile(scaffold_dir .. "/mime.types", conf_dir .. "/mime.types")
