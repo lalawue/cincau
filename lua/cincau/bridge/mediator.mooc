@@ -22,7 +22,7 @@ local pairs = pairs
 
 struct Mediator {
 
-    _callbacks = setmetatable({}, {__mode : "k"})
+    _callbacks = setmetatable({}, {__mode = "k"})
 
     -- in server loop
     static fn servLoop() {
@@ -40,7 +40,7 @@ struct Mediator {
     -- check_stop return true to finish loop, and run finalizer in the end
     static fn addServLoopCallback(key, check_stop, finalizer) {
         if key and type(check_stop) == "function" {
-            Self._callbacks[key] = { :check_stop, :finalizer }
+            Self._callbacks[key] = { =check_stop, =finalizer }
         }
     }
 

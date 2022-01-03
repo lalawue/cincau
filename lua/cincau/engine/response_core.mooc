@@ -14,17 +14,17 @@ local tostring = tostring
 local strfmt = string.format
 
 local _status_code_msg = {
-    ["100"] : "Continue",
-    ["200"] : "OK",
-    ["301"] : "Moved Permanently",
-    ["302"] : "Moved Temporarily",
-    ["304"] : "Not Modified",
-    ["307"] : "Temporary Redirect",
-    ["401"] : "Unauthorized",
-    ["403"] : "Forbidden",
-    ["404"] : "Not Found",
-    ["412"] : "Precondition Failed",
-    ["500"] : "Internal Server Error"
+    ["100"] = "Continue",
+    ["200"] = "OK",
+    ["301"] = "Moved Permanently",
+    ["302"] = "Moved Temporarily",
+    ["304"] = "Not Modified",
+    ["307"] = "Temporary Redirect",
+    ["401"] = "Unauthorized",
+    ["403"] = "Forbidden",
+    ["404"] = "Not Found",
+    ["412"] = "Precondition Failed",
+    ["500"] = "Internal Server Error"
 }
 
 -- only support chunked output
@@ -89,7 +89,7 @@ class ResponseCore {
             return nil
         }
         self.opt = option
-        self.http = { header : {} } -- { header, status_code }
+        self.http = { header = {} } -- { header, status_code }
         self:setStatus(200)
         self:setHeader("Server", Version.version)
         self:setHeader("Transfer-Encoding", "chunked")

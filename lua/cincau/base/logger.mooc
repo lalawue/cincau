@@ -26,10 +26,10 @@ struct Logger {
     _last_fmt = ''
 
     _level_msg = {
-        0 : "[err]",
-        1 : "[warn]",
-        2 : "[info]",
-        3 : "[debug]"
+        0 = "[err]",
+        1 = "[warn]",
+        2 = "[info]",
+        3 = "[debug]"
     }
 
     -- MARK: public

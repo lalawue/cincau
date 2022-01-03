@@ -89,9 +89,9 @@ fn _storeMultiPartData(cnt, http_tbl) {
             } elseif filename and filename:len() > 0 {
                 filepath = "tmp/" .. tostring(mathRandom(100000)) .. _suffix4(filename)
                 cnt.multipart_info[#cnt.multipart_info + 1] = {
-                    :filename,
-                    :filepath,
-                    :content_type
+                    =filename,
+                    =filepath,
+                    =content_type
                 }
             }
         }
@@ -102,10 +102,10 @@ fn _storeMultiPartData(cnt, http_tbl) {
 
 -- response option
 local response_option = {
-    en_chunked_length : true, -- append chunked body length
-    fn_chunked_callback : false,
-    fn_set_header : false, -- construct header
-    fn_set_status : false
+    en_chunked_length = true, -- append chunked body length
+    fn_chunked_callback = false,
+    fn_set_header = false, -- construct header
+    fn_set_status = false
 }
 
 -- receive client data then parse to http method, path, header, content
@@ -212,11 +212,11 @@ struct Serv {
         Self.svr_tcp:setCallback({ _, event_name, accept in
             if event_name == "event_accept" and accept ~= nil {
                 accept._cnt = {
-                    config : config,
-                    http_callback : http_callback,
-                    http_parser : HttpParser.createParser("REQUEST"),
-                    fd_tbl : {},
-                    multipart_info : {},
+                    config = config,
+                    http_callback = http_callback,
+                    http_parser = HttpParser.createParser("REQUEST"),
+                    fd_tbl = {},
+                    multipart_info = {},
                 }
                 accept:setCallback(_onClientEventCallback)
             }

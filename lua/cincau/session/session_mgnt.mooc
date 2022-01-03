@@ -72,16 +72,16 @@ struct Session {
         }
         -- set cookie to respoinse
         uuid = UUIDCore.new()
-        cookie_str = Cookie.build({[skey] : uuid}, options)
+        cookie_str = Cookie.build({[skey] = uuid}, options)
         response:setHeader("Set-Cookie", cookie_str)
         -- set cookie to req
         req.cookies[skey] = uuid
         -- create session table
         tm = {
-            time : otime(),
-            uuid : uuid
+            time = otime(),
+            uuid = uuid
         }
-        Self._sessions[uuid] = { :tm }
+        Self._sessions[uuid] = { =tm }
         Self._lst:pushl(tm)
         return uuid
     }

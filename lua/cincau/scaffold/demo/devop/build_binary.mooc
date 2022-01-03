@@ -73,18 +73,18 @@ fn fn_code_after(path, code) {
 }
 return {
     {
-        name : "luarocks",
-        proj_dir : "%s",
-        proj_out : "%s",
-        fn_filter: fn_filter,
-        fn_after : fn_code_after,
+        name = "luarocks",
+        proj_dir = "%s",
+        proj_out = "%s",
+        fn_filter = fn_filter,
+        fn_after = fn_code_after,
     },
     {
-        name : "app",
-        proj_dir : "app",
-        proj_out : "%s/app",
-        fn_filter: fn_filter,
-        fn_after : fn_code_after,
+        name = "app",
+        proj_dir = "app",
+        proj_out = "%s/app",
+        fn_filter = fn_filter,
+        fn_after = fn_code_after,
     }
 }
 ]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())

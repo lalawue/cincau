@@ -16,15 +16,15 @@ import Version from "cincau.base.version"
 
 -- response option
 response_option = {
-    en_output_header : false, -- construct header by nginx
-    en_chunked_length : false, -- chunked body length by nginx
-    fn_chunked_callback : { data in
+    en_output_header = false, -- construct header by nginx
+    en_chunked_length = false, -- chunked body length by nginx
+    fn_chunked_callback = { data in
         ngx.say(data)
     },
-    fn_set_header : { key, value in
+    fn_set_header = { key, value in
         ngx.header[key] = value
     },
-    fn_set_status : { status_code in
+    fn_set_status = { status_code in
         ngx.status = status_code
     }
 }
@@ -62,9 +62,9 @@ struct Serv {
         -- fill fake multipart info, nginx use another way to upload binary files
         if is_multipart_formdata {
             multipart_info = {
-                filename : "nginx upload howto",
-                content_type : "application/html",
-                filepath : "https://www.nginx.com/resources/wiki/modules/upload/"
+                filename = "nginx upload howto",
+                content_type = "application/html",
+                filepath = "https://www.nginx.com/resources/wiki/modules/upload/"
             }
         }
         data = is_multipart_formdata and "" or nreq.get_body_data()
