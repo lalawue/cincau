@@ -46,6 +46,26 @@ function Page:templteHTML()
             margin-right: 0;
         }
         </style>
+        <script>
+        function wikiMovePage(path) {
+            let npath = prompt("rename", path);
+            if (npath == null && npath == "") {
+                return
+            }
+            const p = path.lastIndexOf('/')
+            const d = path.substring(0, p)
+            const f = path.substring(p+1)
+            const np = npath.lastIndexOf('/')
+            const nd = npath.substring(0, np)
+            const nf = npath.substring(np+1)
+            m.request("/wikidata?d="+d+"&f="+f+"&md="+nd+"&mf="+nf)
+             .then(function(ret){
+                if (ret.errcode == 0) {
+                   location.reload();
+                }
+            })
+        }
+        </script>
     </head>
     <body>
         <div class="fixed top-0">

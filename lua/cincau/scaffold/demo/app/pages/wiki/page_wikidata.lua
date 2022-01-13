@@ -14,6 +14,7 @@ local type = type
 local ipairs = ipairs
 local concat = table.concat
 local tostring = tostring
+local execute = os.execute
 
 local Page = MoocClass("page_wiki", BasePage)
 
@@ -23,12 +24,27 @@ function Page:init(config)
 end
 
 function Page:process(config, req, response, params)
-    local path_comps = self:pathCompos(req)
+    local path_comps = self:pathCompos(req.query.d, req.query.f)
     local fname = path_comps[#path_comps]
     local content = ""
 
+    -- invalid path as having ".." in path
+    if #path_comps <= 0 then
+        response:setHeader("Content-Type", "application/json")
+        response:appendBody(CJson.encode({ errcode = 0 }))
+        return
+    end
+
+    -- get site map
     if #path_comps <= 1 and fname == "sitemap" then
+        config.logger.info("sitemap")
         self:siteMap(config, req, response, params)
+        return
+    end
+
+    -- rename path
+    if req.query.md and req.query.mf then
+        self:movePage(config, req, response, params, path_comps)
         return
     end
 
@@ -50,13 +66,7 @@ function Page:process(config, req, response, params)
             })
         end
     else
-        do
-            local dir = self.wiki_path
-            for i=1, #path_comps - 1 do
-                dir = dir .. path_comps[i] .. "/"
-                FileManager.mkdir(dir)
-            end
-        end
+        self:mkdirPathCompos(path_comps)
 
         local data = CJson.decode(req.body)
         local data_len = 0
@@ -75,17 +85,41 @@ function Page:process(config, req, response, params)
     response:appendBody(content)
 end
 
+function Page:mkdirPathCompos(path_comps)
+    local dir = self.wiki_path
+    for i=1, #path_comps - 1 do
+        dir = dir .. path_comps[i] .. "/"
+        FileManager.mkdir(dir)
+    end
+end
+
 function Page:siteMap(config, req, response, params)
     local tbl = FileManager.travelDir(self.wiki_path, { file = true, directory = true })
     local out = {}
     self:travelDirTable("", self.wiki_path, tbl, out)
-    local text = concat(out, '\n')
-    config.logger.info(text)
     response:setHeader("Content-Type", "application/json")
     response:appendBody(CJson.encode({
         errcode = 0,
-        text = text,
+        text = concat(out, '\n'),
     }))
+end
+
+function Page:movePage(config, req, response, params, path_comps)
+    local npath_comps = self:pathCompos(req.query.md, req.query.mf)
+    self:mkdirPathCompos(npath_comps)
+    local path = self:fullPath(path_comps)
+    local npath = self:fullPath(npath_comps)
+    execute("mv -f '" .. path .. "' '" .. npath .. "'")
+    config.logger.info("path %s, npath %s", path, npath)
+    -- try rmdir empty dir
+    path = path:sub(1, path:len() - 3) -- trim '.md'
+    for i=#path_comps, 1, -1 do
+        config.logger.info("path_comps %s", path_comps[i])
+        path = path:sub(1, path:len() - path_comps[i]:len() - 1)
+        execute("rmdir " .. path)
+    end
+    response:setHeader("Content-Type", "application/json")
+    response:appendBody(CJson.encode({ errcode = 0 }))
 end
 
 function Page:travelDirTable(indent, path, tbl, out)
@@ -95,17 +129,24 @@ function Page:travelDirTable(indent, path, tbl, out)
             out[#out + 1] = indent .. "- **" .. v.name .. '/**'
             self:travelDirTable(indent .. "  ", path .. v.name .. '/', v, out)
         else
-            local dir = "#!" .. path:sub(self.wiki_path:len())
+            local dir = path:sub(self.wiki_path:len())
+            local htag = "#!" .. dir
             local fname = v.name:sub(1, v.name:len() - 3)
-            out[#out + 1] = indent .. "- [" .. fname .. '](' .. dir .. fname .. ')'
+            local suffix = [[ <a style="text-decoration: none;" class="col-right mr1" href="javascript:" onclick="wikiMovePage(']] ..  dir .. fname .. [[')">🔄</a>]]
+            out[#out + 1] = indent .. "- [" .. fname .. '](' .. htag .. fname .. ')' .. suffix
         end
     end
 end
 
-function Page:pathCompos(req)
-    if req.query.f then
-        local tbl = (req.query.d or ""):split("/")
-        tbl[#tbl + 1] = req.query.f
+function Page:pathCompos(d, f)
+    if f then
+        local tbl = (d or ""):split("/")
+        tbl[#tbl + 1] = f
+        for _, v in ipairs(tbl) do
+            if v:find("..", 1, true) then
+                return {}
+            end
+        end
         return tbl
     else
         return {}
