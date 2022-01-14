@@ -132,7 +132,7 @@ function Page:travelDirTable(indent, path, tbl, out)
             local dir = path:sub(self.wiki_path:len())
             local htag = "#!" .. dir
             local fname = v.name:sub(1, v.name:len() - 3)
-            local suffix = [[ <a style="text-decoration: none;" class="col-right mr1" href="javascript:" onclick="wikiMovePage(']] ..  dir .. fname .. [[')">🔄</a>]]
+            local suffix = [[ <a style="text-decoration: none;" class="clearfix right mr1" href="javascript:" onclick="wikiMovePage(']] ..  dir .. fname .. [[')">↩</a>]]
             out[#out + 1] = indent .. "- [" .. fname .. '](' .. htag .. fname .. ')' .. suffix
         end
     end
