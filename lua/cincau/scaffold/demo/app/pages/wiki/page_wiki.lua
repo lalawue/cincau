@@ -48,8 +48,8 @@ function Page:templteHTML()
         </style>
         <script>
         function wikiMovePage(path) {
-            let npath = prompt("rename", path);
-            if (npath == null && npath == "") {
+            let npath = prompt("rename file path to:", path);
+            if (npath == null || npath == "" || path == npath) {
                 return
             }
             const p = path.lastIndexOf('/')
@@ -58,12 +58,14 @@ function Page:templteHTML()
             const np = npath.lastIndexOf('/')
             const nd = npath.substring(0, np)
             const nf = npath.substring(np+1)
-            m.request("/wikidata?d="+d+"&f="+f+"&md="+nd+"&mf="+nf)
-             .then(function(ret){
-                if (ret.errcode == 0) {
-                   location.reload();
-                }
-            })
+            if (p>0 && np>0) {
+                m.request("/wikidata?d="+d+"&f="+f+"&md="+nd+"&mf="+nf)
+                .then(function(ret){
+                    if (ret.errcode == 0) {
+                    location.reload();
+                    }
+                })
+            }
         }
         </script>
     </head>
