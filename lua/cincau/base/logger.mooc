@@ -9,11 +9,11 @@ dbgInfo = debug.getinfo
 mmax = math.max
 mmin = math.min
 sfmt = string.format
-print = print
-type = type
-tostring = tostring
 odate = os.date
 otime = os.time
+local print = print
+local type = type
+local tostring = tostring
 
 struct Logger {
 

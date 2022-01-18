@@ -64,7 +64,7 @@ local function get_precision(one)
    -- "one" must be either float 1.0 or integer 1
    -- returns bits_precision, is_integer
    -- This function works correctly with all floating point datatypes (including non-IEEE-754)
-   local k, n, m, prev_n = 0, one, one
+   local k, n, m, prev_n = 0, one, one, 0
    while true do
       k, prev_n, n, m = k + 1, n, n + n + 1, m + m + k % 2
       if k > 256 or n - (n - 1) ~= 1 or m - (m - 1) ~= 1 or n == m then
@@ -2417,7 +2417,7 @@ do
       return r
    end
    for idx = 1, 24 do
-      local lo, m = 0
+      local lo, m = 0, nil
       for _ = 1, 6 do
          m = m and m * m * 2 or 1
          lo = lo + next_bit() * m

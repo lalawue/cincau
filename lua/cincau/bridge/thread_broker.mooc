@@ -5,8 +5,8 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
-type = type
-tostring = tostring
+local type = type
+local tostring = tostring
 coResume = coroutine.resume
 coYield = coroutine.yield
 coRuning = coroutine.running

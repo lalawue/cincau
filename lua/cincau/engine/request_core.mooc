@@ -21,7 +21,6 @@ fn _parsePath(path) {
 }
 
 fn _urlUnescape(str, path) {
-    str = str
     if not path {
         str = str:gsub("+", " ")
     }

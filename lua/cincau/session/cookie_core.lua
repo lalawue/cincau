@@ -84,11 +84,11 @@ local function build(dict, options)
 	end
 
 	for _, tuple in ipairs(CODEX) do
-		local key, template, fn = unpack(tuple)
+		local key, template, func = unpack(tuple)
 		local val = options[key]
 
 		if val then
-			insert(res, format(template, fn(val)))
+			insert(res, format(template, func(val)))
 		end
 	end
 
