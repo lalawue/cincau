@@ -139,17 +139,15 @@ _type_string = {
     ["U"] = "userdata"
 }
 
-export struct Lang {
-
-    static fn valid(type_desc, ...) {
-        for i = 1, type_desc:len(), 1 {
-            val = select(i, ...)
-            if type(val) ~= _type_string[type_desc:sub(i, i)] {
-                return false
-            }
+--- check type is valid, typewith('NS', 12, 'abc') == true
+---@param type_desc string
+export fn typewith(type_desc, ...) {
+    for i=1, type_desc:len() {
+        if type(select(i, ...)) != _type_string[type_desc:sub(i, i)] {
+            return false
         }
-        return true
     }
+    return true
 }
 
 fn tracebackHandler(msg) {
