@@ -16,6 +16,12 @@ if status then
         CincauServer = require("cincau.engine.nginx.server")
     else
         CincauServer = require("cincau.engine.mnet.server")
+        local config = CincauConfig
+        os.execute("mkdir -p " .. config.log_dir)
+        local logger = config.logger
+        -- open comment if you need logger to file
+        --logger.setDir(config.log_dir)
+        logger.setLevel(config.debug_on and logger.DEBUG or logger.INFO)
     end
     CincauRouter = require("app.app_router")
     CincauTracebackHandler = require("cincau.base.scratch").tracebackHandler
