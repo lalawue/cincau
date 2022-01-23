@@ -27,6 +27,7 @@ local function http_callback(config, req, response)
 end
 
 local function runApp()
+    Router:loadModel(Config)
     Server.run(Config, http_callback)
 end
 

@@ -75,4 +75,9 @@ function router:pageNotFound(config, req, response, params)
     end
 end
 
+-- first loader
+function  router:loadModel(config)
+    -- you can load model before router working
+end
+
 return router
