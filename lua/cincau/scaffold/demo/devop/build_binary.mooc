@@ -20,7 +20,11 @@ fn write(path, content) {
 
 fn execute(...) {
     print(...)
-    os.execute(...)
+    st = os.execute(...)
+    if st ~= 0 {
+        print('!!! Abort: os.execute with status code ' .. tostring(st))
+        os.exit(-1)
+    }
 }
 
 fn install(lib) {
