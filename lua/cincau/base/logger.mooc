@@ -51,6 +51,12 @@ struct Logger {
         Self._level = level
     }
 
+    static fn flush() {
+        if Self._fp {
+            Self._fp:flush()
+        }
+    }
+
     static fn printf(level, fmt, ...) {
         guard Self.isValidLevel(level) and type(fmt) == "string" else {
             return

@@ -15,6 +15,7 @@ local router = require("cincau.router_core").new()
 local function staticGet(config, req, response, path, content_type)
     config.logger.info("static GET %s", path)
     MasterPage.staticContent(config, req, response, path, content_type)
+    config.logger.flush()
 end
 
 router:get("/images/:filename/", function(config, req, response, params)
@@ -32,6 +33,7 @@ end)
 local function pageProcess(page_name, config, req, response, params)
     config.logger.info("%s %s %s", req.method, req.path, req.query or '')
     MasterPage.process(page_name, config, req, response, params)
+    config.logger.flush()
 end
 
 -- get root
