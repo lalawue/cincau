@@ -13,8 +13,6 @@ local Server = CincauServer
 local Config = CincauConfig
 local Router = CincauRouter
 
-Config.logger.setLevel(Config.log_level)
-
 local function http_callback(config, req, response)
     local func, params = Router:resolve(req.method, req.path)
     if func then
