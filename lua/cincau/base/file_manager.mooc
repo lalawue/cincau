@@ -67,7 +67,7 @@ struct FileManager {
         }
         tbl = {}
         do {
-            s, e = dir_path:reverse():find("/", 1, true)
+            s = dir_path:reverse():find("/", 1, true)
             if s {
                 tbl.name = dir_path:sub(dir_path:len() - s + 2)
                 tbl.attr = attr

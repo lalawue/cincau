@@ -21,7 +21,7 @@ struct ChannRaw {
 
     fn init(options) {
         self._options = options
-        self._chann = NetCore.openChann("tcp")
+        self._chann = NetCore.openChann(options == "https" and "tls" or "tcp")
     }
 
     fn closeChann() {
