@@ -6,7 +6,7 @@
 --
 
 local CJson = require("cjson")
-local MoocClass = require("moocscript.class")
+local MoocLib = require("moocscript.class")
 local BasePage = require("cincau.page_core").BasePage
 local FileManager = require("cincau.base.file_manager")
 
@@ -16,7 +16,7 @@ local concat = table.concat
 local tostring = tostring
 local execute = os.execute
 
-local Page = MoocClass("page_wiki", BasePage)
+local Page = MoocLib.newMoocClass("page_wiki", BasePage)
 
 function Page:init(config)
     self.wiki_path = config.dataPath(config.dir.wiki)

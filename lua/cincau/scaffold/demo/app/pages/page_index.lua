@@ -6,10 +6,10 @@
 --
 
 local Render = require("cincau.view_core")
-local MoocClass = require("moocscript.class")
+local MoocLib = require("moocscript.class")
 local BasePage = require("cincau.page_core").BasePage
 
-local Page = MoocClass("page_index", BasePage)
+local Page = MoocLib.newMoocClass("page_index", BasePage)
 
 -- output index page
 function Page:process(config, req, response, params)

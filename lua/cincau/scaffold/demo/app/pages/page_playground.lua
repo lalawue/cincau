@@ -7,7 +7,7 @@
 
 local Render = require("cincau.view_core")
 local Mediator = require("cincau.bridge.mediator")
-local MoocClass = require("moocscript.class")
+local MoocLib = require("moocscript.class")
 local Model = require("app.models.model_playground")
 local PageBase = require("cincau.page_core").Controller
 
@@ -18,7 +18,7 @@ local tostring = tostring
 local sfmt = string.format
 local tempty = table.isempty
 
-local Page = MoocClass("page_playground", PageBase)
+local Page = MoocLib.newMoocClass("page_playground", PageBase)
 
 function Page:init(config)
     Model:loadModel(config)
