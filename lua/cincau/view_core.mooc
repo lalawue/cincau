@@ -8,23 +8,29 @@
 -- view core TEngine template using lua-resty-template
 import TEngine from "cincau.base.template"
 
-fn _debugOff(config) {
-    return (config == nil) or (not config.debug_on)
-}
+local type = type
 
 struct ViewCore {
 
+    _ready = {}
+
     fn setup(config) {
-        TEngine.caching(_debugOff(config))
+        TEngine = TEngine.new()
+        TEngine.caching(false)
     }
 
     -- return render content
     fn render(view, context, is_file) {
-        if is_file {
-            return TEngine.process_file(view, context)
-        } else {
-            return TEngine.process_string(view, context)
+        guard type(view) == 'string' else {
+            return "!!! Failed to render: " .. type(view)
         }
+        page = self._ready[view]
+        if not page {
+            page = TEngine.precompile(view, false, true, is_file)
+            self._ready[view] = page
+        }
+        -- as a dynamic view, no-cache
+        return TEngine.process(page, context, 'no-cache')
     }
 }
 
