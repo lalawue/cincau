@@ -89,6 +89,7 @@ struct MasterPage {
             st = FileManager.stat(path)
         }
         guard st else {
+            response:setStatus(404)
             config.logger.err("static content non exist: %s", path)
             return
         }
