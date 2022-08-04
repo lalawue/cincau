@@ -21,7 +21,7 @@ struct ViewCore {
 
     -- return render content
     fn render(view, context, is_file) {
-        guard type(view) == 'string' else {
+        guard type(view) == 'string' and type(context) == 'table' else {
             return "!!! Failed to render: " .. type(view)
         }
         page = self._ready[view]
@@ -31,6 +31,22 @@ struct ViewCore {
         }
         -- as a dynamic view, no-cache
         return TEngine.process(page, context, 'no-cache')
+    }
+
+    -- get cache count
+    fn count() {
+        t = nil
+        count = 0
+        repeat {
+            t = next(self._ready, t)
+            count += (t and 1 or 0)
+        } until t == nil
+        return count
+    }
+
+    -- clear cache
+    fn clear() {
+        self._ready = {}
     }
 }
 
