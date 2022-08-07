@@ -64,33 +64,34 @@ struct Mediator {
     }
 
     static fn requestURL(url, option) {
-        guard _engine_valid else {
-            return ""
-        }
-        if type(url) ~= "string" {
-            return nil
-        }
-        return ThreaBroker.callThread({ ret_func in
-            data_tbl = {}
-            recv_cb = option and option.recv_cb or Self._dummy_cb
-            url_opt = option or {}
-            url_opt.recv_cb = { header_tbl, data_str in
-                if header_tbl == nil {
-                    ret_func()
-                } elseif data_str {
-                    recv_cb(header_tbl, data_str)
-                    data_tbl[#data_tbl + 1] = data_str
-                } else {
-                    recv_cb(header_tbl, nil)
-                    ret_func(header_tbl, table.concat(data_tbl))
-                }
-            }
-            brw = Browser()
-            ret = brw:requestURL(url, url_opt)
-            Self.addServLoopCallback(brw, { _ in
-                return brw:onLoopEvent()
-            }, nil)
-        })
+        return ""
+        -- guard _engine_valid else {
+        --     return ""
+        -- }
+        -- if type(url) ~= "string" {
+        --     return nil
+        -- }
+        -- return ThreaBroker.callThread({ ret_func in
+        --     data_tbl = {}
+        --     recv_cb = option and option.recv_cb or Self._dummy_cb
+        --     url_opt = option or {}
+        --     url_opt.recv_cb = { header_tbl, data_str in
+        --         if header_tbl == nil {
+        --             ret_func()
+        --         } elseif data_str {
+        --             recv_cb(header_tbl, data_str)
+        --             data_tbl[#data_tbl + 1] = data_str
+        --         } else {
+        --             recv_cb(header_tbl, nil)
+        --             ret_func(header_tbl, table.concat(data_tbl))
+        --         }
+        --     }
+        --     brw = Browser()
+        --     ret = brw:requestURL(url, url_opt)
+        --     Self.addServLoopCallback(brw, { _ in
+        --         return brw:onLoopEvent()
+        --     }, nil)
+        -- })
     }
 
     --[[

@@ -14,6 +14,11 @@ local config = {
     session_outdate = 300, -- session oudated seconds
     resources_max_age = 900, -- resources cache-control max-age
 
+    dns_list = {
+        "114.114.114.114",
+        "8.8.8.8"        
+    },
+
     dir = {
         database = "database/",
         wiki = "wiki/",

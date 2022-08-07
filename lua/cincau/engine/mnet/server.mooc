@@ -205,7 +205,7 @@ struct Serv {
         FileManager.setupSandboxEnv(config)
         -- create bind
         NetCore.init()
-        DnsCore.init(config)
+        DnsCore.init(config.dns_list) -- ipv4
         SessionMgnt.init()
         Self.svr_tcp = NetCore.openChann("tcp")
         Self.svr_tcp:listen(addr.ip, addr.port, 1024)
