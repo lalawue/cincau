@@ -15,7 +15,7 @@ local ipairs = ipairs
 local assert = assert
 
 local Model = {
-    _conn = false,
+    _db_ins = false,
     _bitcask = false,
 
     -- uncomment to use redis
@@ -23,35 +23,35 @@ local Model = {
 }
 Model.__index = Model
 
-local Table, Field, tpairs, Or
+local Table, Field, Order
 local PostT
 
 function Model:loadModel(config)
     self.db_path = config.dataPath(config.dir.database)
     FileManager.mkdir(self.db_path)
 
-    if self._conn then
+    if self._ins then
         return
     end
 
-    self._conn = DBClass.new({
-        newtable = true,
-        path = self.db_path .. "playground_db.sqlite",
-        type = "sqlite3",
-        TRACE = true,
-        DEBUG = true,
+    self._db_ins, Table, Field, Order = DBClass({
+        new_table = true,
+        db_path = self.db_path .. "playground_db.sqlite",
+        db_type = "sqlite3",
+        log_trace = true,
+        log_debug = true,
     })
-    if not self._conn then
+
+    if not self._db_ins then
         config.logger.err("fail to open user database, exit 0")
         os.exit(0)
     end
-    Table, Field, tpairs, Or = self._conn.Table, self._conn.Field, self._conn.tablePairs, self._conn.OrderBy
     assert(Table)
     assert(Field)
-    assert(tpairs)
-    assert(Or)
+    assert(Order)
     PostT = Table({
-        __tablename__ = "post_t",
+        table_name = "post_t",
+    }, {
         data = Field.CharField({ max_length = 32, unique = true }),
     })
     config.logger.info("open post database")
@@ -83,7 +83,7 @@ function Model:allInputs()
     local datas = PostT.get:all()
     if datas then
             local tbl = {}
-            for i, v in tpairs(datas) do
+            for i, v in ipairs(datas) do
                     tbl[#tbl + 1] = v.data
             end
             return tbl
