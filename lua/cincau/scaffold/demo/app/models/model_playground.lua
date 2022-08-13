@@ -83,7 +83,7 @@ function Model:allInputs()
     local datas = PostT.get:all()
     if datas then
             local tbl = {}
-            for i, v in ipairs(datas) do
+            for i, v in ipairs(datas:list()) do
                     tbl[#tbl + 1] = v.data
             end
             return tbl
