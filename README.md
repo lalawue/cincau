@@ -13,7 +13,7 @@ $ cincau mnet /tmp/demo
 ```
 ## Running
 
-just 
+just
 
 ```sh
 $ cd /tmp/demo
@@ -24,7 +24,7 @@ then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the p
 
 ## Bundle Binary
 
-with mnet engine, you can bundle all required .lua/.mooc source and .so, too easy to update and shipping, just
+with `mnet` engine, you can bundle all required .lua/.mooc source and .so, too easy to update and shipping, just
 
 ```sh
 $ ./devop/build_binary.mooc /tmp/build/
@@ -33,7 +33,7 @@ $ ./devop/build_binary.mooc /tmp/build/
 output '/tmp/build/out_20211210_230838.tar.gz' with dir '/tmp/build/build'
 ```
 
-the bundling process was controled by ./devop/build_binary.mooc, when you need more rocks in final bundle from [https://luarocks.org/](https://luarocks.org/), edit ./devop/proj-scm-1.rockspec.
+the bundling process was controled by `./devop/build_binary.mooc`, when you need more rocks in final bundle from [https://luarocks.org/](https://luarocks.org/), edit `./devop/proj-scm-1.rockspec`.
 
 # Demo Project
 

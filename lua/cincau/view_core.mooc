@@ -10,13 +10,19 @@ import TEngine from "cincau.base.template"
 
 local type = type
 
+fn _debugOn(config) {
+    return config and config.debug_on
+}
+
 struct ViewCore {
 
     _ready = {}
+    _debug_on = true
 
     fn setup(config) {
         TEngine = TEngine.new()
         TEngine.caching(false)
+        self._debug_on = _debugOn(config)
     }
 
     -- return render content
@@ -27,7 +33,9 @@ struct ViewCore {
         page = self._ready[view]
         if not page {
             page = TEngine.precompile(view, false, true, is_file)
-            self._ready[view] = page
+            if self._debug_on {
+                self._ready[view] = page
+            }
         }
         -- as a dynamic view, no-cache
         return TEngine.process(page, context, 'no-cache')
