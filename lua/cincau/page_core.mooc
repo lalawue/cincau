@@ -33,7 +33,7 @@ class BasePage {
     fn init() {
     }
 
-    fn process() {        
+    fn process() {
     }
 }
 
@@ -114,6 +114,7 @@ struct MasterPage {
         }
         response:setHeader("Content-Type", content_type or "text/plain")
         response:appendBody(FileManager.readFile(path))
+        return true
     }
 }
 
