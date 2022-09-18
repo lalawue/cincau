@@ -78,8 +78,14 @@ local function getPathMIME(path)
         end
     end
 end
+local function appendSuffixMIME(fsuffix, mime)
+    if fsuffix and mime then
+        mime_tbl[fsuffix] = mime
+    end
+end
 return {
-	getPathMIME = getPathMIME
+    getPathMIME = getPathMIME,
+    appendSuffixMIME = appendSuffixMIME
 }]])
 }
 
