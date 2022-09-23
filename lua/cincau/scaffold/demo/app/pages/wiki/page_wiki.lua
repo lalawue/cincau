@@ -28,11 +28,13 @@ end
 -- using default tags
 function Page:templteHTML()
     return
-[[<html>
+[[<!DOCTYPE html>
+  <html>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width initial-scale=1" />
         <link rel="stylesheet" type="text/css" href="/css/doc.css" />
+        <title>Cincau wiki</title>
         <style>
         .editor-toolbar {
             background: #fff;

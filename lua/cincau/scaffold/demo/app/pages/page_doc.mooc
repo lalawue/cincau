@@ -37,7 +37,8 @@ class PageDoc : BasePage {
     -- using default tags
     fn templteHTML() {
         return
-        [[<html>
+        [[<!DOCTYPE html>
+          <html>
             {(datas/templates/head.html)}
             <body>
                 <h1>{{ page_title }}</h1>

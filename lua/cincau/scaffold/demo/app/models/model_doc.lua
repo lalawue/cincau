@@ -90,8 +90,11 @@ function Model:htagReplace(paragraphs)
         elseif v:endwith("</pre>") then
             tbl[#tbl] = tbl[#tbl] .. v
         else
-            -- replace mardown's [name](link) to htmls
+            -- replace mardown's
+            -- 1. [name](link) to html link
+            -- 2. `content` to html span
             v = v:gsub("%[(.-)%]%((.-)%)", '<a href="%2">%1</a>')
+            v = v:gsub("`([^`]+)`", "<span>%1</span>")
             tbl[#tbl + 1] = padding .. v
             padding = ""
         end

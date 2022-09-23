@@ -37,9 +37,14 @@ pre {
     color: #FFFFFF;
     background-color: #444444;
     white-space: pre;
-    overflow: auto;                
+    overflow: auto;
 }
 code {
     text-indent: 0px;
     white-space: pre;
+}
+span {
+    background-color: #DADACB;
+    padding: 0.2em 0.3em;
+    border-radius: 2px;
 }
