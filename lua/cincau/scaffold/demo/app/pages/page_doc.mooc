@@ -21,7 +21,7 @@ class PageDoc : BasePage {
         response:setHeader("Content-Type", "text/html")
         -- render page content
         page_content = Render:render(self:templteHTML(), {
-            css_path = "/css/doc.css",
+            css_path = "/css/wiki.css",
             page_title = self:upperCaseFirstChar(params.name) .. " documents",
             page_content = Model:getParagraphs()
         })
@@ -43,6 +43,13 @@ class PageDoc : BasePage {
             <body>
                 <h1>{{ page_title }}</h1>
                 <hr/>
+                <style>
+                    span {
+                        background-color: #DADACB;
+                        padding: 0.2em 0.3em;
+                        border-radius: 2px;
+                    }
+                </style>
                 {* page_content *}
             </body>
         </html>]]
