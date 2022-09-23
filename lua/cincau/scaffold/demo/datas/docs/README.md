@@ -54,7 +54,7 @@ config files stores in:
 
 you can set app/config.debug_on == true, to disable controllers, views cache.
 
-### Routing
+## Routing
 
 demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in `app/main.lua`.
 

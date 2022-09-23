@@ -5,10 +5,12 @@ cincau was a minimalist, fast and high configurable web framework for [LuaJIT](h
 
 ## Install
 
-using [LuaRocks](https://luarocks.org/), then create a demo project in /tmp/demo, using mnet as network engine
+using [LuaRocks](https://luarocks.org/), then create a demo project in `/tmp/demo`, using mnet as network engine
 
 ```sh
 $ luarocks install cincau
+$ cincau
+$ Usage: cincau [mnet|nginx] /tmp/demo
 $ cincau mnet /tmp/demo
 ```
 ## Running
@@ -24,7 +26,7 @@ then click this link [http://127.0.0.1:8080](http://127.0.0.1:8080) to get the p
 
 ## Bundle Binary
 
-with `mnet` engine, you can bundle all required .lua/.mooc source and .so, too easy to update and shipping, just
+with mnet engine, you can bundle all required `.lua`, `.mooc` source and `.so`, too easy to update and shipping, just
 
 ```sh
 $ ./devop/build_binary.mooc /tmp/build/
@@ -32,7 +34,6 @@ $ ./devop/build_binary.mooc /tmp/build/
 --
 output '/tmp/build/out_20211210_230838.tar.gz' with dir '/tmp/build/build'
 ```
-
 the bundling process was controled by `./devop/build_binary.mooc`, when you need more rocks in final bundle from [https://luarocks.org/](https://luarocks.org/), edit `./devop/proj-scm-1.rockspec`.
 
 # Demo Project
@@ -53,15 +54,22 @@ config files stores in:
 
 you can set app/config.debug_on == true, to disable controllers, views cache.
 
+## Routing
+
+demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in `app/main.lua`.
+
+when you create a new page, first consider which URL it will use, then add a URL match in router.
+
+## Static Content
+
+the demo project support static content, root directory locates in `datas/www/` dir, when you visit `127.0.0.1:8080/`,
+ will return static content `datas/www/index.html`.
+
+ `datas/www/` dir also contains other html, css, javascript files.
+
 ## Server-Side Rendering (SSR)
 
 the demo project is quite simple, mostly require [server-side rendering](https://techstacker.com/server-side-rendering-ssr-pros-and-cons/), an old school technology.
-
-### Routing
-
-demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in app/main.lua.
-
-when you create a new page, first consider which URL it will use, then add a URL match in router.
 
 ### Page Structure (MVC)
 
@@ -75,41 +83,41 @@ each client request going through these steps below:
 - default using template library [lua-resty-template](https://github.com/bungle/lua-resty-template)
 - response HTML to client
 
-see `app/pages/page_index.lua`, and more complicate example is `app/pages/page_playground.lua`.
+see `app/pages/page_doc.mooc`, and more complicate example is `app/pages/page_playground.lua`.
 
 ## Single Page Application (SPA)
 
 the demo project also provide a SPA page example, with container `app/pages/page_wiki.lua` and data backend `app/pages/page_wikidata.lua`.
 
-you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some examples in index page.
+you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some examples in wiki index page.
 
 ## Database
 
-default provide sqlite, lua-bitcask and redis connection support.
+default provide SQLite, lua-bitcask and Redis connection support.
 
 ### Relational ORM
 
-as a minimalist web framework, the bundle provide [Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for sqlite3 ORM.
+as a minimalist web framework, the bundle provide [Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM) for SQLite3 ORM.
 
-you can try playground 'post text in db', it will store data in sqlite3.
+you can try playground `post text in db`, it will store data in SQLite3.
 
 ### NoSQL
 
-the bundle provide redis with [lua-resp](https://github.com/lalawue/lua-resp) or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
+the bundle provide Redis with [lua-resp](https://github.com/lalawue/lua-resp) or [lua-bitcask](https://github.com/lalawue/lua-bitcask).
 
-you can try playground 'try 'application/x-www-form-urlencoded' text in db', default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
+you can try playground `try 'application/x-www-form-urlencoded' text in db`, default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
 
 # Technical Details
 
-some technical detail about POST method, query DNS, and raise HTTP Request for mnet engine type, nginx engine type should use other implement for these.
+some technical detail about POST method, query DNS, and raise HTTP Request for mnet engine type, for nginx engine type should use other implementation for these.
 
 ## POST something
 
 take look at demo project, run and click playground link.
 
-details about implement POST data, POST "application/x-www-form-urlencoded" or POST "multipart/form-data", refers to controller [page_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/app/pages/page_playground.lua).
+details about implement POST data, POST `"application/x-www-form-urlencoded"` or POST `"multipart/form-data"`, refers to controller [page_playground.lua](https://github.com/lalawue/cincau/blob/master/lua/cincau/scaffold/demo/app/pages/page_playground.lua).
 
-POST "multipart/form-data" example only appears for mnet engine type.
+POST `"multipart/form-data"` example only appears for mnet engine type.
 
 ## Query DNS
 
