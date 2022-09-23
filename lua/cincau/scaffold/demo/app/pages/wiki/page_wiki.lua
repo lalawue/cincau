@@ -33,7 +33,7 @@ function Page:templteHTML()
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width initial-scale=1" />
-        <link rel="stylesheet" type="text/css" href="/css/doc.css" />
+        <link rel="stylesheet" type="text/css" href="/css/wiki.css" />
         <title>Cincau wiki</title>
         <style>
         .editor-toolbar {
