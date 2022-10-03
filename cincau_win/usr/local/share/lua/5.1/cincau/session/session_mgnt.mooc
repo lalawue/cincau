@@ -1,0 +1,158 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- session was server in memory kv store, can keep any thing
+--
+
+import Cookie from "cincau.session.cookie_core"
+import UUIDCore from "cincau.base.uuid_core"
+import List from "linked-list"
+
+otime = os.time
+
+-- update time struct, push to last
+fn _updateTime(lst, tm) {
+    tm.time = otime()
+    lst:remove(tm)
+    lst:pushl(tm)
+}
+
+-- session info in cookies
+struct Session {
+
+    _sessions = {}
+    _lst = List.new()
+
+    static fn init() {
+        UUIDCore.seed()
+    }
+
+    --
+    static fn uuidFromReq(req, skey) {
+        guard req and skey else {
+            return
+        }
+        return req.cookies[skey]
+    }
+
+    -- check session exist, from req
+    static fn inSession(req, skey) {
+        guard req and skey else {
+            return false
+        }
+        uuid = req.cookies[skey]
+        uu_session = Self._sessions[uuid]
+        if uu_session and uu_session.tm {
+            _updateTime(Self._lst, uu_session.tm)
+        }
+        return (uu_session and true) or false
+    }
+
+    --[[ store session info to response using 'Set-Cookie'
+    local options = [
+        max_age = 3600,
+        domain = ".example.com",
+        path = "/",
+        expires = time,
+        http_only = true,
+        secure = true
+    ]
+    local expected =
+        "foo=bar; Max-Age=3600; Domain=.example.com; " ..
+        "Path=/; Expires=Wed, 23 Apr 2014 13:01:14 GMT; " ..
+        "HttpOnly; Secure"
+    ]]
+    static fn createSession(req, response, skey, options) {
+        if not response or Self.inSession(req, skey) {
+            return
+        }
+        -- set cookie to respoinse
+        uuid = UUIDCore.new()
+        cookie_str = Cookie.build({[skey] = uuid}, options)
+        response:setHeader("Set-Cookie", cookie_str)
+        -- set cookie to req
+        req.cookies[skey] = uuid
+        -- create session table
+        tm = {
+            time = otime(),
+            uuid = uuid
+        }
+        Self._sessions[uuid] = { =tm }
+        Self._lst:pushl(tm)
+        return uuid
+    }
+
+    -- check in session first, clear session hkey, hval table
+    static fn clearSession(req, skey) {
+        guard req and skey else {
+            return false
+        }
+        uuid = req.cookies[skey]
+        uu_session = Self._sessions[uuid]
+        if uuid and uu_session {
+            Self._lst:remove(uu_session.tm)
+            Self._sessions[uuid] = nil
+        }
+        return true
+    }
+
+    -- clear session with UUID
+    static fn clearSessionUUID(uuid) {
+        guard uuid else {
+            return
+        }
+        uu_session = Self._sessions[uuid]
+        if uu_session {
+            Self._lst:remove(uu_session.tm)
+            Self._sessions[uuid] = nil
+        }
+    }
+
+    -- check in session first, get hval from session with hkey
+    static fn getValue(req, skey, hkey) {
+        guard req and skey and hkey else {
+            return
+        }
+        uuid = req.cookies[skey]
+        uu_session = Self._sessions[uuid]
+        guard uuid and uu_session else {
+            return
+        }
+        _updateTime(Self._lst, uu_session.tm)
+        return uu_session[hkey]
+    }
+
+    -- check in session first, set hkey, hval
+    static fn setValue(req, skey, hkey, hval) {
+        guard req and skey and hkey and hval else {
+            return false
+        }
+        uuid = req.cookies[skey]
+        uu_session = Self._sessions[uuid]
+        guard uuid and uu_session else {
+            return false
+        }
+        uu_session[hkey] = hval
+        _updateTime(Self._lst, uu_session.tm)
+        return true
+    }
+
+    -- clear outdate session
+    static fn clearOutdate(seconds) {
+        now = otime()
+        repeat {
+            tm = Self._lst:first()
+            if not tm or now - tm.time < seconds {
+                break
+            }
+            Self._lst:popf()
+            Self._sessions[tm.uuid] = nil
+        } until tm == nil
+    }
+}
+
+return Session

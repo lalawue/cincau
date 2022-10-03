@@ -1,0 +1,187 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import FileSystem from "lfs"
+import Zlib from "cincau.base.ffi_zlib"
+
+local type = type
+local print = print
+local ioOpen = io.open
+local osRemove = os.remove
+local osRename = os.rename
+local tableConcat = table.concat
+local tableSort = table.sort
+local mathMin = math.min
+
+struct FileManager {
+    _sandboxed = false
+    _logger = false
+    _dummy_tbl = {}
+
+    -- restrict to proj dir
+    static fn setupSandboxEnv(config) {
+        Self._sandboxed = true
+        Self._logger = config.logger
+    }
+
+    static fn validatePath(path) {
+        guard Self._sandboxed and path else {
+            return
+        }
+        ret = path:find("/", 1, true) == 1
+        ret = ret or path:find("..", 1, true)
+        guard ret else {
+            return
+        }
+        if Self._logger {
+            Self._logger.err("invalid path: '%s', out of sandbox", path)
+        }
+        print(debug.traceback())
+        os.exit(1)
+    }
+
+    static fn stat(path) {
+        Self.validatePath(path)
+        return FileSystem.attributes(path)
+    }
+
+    static fn mkdir(dir_path) {
+        Self.validatePath(dir_path)
+        FileSystem.mkdir(dir_path)
+    }
+
+    -- travel dir files, tbl_modes should be { "file" = true, "directory" = true }
+    -- return dirs / files in recursive table, and dir name in table.dir_name
+    static fn travelDir(dir_path, tbl_modes) {
+        Self.validatePath(dir_path)
+        if type(dir_path) ~= "string" or type(tbl_modes) ~= "table" {
+            return Self._dummy_tbl
+        }
+        attr = FileSystem.attributes(dir_path)
+        if type(attr) ~= "table" or attr.mode ~= "directory" {
+            return Self._dummy_tbl
+        }
+        tbl = {}
+        do {
+            s = dir_path:reverse():find("/", 1, true)
+            if s {
+                tbl.name = dir_path:sub(dir_path:len() - s + 2)
+                tbl.attr = attr
+            }
+        }
+        for fname in FileSystem.dir(dir_path) {
+            attr = FileSystem.attributes(dir_path .. "/" .. fname)
+            if attr and tbl_modes[attr.mode] and fname:sub(1,1) ~= '.' {
+                if attr.mode == "directory"  {
+                    dir = Self.travelDir(dir_path .. "/" .. fname, tbl_modes)
+                    tbl[#tbl + 1] = dir
+                } else {
+                    tbl[#tbl + 1] = { name = fname, =attr }
+                }
+            }
+        }
+        tableSort(tbl, Self._compNames)
+        return tbl
+    }
+
+    -- save data to path
+    static fn saveFile(file_path, data) {
+        Self.validatePath(file_path)
+        f = ioOpen(file_path, "wb")
+        if f {
+            f:write(data)
+            f:close()
+            return true
+        }
+        return false
+    }
+
+    static fn readFile(file_path) {
+        Self.validatePath(file_path)
+        f = ioOpen(file_path, "rb")
+        if f {
+            data = f:read("*a")
+            f:close()
+            return data
+        }
+        return nil
+    }
+
+    static fn appendFile(file_path, data) {
+        Self.validatePath(file_path)
+        f = ioOpen(file_path, "a+")
+        if f {
+            f:write(data)
+            f:close()
+            return true
+        }
+        return false
+    }
+
+    static fn removeFile(file_path) {
+        Self.validatePath(file_path)
+        osRemove(file_path)
+    }
+
+    static fn renameFile(oldname, newname) {
+        Self.validatePath(oldname)
+        Self.validatePath(newname)
+        osRename(oldname, newname)
+    }
+
+    static fn inflate(input_content) {
+        if type(input_content) ~= "string" {
+            return nil
+        }
+        _input = { buf_size in
+            min_len = mathMin(buf_size, input_content:len())
+            if min_len > 0 {
+                data = input_content:sub(1, min_len)
+                input_content = input_content:sub(1 + min_len)
+                return data
+            }
+        }
+        tbl = {}
+        _ouput = { data in
+            tbl[#tbl + 1] = data
+        }
+        success, err_msg = Zlib.inflateGzip(_input, _ouput)
+        if not success {
+            return tableConcat(tbl), err_msg
+        }
+        return tableConcat(tbl)
+    }
+
+    static fn deflate(input_content) {
+        if type(input_content) ~= "string" {
+            return nil
+        }
+        _input = { buf_size in
+            min_len = mathMin(buf_size, input_content:len())
+            if min_len > 0 {
+                data = input_content:sub(1, min_len)
+                input_content = input_content:sub(1 + min_len)
+                return data
+            }
+        }
+        tbl = {}
+        _ouput = { data in
+            tbl[#tbl + 1] = data
+        }
+        success, err_msg = Zlib.deflateGzip(_input, _ouput)
+        if not success {
+            return tableConcat(tbl), err_msg
+        }
+        return tableConcat(tbl)
+    }
+
+    static fn _compNames(t1, t2) {
+        return t1.name < t2.name
+    }
+}
+
+return FileManager

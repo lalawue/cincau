@@ -1,0 +1,156 @@
+#!/usr/bin/env moocscript
+
+import Utils from "moocscript.utils"
+
+build_path = ...
+
+if not build_path {
+    print("Usage: ./devop/build_binary.mooc [output_dir]")
+    os.exit(0)
+}
+
+fn dir(path) {
+    return build_path .. (path or '')
+}
+
+fn write(path, content) {
+    print('write ' .. path .. ', length: ' .. tostring(content:len()))
+    return Utils.writeFile(path, content)
+}
+
+fn execute(...) {
+    print(...)
+    st = os.execute(...)
+    if st ~= 0 {
+        print('!!! Abort: os.execute with status code ' .. tostring(st))
+        os.exit(-1)
+    }
+}
+
+fn install(lib) {
+    execute("luarocks install --tree " .. dir("/in") .. " " .. lib)
+}
+
+fn fexist(path) {
+    f = io.open(path, 'rb')
+    if f {
+        f:close()
+        return true
+    }
+}
+
+-- MARK: clear temp files
+execute("rm -rf " .. dir('/out'))
+execute("rm -rf " .. dir('/build'))
+execute("rm -f " .. dir("/out_*.tar.gz"))
+execute("mkdir -p " .. build_path)
+print("--")
+
+-- MARK: install libraries
+install("devop/proj-scm-1.rockspec")
+
+if not fexist(dir('/in/bin/moocscript')) {
+    print("!!! failed to install project cincau dependency")
+    os.exit(0)
+}
+
+-- MARK: translate all mooc to lua, and copy resouces
+sfmt = string.format
+proj_content = sfmt([[
+fn fn_filter(path) {
+    if path:find('bin') {
+        return false
+    }
+    if path:find('luarocks') {
+        return false
+    }
+    if path:find('scaffold') or path:find('cincau_prepare') {
+        return false
+    }
+    if path:find('mnet-chann.lua') {
+        return false
+    }
+    return true
+}
+fn fn_code_after(path, code) {
+    return code
+}
+return {
+    {
+        name = "luarocks",
+        proj_dir = "%s",
+        proj_out = "%s",
+        fn_filter = fn_filter,
+        fn_after = fn_code_after,
+    },
+    {
+        name = "app",
+        proj_dir = "app",
+        proj_out = "%s/app",
+        fn_filter = fn_filter,
+        fn_after = fn_code_after,
+    }
+}
+]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())
+
+write(dir('/proj_config.mooc'), proj_content)
+execute('moocscript -p ' .. dir('/proj_config.mooc'))
+
+if not fexist(dir('/out/app/app_main.lua')) {
+    print("!!! failed to copy lua")
+    os.exit(0)
+}
+
+-- MARK: update version, binary mark
+print('--')
+execute([[echo "return '$(date +"%Y-%m-%dT%H:%M:%SZ")'" > ]] .. dir('/out/app/app_version.lua'))
+execute([[echo "return true" > ]] .. dir('/out/app/app_binary.lua'))
+
+-- MARK: use a modified luastatic to pack all .lua
+fn buildBinary(main_lua, out_binary, excludes, src_path) {
+    print('--')
+    execute("rm -f " .. dir("/lua_sources.txt"))
+    do {
+        cmd = sfmt('cd %s;', dir()) .. sfmt([[find out -name '*.lua' | grep -v '%s']], main_lua)
+        for _, v in ipairs(excludes or {}) {
+            cmd ..= sfmt("| grep -v '%s'", v)
+        }
+        cmd ..= [[| cut -b5- >> lua_sources.txt]]
+        execute(cmd)
+    }
+    do {
+        cflag_extra = ''
+        if jit.os == 'OSX' {
+            cflag_extra = '-pagezero_size 10000 -image_base 100000000'
+        }
+        cmd = sfmt('cd %s; ', dir('/out')) ..
+            sfmt([[LUASTATIC_SOURCE_PATH="%s" ]], src_path) ..
+            sfmt([[cincau_build %s $(cat ../lua_sources.txt | xargs) ]], main_lua) ..
+            [[$(luarocks config variables.LUA_LIBDIR)/$(luarocks config variables.LUALIB) ]] ..
+            sfmt([[-I$(luarocks config variables.LUA_INCDIR) %s -o %s]], cflag_extra, out_binary)
+        execute(cmd)
+    }
+}
+
+buildBinary('app/app_main.lua', 'app_main', nil, 'share/lua/5.1/;')
+
+if not fexist(dir('/out/app_main')) {
+    print("!!! failed to generate binary")
+    os.exit(0)
+}
+
+-- MARK: copy binary and libraries
+print('--')
+execute(sfmt('mkdir -p %s;', dir('/build/bin')))
+execute(sfmt('mkdir -p %s;', dir('/build/devop')))
+execute(sfmt('mv %s/app_main %s', dir('/out'), dir('/build/bin')))
+execute(sfmt('cp -a %s %s', dir('/out/lib/lua/5.1/'), dir('/build/lib/')))
+execute(sfmt('cp devop/run_app.sh %s', dir('/build/devop/')))
+
+-- MARK: pack a tar.gz
+do {
+    output = sfmt("out_%s.tar.gz", os.date('%Y%m%d_%H%M%S'))
+    execute(sfmt("cd %s; tar czf %s/%s *", dir('/build'), dir(), output))
+    print("--")
+    print(sfmt("output '%s/%s' with dir '%s'", dir(), output, dir('/build')))
+}

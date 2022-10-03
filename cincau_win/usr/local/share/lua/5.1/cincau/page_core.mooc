@@ -1,0 +1,124 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- controller was a business logic block for data processing
+--
+
+import Base from "cincau.base.scratch"
+import Base64 from "cincau.base.mime_base64"
+import FileManager from "cincau.base.file_manager"
+import Version from "cincau.base.version"
+
+local type = type
+local assert = assert
+local tostring = tostring
+local xpcall = xpcall
+pkg_loaded = package.loaded
+
+fn _debugOn(config) {
+    return config and config.debug_on
+}
+
+-- page instance
+--
+
+class BasePage {
+
+    _inited = false
+
+    fn init() {
+    }
+
+    fn process() {
+    }
+}
+
+-- master page interface
+--
+struct MasterPage {
+
+    -- hold page instance
+    _pages = {}
+    -- hold static content etags
+    _etags = {}
+
+    static fn process(name, config, req, response, params) {
+        assert(type(name) == "string", "invalid controller name")
+        -- assume all page business under pages dir
+        ctrl = Self._pages[name]
+        if not ctrl {
+            libname = "app.pages." .. name
+            ret, lib = xpcall(require, Base.tracebackHandler, libname)
+            if not ret {
+                response:setStatus(404)
+                response:appendBody([[
+                    <html>
+                        <body>
+                            <style>h1,footer{text-align:center;}</style>
+                            <h1>Not Found</h1>
+                            <footer>]] .. Version.version .. [[</footer>
+                        </body>
+                    </html>
+                ]])
+                return
+            }
+            ctrl = lib(config)
+            assert(type(ctrl) == "table", "page not exist")
+            if _debugOn(config) {
+                pkg_loaded[libname] = nil
+            } else {
+                Self._pages[name] = ctrl
+            }
+        }
+        -- process data
+        ctrl:process(config, req, response, params)
+    }
+
+    -- default 'Content-Type: text/plain;', append etag base path and modified time
+    static fn staticContent(config, req, response, path, content_type) {
+        if type(path) ~= "string" {
+            return
+        }
+        st = FileManager.stat(path)
+        if not st {
+            path ..= ".gz"
+            st = FileManager.stat(path)
+        }
+        guard st else {
+            response:setStatus(404)
+            config.logger.err("static content non exist: %s", path)
+            return
+        }
+        if config.debug_on {
+            response:setHeader("Cache-Control", "max-age=no-store")
+        } else {
+            etag = Self._etags[path]
+            if etag {
+            } else {
+                etag = 'W/"' .. Base64.base64_encode(path .. tostring(st.modification)) .. '"'
+                Self._etags[path] = etag
+            }
+            response:setHeader("Cache-Control", "max-age=" .. tostring(config.resources_max_age or 900))
+            response:setHeader("ETag", etag)
+            if req.header["If-None-Match"] == etag {
+                response:setStatus(304)
+                return
+            }
+        }
+        if path:sub(path:len() - 2) == ".gz" {
+            response:setHeader("Content-Encoding", "gzip")
+        }
+        response:setHeader("Content-Type", content_type or "text/plain")
+        response:appendBody(FileManager.readFile(path))
+        return true
+    }
+}
+
+return {
+    =BasePage,
+    =MasterPage,
+}

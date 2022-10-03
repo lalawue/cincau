@@ -1,0 +1,237 @@
+
+local Utils = require("moocscript.utils")
+local Core = require("moocscript.core")
+
+local type = type
+
+local Cmd = {}
+
+function Cmd.help()
+    Utils.debug("Usage: [OPTIONS] SOURCE.[lua|mooc]")
+    Utils.debug("\t'' load SOURCE and run")
+    Utils.debug("\t-h print help")
+    Utils.debug("\t-a print AST")
+    Utils.debug("\t-s print Lua code")
+    Utils.debug("\t-p generate Lua code with project config")
+    Utils.debug("\t-v version")
+end
+
+function Cmd.option(...)
+    local a, b = ...
+    if a == nil or a:len() <= 0 or a == "-h" then
+        Cmd.help()
+        return
+    end
+    local config = {}
+    a = (b and a) or (not b and a) or "-"
+    if a == "-a" then
+        -- AST config
+        config.option = "ast"
+        config.opcount = 2
+        config.fname = b
+        config.shebang = true
+        config.comment = true
+    elseif a == "-s" then
+        -- source config
+        config.option = "source"
+        config.opcount = 2
+        config.fname = b
+        config.shebang = true
+        config.comment = true
+    elseif a == "-p" then
+        -- project config
+        config.option = "project"
+        config.opcount = 2
+        config.fname = b
+        config.shebang = true
+    elseif a == "-v" then
+        Utils.debug(Core.version())
+        return
+    else
+        -- running config
+        config.option = "run"
+        config.opcount = 1
+        config.fname = a
+    end
+    if config.opcount > 1 and not b then
+        Cmd.help()
+        return
+    end
+    config.ftype = Utils.suffix(config.fname)
+    if config.ftype == "mooc" or config.ftype == "lua" then
+        return config
+    end
+    Utils.debug("FILE only support '.lua' or '.mooc'")
+end
+
+function Cmd.toCode(config)
+
+    -- read file first
+    local text = Utils.readFile(config.fname)
+    if not text then
+        Utils.debug("Failed to read file '" .. config.fname .. "'")
+        return
+    end
+
+    -- if Lua file already
+    if config.ftype == 'lua' then
+        if config.option == "ast" then
+            Utils.debug("Not support to dump Lua AST")
+        elseif config.option == "source" then
+            Utils.debug(text)
+        end
+        return
+    end
+
+    -- generate AST
+    local res, emsg = Core.toAST(config, text)
+    if not res or config.option == "ast" then
+        if res then
+            Utils.dump(res.ast)
+        else
+            Utils.debug(emsg)
+        end
+        return
+    end
+
+    -- generate Lua code
+    res, emsg = Core.toLua(config, res)
+    if not res or config.option == "source" then
+        if res then
+            Utils.debug(res)
+        else
+            Utils.debug(emsg)
+        end
+        return
+    end
+    return res
+end
+
+function Cmd.run(config, content, ...)
+    local f, err = load(content, config.fname, "t")
+    if type(f) == "function" then
+        f(select(config.opcount + 1, ...))
+    else
+        Utils.debug(err)
+    end
+end
+
+function Cmd.project(config)
+
+    -- load config
+    local lfile = config.ftype == 'lua' and loadfile or Core.loadfile
+    local f = lfile(config.fname)
+    if type(f) ~= "function" then
+        Utils.debug("Failed to load project config")
+        return
+    end
+
+    -- get config table
+    local st, pt = pcall(f)
+    if not st or type(pt) ~= "table" or #pt <= 0 then
+        Utils.debug("Invalid config: " .. tostring(pt))
+        return
+    end
+
+    local lfs = assert(require("lfs"))
+    local tmp_config = Utils.copy(config)
+    tmp_config.ftype = "mooc"
+
+    -- generate Lua code recursive
+    local separator = package.config:sub(1,1)
+    local function toLuaDir(config, in_dir, out_dir, proj)
+        local ft = lfs.attributes(out_dir)
+        if not ft then
+            os.execute("mkdir -p " .. out_dir)
+        end
+        for fname in lfs.dir(in_dir) do
+            local flen = fname:len()
+            if flen > 0 and fname:sub(1, 1) ~= "." then
+                local in_path = in_dir .. separator .. fname
+                if proj.fn_filter(in_path) then
+                    local out_path = out_dir .. separator .. fname
+                    local ft = lfs.attributes(in_path)
+                    if ft.mode == "directory" then
+                        Utils.debug(" DIR '" .. out_path .. "'")
+                        toLuaDir(config, in_path, out_path, proj)
+                    elseif flen > 3 and fname:sub(flen - 4, flen) == ".mooc" then
+                        tmp_config.fname = in_path
+                        local code = Cmd.toCode(tmp_config)
+                        if code then
+                            local outname = out_path:sub(1, out_path:len() - 5) .. ".lua"
+                            Utils.writeFile(outname, proj.fn_after(outname, code))
+                            Utils.debug("FILE '" .. outname .. "'")
+                        else
+                            Utils.debug(" ERR '" .. out_path .. "': ")
+                            os.exit(-1)
+                        end
+                    else
+                        local data = Utils.readFile(in_path)
+                        Utils.writeFile(out_path, proj.fn_after(out_path, data))
+                        Utils.debug("FILE '" .. out_path .. "'")
+                    end
+                end
+            end
+        end
+    end
+
+    local fn_true = function()
+        return true
+    end
+
+    local fn_copy = function(_, data)
+        return data
+    end
+
+    -- check projects
+    for i, proj in ipairs(pt) do
+        if proj.name and proj.proj_dir and proj.proj_out then
+            Utils.debug("---")
+            Utils.debug("proj: [" .. proj.name .. ']')
+            Utils.debug("from: [" .. proj.proj_dir .. ']')
+            Utils.debug(" to : [" .. proj.proj_out .. ']')
+            if proj.fn_filter and type(proj.fn_filter) == 'function' then
+                Utils.debug(" on : filter")
+            else
+                proj.fn_filter = fn_true
+            end
+            if proj.fn_after and type(proj.fn_after) == 'function' then
+                Utils.debug(" on : after")
+            else
+                proj.fn_after = fn_copy
+            end
+            Core.clearProj()
+            if proj.proj_export then
+                tmp_config.fname = proj.proj_dir .. '/' .. proj.proj_export
+                Cmd.toCode(tmp_config)
+            end
+            toLuaDir(config, proj.proj_dir, proj.proj_out, proj)
+        else
+            Utils.debug("[" .. (proj.name or "unknown") .. "] project !")
+        end
+    end
+end
+
+-- main entry
+function Cmd.main(...)
+    local config = Cmd.option(...)
+    if not config then
+        return
+    end
+
+    -- output SOURCE from project config
+    if config.option == "project" then
+        Cmd.project(config)
+        return
+    end
+
+    local code = Cmd.toCode(config)
+    if not code then
+        return
+    end
+
+    -- run this Lua code
+    return Cmd.run(config, code, ...)
+end
+
+Cmd.main(...)

@@ -1,0 +1,95 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+export ngx
+assert(ngx)
+
+import Base from "cincau.base.scratch"
+import Request from "cincau.engine.request_core"
+import Response from "cincau.engine.response_core"
+import FileManager from "cincau.base.file_manager"
+import SessionMgnt from "cincau.session.session_mgnt"
+import Version from "cincau.base.version"
+
+-- response option
+response_option = {
+    en_output_header = false, -- construct header by nginx
+    en_chunked_length = false, -- chunked body length by nginx
+    fn_chunked_callback = { data in
+        ngx.say(data)
+    },
+    fn_set_header = { key, value in
+        ngx.header[key] = value
+    },
+    fn_set_status = { status_code in
+        ngx.status = status_code
+    }
+}
+
+fn _updateRequest(req, is_multipart_formdata) {
+    -- enough for x-www-form-urlencoded or body kv
+    if req.method == "POST" and not is_multipart_formdata {
+        ngx.req.read_body()
+        req.post_args = ngx.req.get_post_args()
+    } else {
+        req.post_args = {}
+    }
+}
+
+-- setup env
+math.randomseed(os.time())
+SessionMgnt.init()
+
+-- Serv instance
+struct Serv {
+
+    -- run server, http_callback(config, req, response)
+    static fn run(config, http_callback) {
+        fd_tbl = {}
+        multipart_info = nil
+        -- setup env
+        SessionMgnt.clearOutdate(config.session_outdate)
+        FileManager.setupSandboxEnv(config)
+        -- create req
+        nreq = ngx.req
+        nvar = ngx.var
+        method = nreq.get_method()
+        header = nreq.get_headers()
+        is_multipart_formdata = Request.isMultiPartFormData(fd_tbl, method, header)
+        -- fill fake multipart info, nginx use another way to upload binary files
+        if is_multipart_formdata {
+            multipart_info = {
+                filename = "nginx upload howto",
+                content_type = "application/html",
+                filepath = "https://www.nginx.com/resources/wiki/modules/upload/"
+            }
+        }
+        data = is_multipart_formdata and "" or nreq.get_body_data()
+        req = Request(method, nvar.request_uri, header, data, multipart_info)
+        req:updateRemoteIp(ngx.var.remote_addr)
+        _updateRequest(req, is_multipart_formdata)
+        -- create response
+        response = Response(response_option)
+        -- callback
+        ret, emsg = xpcall(http_callback, Base.tracebackHandler, config, req, response)
+        if not ret {
+            response:setStatus(500)
+            response:appendBody([[
+                <html>
+                    <body>
+                        <style>h1,footer{text-align:center;}</style>
+                        <h1>Server Internal Error</h1>
+                        <footer>]] .. Version.version .. [[</footer>
+                    </body>
+                </html>
+            ]])
+        }
+        -- finish response
+        response:finishResponse()
+    }
+}
+
+return Serv

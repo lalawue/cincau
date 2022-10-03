@@ -1,0 +1,61 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+-- view core TEngine template using lua-resty-template
+import TEngine from "cincau.base.template"
+
+local type = type
+
+fn _debugOn(config) {
+    return config and config.debug_on
+}
+
+struct ViewCore {
+
+    _ready = {}
+    _debug_on = true
+
+    fn setup(config) {
+        TEngine = TEngine.new()
+        TEngine.caching(false)
+        self._debug_on = _debugOn(config)
+    }
+
+    -- return render content
+    fn render(view, context, is_file) {
+        guard type(view) == 'string' and type(context) == 'table' else {
+            return "!!! Failed to render: " .. type(view)
+        }
+        page = self._ready[view]
+        if not page {
+            page = TEngine.precompile(view, false, true, is_file)
+            if self._debug_on {
+                self._ready[view] = page
+            }
+        }
+        -- as a dynamic view, no-cache
+        return TEngine.process(page, context, 'no-cache')
+    }
+
+    -- get cache count
+    fn count() {
+        t = nil
+        count = 0
+        repeat {
+            t = next(self._ready, t)
+            count += (t and 1 or 0)
+        } until t == nil
+        return count
+    }
+
+    -- clear cache
+    fn clear() {
+        self._ready = {}
+    }
+}
+
+return ViewCore

@@ -1,0 +1,59 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Render from "cincau.view_core"
+import Model from "app.models.model_doc"
+import BasePage from "cincau.page_core" {}
+
+class PageDoc : BasePage {
+
+    fn init(config) {
+        Model:loadModel()
+    }
+
+    -- output param.name defined in router.lua
+    fn process(config, req, response, params) {
+        -- set header before appendBody
+        response:setHeader("Content-Type", "text/html")
+        -- render page content
+        page_content = Render:render(self:templteHTML(), {
+            css_path = "/css/wiki.css",
+            page_title = self:upperCaseFirstChar(params.name) .. " documents",
+            page_content = Model:getParagraphs()
+        })
+
+        -- append body as chunked data
+        response:appendBody(page_content)
+    }
+
+    fn upperCaseFirstChar(str) {
+        return str:sub(1, 1):upper() .. str:sub(2)
+    }
+
+    -- using default tags
+    fn templteHTML() {
+        return
+        [[<!DOCTYPE html>
+          <html>
+            {(datas/templates/head.html)}
+            <body>
+                <h1>{{ page_title }}</h1>
+                <hr/>
+                <style>
+                    span {
+                        background-color: #DADACB;
+                        padding: 0.2em 0.3em;
+                        border-radius: 2px;
+                    }
+                </style>
+                {* page_content *}
+            </body>
+        </html>]]
+    }
+}
+
+return PageDoc

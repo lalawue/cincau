@@ -1,0 +1,79 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+local type = type
+local tostring = tostring
+coResume = coroutine.resume
+coYield = coroutine.yield
+coRuning = coroutine.running
+
+--[[
+    Thread broker for coroutines
+]]
+struct ThreadBroker {
+
+    _threads = {}
+    _listener = {}
+
+    -- keep thread context in list
+    static fn addThread(key, co) {
+        guard key and type(co) == "thread" else {
+            return
+        }
+        key = tostring(key)
+        Self._threads[key] = co
+        for _, func in ipairs(Self._listener) {
+            func(key, 'add')
+        }
+    }
+
+    -- remove thread context
+    static fn removeThread(key) {
+        guard key else {
+            return
+        }
+        key = tostring(key)
+        Self._threads[key] = nil
+        for _, func in ipairs(Self._listener) {
+            func(key, 'remove')
+        }
+    }
+
+    -- debug purpose, callback(key, 'add') or callback(key, 'remove')
+    static fn addListener(callback) {
+        guard type(callback) == 'function' else {
+            return
+        }
+        Self._listener[#Self._listener + 1] = callback
+    }
+
+    static fn _dummy_func() {
+    }
+
+    -- Usage: turn callback into coroutine sequence, return value from ret_func
+    -- function func_thread(ret_func)
+    --     .. do anything ..
+    --     ret_func(ret_value_1, ret_value_2, ...)
+    -- end
+    static fn callThread(func_thread) {
+        guard type(func_thread) == "function" else {
+            return
+        }
+        co = coRuning()
+        if co {
+            ret_func = { ... in
+                coResume(co, ...)
+            }
+            func_thread(ret_func)
+            return coYield()
+        } else {
+            return func_thread(Self._dummy_func)
+        }
+    }
+}
+
+return ThreadBroker

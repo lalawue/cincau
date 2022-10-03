@@ -1,0 +1,284 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import UrlCore from "cincau.base.url_core"
+
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+local string = string
+local tonumber = tonumber
+local print = print
+
+-- path as '/hello/word?q=3&r=4'
+fn _parsePath(path) {
+    tbl = UrlCore.parse(path)
+    return tbl.path, tbl.query
+}
+
+fn _urlUnescape(str, path) {
+    if not path {
+        str = str:gsub("+", " ")
+    }
+    return str:gsub("%%(%x%x)", { c in
+            return string.char(tonumber(c, 16))
+    })
+}
+
+fn _print(dbg, ...) {
+    if dbg {
+        print(...)
+    }
+}
+
+class RequestCore {
+
+    method = false
+    path = false
+    query = false
+    header = false
+    body = ""
+    multipart_info = false
+    cookies = {}
+    remote_ip = false
+    post_args = false
+
+    fn init(method, path, header, body, multipart_info) {
+        self.method = method
+        self.path, self.query = _parsePath(path)
+        self.header = header
+        self.body = body or ""
+        self.multipart_info = multipart_info
+        -- cookies
+        self.cookies = {}
+        cookie_str = header["Cookie"]
+        if cookie_str {
+            tbl = cookie_str:split("; ")
+            for _, v in ipairs(tbl) {
+                s, e = v:find("=[^=]")
+                if s and e {
+                    self.cookies[v:sub(1, s - 1)] = v:sub(e)
+                }
+            }
+        }
+    }
+
+    -- destory all reference
+    fn finishRequest() {
+        self.method = false
+        self.path = false
+        self.query = false
+        self.header = false
+        self.body = ""
+        self.multipart_info = false
+        self.cookies = false
+        self.remote_ip = false
+        self.post_args = false
+    }
+
+    -- remote addr
+    fn updateRemoteIp(remote_addr) {
+        headers = self.header
+        client_ip = headers["x-forwarded-for"]
+        if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" {
+            client_ip = headers["Proxy-Client-IP"]
+        }
+        if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" {
+            client_ip = headers["WL-Proxy-Client-IP"]
+        }
+        if client_ip == nil or client_ip:len() == 0 or client_ip == "unknown" {
+            client_ip = remote_addr
+        }
+        -- multi-proxy case
+        if type(client_ip) == "string" {
+            pos = client_ip:find(",", 1, true)
+            if pos {
+                client_ip = client_ip:sub(1, pos - 1)
+            }
+        }
+        self.remote_ip = client_ip
+    }
+
+    -- '/hello/word?q=3&r=4'
+    -- path: '/hello/word'
+    -- query: { q=3, r=4 }
+    fn dumpPath(logger) {
+        logger.err("--")
+        logger.err(self.path)
+        for k, v in pairs(self.query) {
+            logger.err("%s\t%s", k, v)
+        }
+        logger.err("---")
+    }
+
+    -- application/x-www-form-urlencoded
+    --
+
+    static fn isXwwwFormUrlEncoded(header) {
+        if type(header) ~= "table" {
+            return false
+        }
+        content_type = header["Content-Type"]
+        if type(content_type) ~= "string" {
+            return false
+        }
+        return content_type:find("^application/x%-www%-form%-urlencoded") == 1
+    }
+
+    -- multipart/form-data
+    --
+
+    -- check "multipart/form-data" and init fd_tbl
+    static fn isMultiPartFormData(fd_tbl, method, header) {
+        if fd_tbl._stage ~= nil {
+            return true
+        }
+        if method ~= "POST" {
+            return false
+        }
+        if type(header) ~= "table" {
+            return false
+        }
+        content_type = header["Content-Type"]
+        if type(content_type) ~= "string" {
+            return false
+        }
+        ret = content_type:find("^multipart/form%-data") == 1
+        if ret and not fd_tbl._stage {
+            _, e = content_type:find("boundary=")
+            fd_tbl._boundary = content_type:sub(e + 1)
+            fd_tbl._data = fd_tbl.data or ""
+            --[[
+                state:
+                0: none info
+                1: get begin boundary
+                2: get filename, or reach empty slot, advance to next boundary
+                3: get content-type
+                -> callback with data == nil
+                filename < read more data >
+                -> callback with data ~= nil
+                4: reach next bourndary, or reach end boundary
+                -> callback with data ~= nil
+            ]]
+            fd_tbl._stage = 0
+            return true
+        }
+        return false
+    }
+
+    -- read data and update fd_tbl context, callback(filename, content_type, data) multiple times
+    -- 1. if data == nil, means new valid file arrived
+    -- 2. if data ~= nil, means new data for last valid file
+    static fn multiPartReadBody(fd_tbl, input_data, callback, dbg) {
+        if input_data:len() <= 0 {
+            return false
+        }
+
+        ret_run_next = false
+        fdata = fd_tbl._data .. input_data
+
+        repeat {
+            fdata_len = fdata:len() -- check any data readed
+            repeat_stage_0 = false -- check repeat specified
+
+            -- check begin boundary
+            if fd_tbl._stage == 0 {
+                _, e = fdata:find("--" .. fd_tbl._boundary, 1, true)
+                if e {
+                    -- update stage
+                    fd_tbl._stage = 1
+                    fdata = fdata:sub(e + 1)
+                    _print(dbg, "1 begin boundary end:", e)
+                }
+            }
+
+            -- check deposition (filename)
+            if fd_tbl._stage == 1 {
+                deposition = fdata:match("\r\nContent%-Disposition: ([^%c]-)\r\n")
+                if deposition {
+                    -- update stage
+                    fd_tbl._stage = 2
+                    fdata = fdata:sub(25 + deposition:len() + 1)
+                    -- get filename
+                    filename = deposition:match('filename="([^"]-)"')
+                    if filename and filename:len() > 0 {
+                        fd_tbl._filename = _urlUnescape(filename)
+                        _print(dbg, "2 deposition:", fd_tbl._filename)
+                    } else {
+                        -- update state, move to next boundary
+                        fd_tbl._stage = 0
+                        repeat_stage_0 = true
+                        -- no filename, means empty slot, advance to next boundary
+                        s, e = fdata:find("\r\n\r\n")
+                        fdata = fdata:sub((e or 0) + 1)
+                        _print(dbg, "2 empty deposition, advance to next boundary left:", fdata:len())
+                    }
+                }
+            }
+
+            -- check content_type
+            if fd_tbl._stage == 2 {
+                content_type = fdata:match("Content%-Type: ([^%c]-)\r\n\r\n")
+                if content_type {
+                    -- update stage
+                    fd_tbl._stage = 3
+                    fdata = fdata:sub(18 + content_type:len() + 1)
+                    fd_tbl._content_type = content_type
+                    -- callback with data == nil
+                    callback(fd_tbl._filename, fd_tbl._content_type, nil)
+                    _print(dbg, "3 content_type:", fd_tbl._content_type)
+                }
+            }
+
+            -- read file data
+            if fd_tbl._stage == 3 {
+                bstr = "--" .. fd_tbl._boundary
+                -- extra '--' in for end boundary
+                if fdata:len() > bstr:len() + 2 {
+                    s, e = fdata:find(bstr, 1, true)
+                    if s {
+                        data = fdata:sub(1, s - 3) -- trim last '\r\n'
+                        -- if reach end boundary
+                        if fdata:sub(e + 1, e + 2) == "--" {
+                            -- update state
+                            fd_tbl._stage = 4
+                            fdata = fdata:sub(4 + e + 1)
+                            dbg = dbg and _print(dbg, "4 reach end left:", fdata:len())
+                        } else {
+                            -- update state
+                            fd_tbl._stage = 0
+                            -- reach next file boundary, reset to boundary begin
+                            fdata = fdata:sub(s)
+                            dbg = dbg and _print(dbg, "4 reach next left:", fdata:len())
+                            ret_run_next = true
+                        } 
+                        -- callback with data ~= nil
+                        callback(fd_tbl._filename, fd_tbl._content_type, data)
+                    } else {
+                        data = fdata:sub(1, fdata:len() - bstr:len() - 1)
+                        fdata = fdata:sub(data:len() + 1)
+                        -- callback with data ~= nil
+                        callback(fd_tbl._filename, fd_tbl._content_type, data)
+                        _print(dbg, "3 data:", data:len())
+                    }
+                }
+            }
+
+            -- always update data
+            fd_tbl._data = fdata
+
+            -- if reach boundary end, reset it
+            if fd_tbl._stage == 4 {
+                fd_tbl._stage = 0
+            }
+        } until not repeat_stage_0 and fdata_len == fdata:len()
+
+        return ret_run_next
+    }
+}
+
+return RequestCore

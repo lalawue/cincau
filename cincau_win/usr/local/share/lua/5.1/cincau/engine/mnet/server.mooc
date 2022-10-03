@@ -1,0 +1,235 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Base from "cincau.base.scratch"
+import NetCore from "ffi-mnet"
+import DnsCore from "ffi-mdns"
+import HttpParser from "ffi-hyperparser"
+import Request from "cincau.engine.request_core"
+import Response from "cincau.engine.response_core"
+import UrlCore from "cincau.base.url_core"
+import FileManager from "cincau.base.file_manager"
+import ThreadBroker from "cincau.bridge.thread_broker"
+import Mediator from "cincau.bridge.mediator"
+import SessionMgnt from "cincau.session.session_mgnt"
+import Version from "cincau.base.version"
+
+local pairs = pairs
+local xpcall = xpcall
+local tostring = tostring
+local setmetatable = setmetatable
+local coCreate = coroutine.create
+local coResume = coroutine.resume
+local mathRandom = math.random
+local tableConcat = table.concat
+
+-- close chann and destroy http parser
+fn _clientDestroy(chann) {
+    cnt = chann._cnt
+    cnt.http_parser:destroy()
+    chann:close()
+    ThreadBroker.removeThread(chann)
+}
+
+-- client reset
+fn _clientReset(chann) {
+    cnt = chann._cnt
+    cnt.http_parser:reset()
+    for k, _ in pairs(cnt.fd_tbl) {
+        cnt.fd_tbl[k] = nil
+    }
+    for k, _ in pairs(cnt.multipart_info) {
+        cnt.multipart_info[k] = nil
+    }
+    ThreadBroker.removeThread(chann)
+}
+
+fn _updateRequest(req) {
+    if req.method ~= "POST" {
+        return
+    }
+    if Request.isXwwwFormUrlEncoded(req.header) or req.body:len() > 0 {
+        req.post_args = UrlCore.parseQuery(req.body)
+    } else {
+        req.post_args = {}
+    }
+}
+
+fn _suffix4(filename) {
+    if filename:len() >= 4 {
+        s = filename:find(".", filename:len() - 4, true)
+        if s {
+            return filename:sub(s)
+        }
+    }
+    return ".bin"
+}
+
+-- store multipart/form-data to tmp/, put random name into multipart_info
+fn _storeMultiPartData(cnt, http_tbl) {
+    fd_tbl = cnt.fd_tbl
+    method = http_tbl.method
+    header = http_tbl.header
+    guard Request.isMultiPartFormData(fd_tbl, method, header) else {
+        return false
+    }
+    contents = http_tbl.contents
+    raw_data = contents and tableConcat(contents) or ""
+    Request.multiPartReadBody(
+        fd_tbl,
+        raw_data,
+        { filename, content_type, data in
+            info = cnt.multipart_info[#cnt.multipart_info]
+            if data and info and info.filepath {
+                FileManager.appendFile(info.filepath, data)
+            } elseif filename and filename:len() > 0 {
+                filepath = "tmp/" .. tostring(mathRandom(100000)) .. _suffix4(filename)
+                cnt.multipart_info[#cnt.multipart_info + 1] = {
+                    =filename,
+                    =filepath,
+                    =content_type
+                }
+            }
+        }
+    )
+    http_tbl.contents = nil
+    return true
+}
+
+-- response option
+local response_option = {
+    en_chunked_length = true, -- append chunked body length
+    fn_chunked_callback = false,
+    fn_set_header = false, -- construct header
+    fn_set_status = false
+}
+
+-- receive client data then parse to http method, path, header, content
+fn _onClientEventCallback(chann, event_name, _) {
+    if event_name == "event_recv" {
+        data = chann:recv()
+        if data == nil {
+            _clientDestroy(chann)
+            return
+        }
+        cnt = chann._cnt
+        -- parse raw data to http protoco info
+        ret_value, state, http_tbl = cnt.http_parser:process(data)
+        if ret_value < 0 {
+            return
+        }
+        if state == HttpParser.STATE_BODY_CONTINUE and http_tbl {
+            _storeMultiPartData(cnt, http_tbl)
+        }
+        if state == HttpParser.STATE_BODY_FINISH and http_tbl {
+            content = ""
+            multipart_info = nil -- multipart/form-data
+            if _storeMultiPartData(cnt, http_tbl) {
+                multipart_info = cnt.multipart_info
+            } elseif http_tbl.contents {
+                content = tableConcat(http_tbl.contents)
+                http_tbl.contents = nil
+            }
+            -- create callback info
+            guard cnt.http_callback else {
+                return
+            }
+            -- create req
+            cnt._req = Request(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
+            cnt._req:updateRemoteIp(chann:addr().ip)
+            _updateRequest(cnt._req)
+            -- create response
+            if not cnt.option {
+                cnt.option = table.clone(response_option)
+                cnt.option.fn_chunked_callback = { data in
+                    chann:send(data)
+                }
+            }
+            cnt._resp = Response(cnt.option)
+            --
+            co = coCreate({ _ in
+                ret, _ = xpcall(cnt.http_callback, Base.tracebackHandler, cnt.config, cnt._req, cnt._resp)
+                if not ret {
+                    cnt._resp:setStatus(500)
+                    cnt._resp:appendBody([[
+                        <html>
+                            <body>
+                                <style>h1,footer{text-align:center;}</style>
+                                <h1>Server Internal Error</h1>
+                                <footer>]] .. Version.version .. [[</footer>
+                            </body>
+                        </html>
+                    ]])
+                }
+                -- finish request & response
+                cnt._req:finishRequest()
+                cnt._resp:finishResponse()
+                cnt._req = nil
+                cnt._resp = nil
+                cnt = nil
+                -- reset resources
+                _clientReset(chann)
+            })
+            -- broker take thread
+            ThreadBroker.addThread(chann, co)
+            coResume(co)
+            co = nil
+        }
+    } elseif event_name == "event_disconnect" {
+        _clientDestroy(chann)
+    }
+}
+
+-- public interface
+--
+
+struct Serv {
+
+    svr_tcp = false
+
+    -- run server, http_callback(config, req, response)
+    static fn run(config, http_callback) {
+        logger = config.logger
+        addr = NetCore.parseIpPort(config.ipport)
+        guard type(addr.ip) == "string" and type(addr.port) == "number" else {
+            logger.err("invalid ipport")
+            return
+        }
+        logger.info("listen on %s:%d", addr.ip, addr.port)
+        -- setup env
+        math.randomseed(os.time())
+        FileManager.setupSandboxEnv(config)
+        -- create bind
+        NetCore.init()
+        DnsCore.init(config.dns_list) -- ipv4
+        SessionMgnt.init()
+        Self.svr_tcp = NetCore.openChann("tcp")
+        Self.svr_tcp:listen(addr.ip, addr.port, 1024)
+        Self.svr_tcp:setCallback({ _, event_name, accept in
+            if event_name == "event_accept" and accept ~= nil {
+                accept._cnt = {
+                    config = config,
+                    http_callback = http_callback,
+                    http_parser = HttpParser.createParser("REQUEST"),
+                    fd_tbl = {},
+                    multipart_info = {},
+                }
+                accept:setCallback(_onClientEventCallback)
+            }
+        })
+        -- mnet event loop
+        poll_wait = config.poll_wait or 50
+        ssmgnt_outdate = config.session_outdate
+        while true {
+            NetCore.poll(poll_wait)
+            Mediator.servLoop()
+            SessionMgnt.clearOutdate(ssmgnt_outdate)
+        }
+    }
+}
+
+return Serv
