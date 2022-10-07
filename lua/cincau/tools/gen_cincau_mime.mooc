@@ -5,11 +5,13 @@
 -- under the terms of the MIT license. See LICENSE for details.
 --
 
+import "base.scratch"
+
 --- generate cincau mime from nginx mime.types
 ---@param fname any @input file name
 fn readConfig(fname) {
     guard fname and fname:len() > 0 else {
-        print("Please provide file name !")
+        print("moocscript tools/gen_cincau_mime.mooc scaffold/nginx/mime.types > base/mime_types.lua")
         return
     }
     fp = io.open(fname, "rb")
@@ -19,25 +21,16 @@ fn readConfig(fname) {
     defer {
         fp:close()
     }
+    content = fp:read("*a")
+    content = content:sub(9, content:len()-2)
+    --print(content)
     --
     mime_tbl = {}
-    mime = ''
-    for line in fp:read("*a"):gmatch("([^;]+;)[\r\n]*") {
-        line = line:gsub("[% ]+", ' ')
-        index = 0
-        last_i = 0
-        for i=1, line:len() {
-            if line:sub(i, i) == ' ' or line:sub(i, i) == ';' {
-                index += 1
-                switch index {
-                case 1:
-                    mime = line:sub(last_i + 1, i - 1)
-                default:
-                    mime_tbl[line:sub(last_i + 1, i - 1)] = mime
-                    --print(index, line:sub(last_i + 1, i - 1), mime)
-                }
-                last_i = i
-            }
+    for line in content:gmatch("[\r\n]*([^;]+);[\r\n]*") {
+        line = line:gsub("[% ]+", ' '):sub(2)
+        tbl = line:split(' ')
+        for i=2, #tbl {
+            mime_tbl[tbl[i]] = tbl[1]
         }
     }
     --
