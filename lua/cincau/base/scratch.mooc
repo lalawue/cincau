@@ -33,6 +33,40 @@ fn string:split(sSeparator, nMax, bRegexp) {
     return aRecord
 }
 
+--- trim [blank, tab, newline]
+---@param trim_head boolean, trim head, default true
+---@param trim_tail boolean, trim tail, default true
+fn string:trim(trim_head, trim_tail) {
+    trim_head = trim_head or true
+    trim_tail = trim_tail or true
+    i, j = 1, self:len()
+    ch = ''
+    while true {
+        if trim_head {
+            ch = string.char(self:byte(i, i))
+            i += 1
+        } elseif trim_tail {
+            ch = string.char(self:byte(j, j))
+            j -= 1
+        } else {
+            ch = nil
+        }
+        switch ch {
+        case ' ', '\t', '\n', '\r':
+            ch = nil
+        default:
+            if trim_head {
+                trim_head = false
+                i -= 1
+            } elseif trim_tail {
+                j += 1
+                return self:sub(i, j)
+            }
+        }
+    }
+    return self
+}
+
 local type = type
 local print = print
 local setmetatable = setmetatable
