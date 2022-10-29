@@ -1,21 +1,38 @@
-
 # About
 
 cincau was a minimalist, fast and high configurable web framework for [LuaJIT](http://luajit.org) on [mnet](https://github.com/lalawue/m_net) or [openresty](http://openresty.org/).
 
 ## Install
 
-using [LuaRocks](https://luarocks.org/), then create a demo project in `/tmp/demo`, using mnet as network engine
+using [LuaRocks](https://luarocks.org/), and show help
 
 ```sh
 $ luarocks install cincau
 $ cincau
 $ Usage: cincau [mnet|nginx] /tmp/demo
-$ cincau mnet /tmp/demo
 ```
+
+then create a demo project in `/tmp/demo`, using mnet as network engine
+
+```sh
+$ cincau mnet /tmp/demo
+version: cincau/0.10.20220924
+create cincau demo project with:
+core_dir:	/Users/lalawue/rocks/share/lua/5.1/cincau/
+proj_dir:	/tmp/demo
+engine_type:	mnet
+--
+mkdir -p /tmp/demo/tmp
+mkdir -p /tmp/demo/logs
+---
+cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/demo/* /tmp/demo
+cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/mnet/app_config.lua /tmp/demo/app//app_config.lua
+cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/mnet/run_app.sh /tmp/demo/devop/run_app.sh
+```
+
 ## Running
 
-just
+enter demo project dir, just
 
 ```sh
 $ cd /tmp/demo
@@ -39,7 +56,8 @@ the bundling process was controled by `./devop/build_binary.mooc`, when you need
 # Demo Project
 
 - app/: contains server entry and business logic
-- datas/: contains images, css, js and other documents
+- datas/: contains sqlite database, or lua-bitcask data files
+- datas/www/: contains static content like html, css, js and images
 - config/: only appears in nginx engine type
 - logs/: contains running log
 - tmp/: for temporary files
@@ -48,17 +66,39 @@ the bundling process was controled by `./devop/build_binary.mooc`, when you need
 
 config files stores in:
 
-- app/config.lua
+- app/app_config.lua
 - config/nginx.conf (only nginx engine)
 - config/mime.types (only nginx engine)
 
-you can set app/config.debug_on == true, to disable controllers, views cache.
+you can modify `app/app_config.lua`, set debug_on = true, to disable controllers, views cache.
 
 ## Routing
 
-demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can change it in `app/main.lua`.
+demo use [APItools/router.lua](https://github.com/APItools/router.lua) for routing, you can add your own route in `app/app_router.lua`.
 
 when you create a new page, first consider which URL it will use, then add a URL match in router.
+
+for example:
+
+```lua
+Router:get("/doc/:name/", function(config, req, response, params)
+   config.logger.info("params.name: '%s'", params.name)
+   pageRedirect("/404.html", config, req, response)
+end)
+```
+
+then visit with `curl`
+
+```sh
+$ curl http://127.0.0.1:8080/doc/hello
+```
+
+and logger will output
+
+```sh
+[info] 2022-10-30 00:11:23 app_router.lua params.name: 'hello'
+[info] 2022-10-30 00:11:23 app_router.lua Redirect to /404.html
+```
 
 ## Static Content
 
