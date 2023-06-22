@@ -47,7 +47,7 @@ local function _createAppSkeleton(core_dir, proj_dir, engine_type)
     local app_dir = proj_dir .. "/app/"
     -- copy config
     local scaffold_dir = core_dir .. "/scaffold/" .. engine_type
-    _copyFile(scaffold_dir .. "/app_config.lua", app_dir .. "/app_config.lua")
+    _copyFile(scaffold_dir .. "/app_config.mooc", app_dir .. "/app_config.mooc")
     -- copy devop
     local devop_dir = proj_dir .. "/devop"
     if engine_type == 'mnet' then

@@ -26,6 +26,11 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
+      ["mnet-server"] = {
+         sources = { "lua/cincau/engine/mnet/mnet_server.c" },
+         incdirs = { "src" },
+         libraries = {"pthread"},
+      },
       ["cincau_prepare"] = "bin/cincau_prepare.lua"
    },
    install = {

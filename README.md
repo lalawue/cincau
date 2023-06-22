@@ -47,7 +47,7 @@ mkdir -p /tmp/demo/tmp
 mkdir -p /tmp/demo/logs
 ---
 cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/demo/* /tmp/demo
-cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/mnet/app_config.lua /tmp/demo/app//app_config.lua
+cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/mnet/app_config.mooc /tmp/demo/app//app_config.mooc
 cp -af /Users/lalawue/rocks/share/lua/5.1/cincau//scaffold/mnet/run_app.sh /tmp/demo/devop/run_app.sh
 ```
 
@@ -87,11 +87,11 @@ the bundling process was controled by `./devop/build_binary.mooc`, when you need
 
 config files stores in:
 
-- app/app_config.lua
+- app/app_config.mooc
 - config/nginx.conf (only nginx engine)
 - config/mime.types (only nginx engine)
 
-you can modify `app/app_config.lua`, set debug_on = true, to disable controllers, views cache.
+you can modify `app/app_config.mooc`, set debug_on = true, to disable controllers, views cache.
 
 ## Routing
 

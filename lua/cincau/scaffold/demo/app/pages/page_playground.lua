@@ -22,6 +22,14 @@ local Page = MoocLib.newMoocClass("page_playground", PageBase)
 
 function Page:init(config)
     Model:loadModel(config)
+    self._total_mem_usage = 0
+    if config.multiprocess and config.multiprocess.worker_count > 0 then
+        self._mproc = config.multiprocess
+        local ss = self
+        self._mproc.workerEventDelegates["MEMORY_USAGE_REPORT"] = function(data)
+            ss._total_mem_usage = tonumber(data)
+        end
+    end
 end
 
     -- fetch req multipart info to multipart_info table
@@ -131,6 +139,20 @@ function Page:process(config, req, response, params)
         end
     end
 
+    local engine_type_msg = config.engine_type
+    local engine_mem_usage = nil
+
+    local mproc = self._mproc
+    if mproc then
+        engine_type_msg = string.format("%s, worker_count:%d, worker_index:%d",
+                                        engine_type_msg,
+                                        mproc.worker_count,
+                                        mproc.worker_index)
+        engine_mem_usage = tostring(self._total_mem_usage > 0 and self._total_mem_usage or "refresh page...")
+        mproc.sendEventFn(1, "MEMORY_USAGE_COLLECT", "0")
+        config.logger.info("mproc " .. engine_mem_usage)
+    end
+
     -- render page content
     local page_content = Render:render(self:templteHTML(), {
         css_path = "/css/playground.css",
@@ -138,7 +160,8 @@ function Page:process(config, req, response, params)
             window.history.replaceState( null, null, window.location.href );
         }]],
         page_title = "Cincau playground",
-        engine_type = config.engine_type,
+        engine_type_msg = engine_type_msg,
+        engine_mem_usage = engine_mem_usage,
         multipart_show_block = self:_getMultipartShowBlock(config),
         dns_show_block = self:_getDnsShowBlock(config),
         dns_query_result = dns_query_tbl,
@@ -160,7 +183,12 @@ function Page:templteHTML()
 <body>
     <h1>{{ page_title }}</h1>
     <hr/>
-    <p>"engine type: {{ engine_type }}"</p>
+    <p>
+        "engine type: {{ engine_type_msg }}"
+        {% if engine_mem_usage then %}
+            <br/>"engine memory: {{ engine_mem_usage }}"
+        {% end %}
+    </p>
     <div class="line">
         <p class="cell">] &nbsp; try POST text in db: &nbsp;</p>
         <form class="cell" action="" method="POST">

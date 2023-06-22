@@ -37,7 +37,9 @@ local config = {
 
     debug_on = false, -- debug framework, close cache
 
-    session_outdate = 300, -- session oudated seconds
+    session = {
+        outdate = 300, -- session oudated seconds
+    },
     resources_max_age = 900, -- resources cache-control max-age
 
     dir = {
@@ -54,4 +56,4 @@ local config = {
     end,
 }
 
-return config
+return setmetatable({}, { __index = config })

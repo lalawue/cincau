@@ -51,7 +51,7 @@ struct Serv {
         fd_tbl = {}
         multipart_info = nil
         -- setup env
-        SessionMgnt.clearOutdate(config.session_outdate)
+        SessionMgnt.clearOutdate(config.session.outdate)
         FileManager.setupSandboxEnv(config)
         -- create req
         nreq = ngx.req

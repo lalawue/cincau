@@ -11,24 +11,33 @@
 import Cookie from "cincau.session.cookie_core"
 import UUIDCore from "cincau.base.uuid_core"
 import List from "linked-list"
+import CJson from "cjson"
 
 otime = os.time
-
--- update time struct, push to last
-fn _updateTime(lst, tm) {
-    tm.time = otime()
-    lst:remove(tm)
-    lst:pushl(tm)
-}
 
 -- session info in cookies
 struct Session {
 
     _sessions = {}
     _lst = List.new()
+    _config = false
+    _mproc = false
 
-    static fn init() {
+    static fn init(config) {
         UUIDCore.seed()
+        if config.multiprocess and config.multiprocess.worker_count > 0 {
+            Self._config = config
+            Self._mproc = config.multiprocess
+            Self._mproc.workerEventDelegates["SESSION_UPDATE"] = { data in
+                uuid, udata = unpack(data:split(":", 1))
+                uu_session = CJson.decode(udata)
+                Self._sessions[uuid] = uu_session
+                if uu_session and uu_session.tm {
+                    Self._updateTime(uuid, uu_session, true)
+                }
+                config.logger.info("session(\(Self._mproc.worker_index)) recv \(uuid)")
+            }
+        }
     }
 
     --
@@ -39,6 +48,21 @@ struct Session {
         return req.cookies[skey]
     }
 
+    -- update time struct, push to last
+    static fn _updateTime(uuid, uu_session, not_sync) {
+        now_ti = otime()
+        tm = uu_session.tm
+        tm.time = now_ti
+        Self._lst:remove(tm)
+        Self._lst:pushl(tm)
+        if not_sync {
+            tm.sync = now_ti
+        } elseif Self._mproc and (now_ti - tm.sync > Self._config.session.sync_time) {
+            tm.sync = now_ti
+            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+        }
+    }
+
     -- check session exist, from req
     static fn inSession(req, skey) {
         guard req and skey else {
@@ -47,7 +71,7 @@ struct Session {
         uuid = req.cookies[skey]
         uu_session = Self._sessions[uuid]
         if uu_session and uu_session.tm {
-            _updateTime(Self._lst, uu_session.tm)
+            Self._updateTime(uuid, uu_session)
         }
         return (uu_session and true) or false
     }
@@ -78,11 +102,15 @@ struct Session {
         req.cookies[skey] = uuid
         -- create session table
         tm = {
-            time = otime(),
-            uuid = uuid
+            sync = otime(),
+            time = otime()
         }
-        Self._sessions[uuid] = { =tm }
+        uu_session = { =tm }
+        Self._sessions[uuid] = uu_session
         Self._lst:pushl(tm)
+        if Self._mproc {
+            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+        }
         return uuid
     }
 
@@ -122,7 +150,7 @@ struct Session {
         guard uuid and uu_session else {
             return
         }
-        _updateTime(Self._lst, uu_session.tm)
+        Self._updateTime(uuid, uu_session)
         return uu_session[hkey]
     }
 
@@ -137,7 +165,10 @@ struct Session {
             return false
         }
         uu_session[hkey] = hval
-        _updateTime(Self._lst, uu_session.tm)
+        Self._updateTime(uuid, uu_session)
+        if Self._mproc {
+            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+        }
         return true
     }
 

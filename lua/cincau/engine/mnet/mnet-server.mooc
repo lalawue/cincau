@@ -1,0 +1,59 @@
+
+--
+-- Copyright (c) 2023 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import FFI from "ffi"
+
+FFI.cdef([[
+    void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms);
+    int mnet_server_waitpid(void);
+    void mnet_server_exit(void);
+]])
+
+-- try to load mnet in package.cpath
+nserver, ret, npath = nil, nil, nil
+do {
+    loaded = false
+    suffix = "so"
+    for cpath in package.cpath:gmatch("[^;]+") {
+        npath = cpath:sub(1, cpath:len() - 2 - suffix:len())
+        ret, nserver = pcall(FFI.load, npath .. "mnet-server." .. suffix)
+        if ret {
+            loaded = true
+            break
+        }
+    }
+    if not loaded {
+        return nil
+    }
+}
+
+class NetServer {
+
+    --- register listen_fd and worker_count
+    ---@param listen_fd number
+    ---@param worker_count number
+    ---@param worker_restart_ms number
+    static fn serverRegister(listen_fd, worker_count, worker_restart_ms) {
+        nserver.mnet_server_register(npath, listen_fd, worker_count, worker_restart_ms)
+    }
+
+    --- waitpid for monitor or worker
+    ---@return 0 for monitor
+    ---@return >0 for worker index first fork()
+    ---@return <0 for worker index visit again
+    static fn serverWaitPid() {
+        return nserver.mnet_server_waitpid()
+    }
+
+    --- exit server and all workers
+    static fn serverExit() {
+        nserver.mnet_server_exit()
+    }
+}
+
+return NetServer

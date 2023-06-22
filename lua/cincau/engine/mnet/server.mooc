@@ -17,6 +17,7 @@ import ThreadBroker from "cincau.bridge.thread_broker"
 import Mediator from "cincau.bridge.mediator"
 import SessionMgnt from "cincau.session.session_mgnt"
 import Version from "cincau.base.version"
+import NetServer from "cincau.engine.mnet.mnet-server"
 
 local pairs = pairs
 local xpcall = xpcall
@@ -69,7 +70,7 @@ fn _suffix4(filename) {
     return ".bin"
 }
 
--- store multipart/form-data to tmp/, put random name into multipart_info
+-- store multipart/form-netServerWaitPidFn to tmp/, put random name into multipart_info
 fn _storeMultiPartData(cnt, http_tbl) {
     fd_tbl = cnt.fd_tbl
     method = http_tbl.method
@@ -187,9 +188,10 @@ fn _onClientEventCallback(chann, event_name, _) {
 -- public interface
 --
 
-struct Serv {
+class Serv {
 
     svr_tcp = false
+    svr_udp = false
 
     -- run server, http_callback(config, req, response)
     static fn run(config, http_callback) {
@@ -206,7 +208,7 @@ struct Serv {
         -- create bind
         NetCore.init()
         DnsCore.init(config.dns_list) -- ipv4
-        SessionMgnt.init()
+        SessionMgnt.init(config)
         Self.svr_tcp = NetCore.openChann("tcp")
         Self.svr_tcp:listen(addr.ip, addr.port, 1024)
         Self.svr_tcp:setCallback({ _, event_name, accept in
@@ -221,10 +223,112 @@ struct Serv {
                 accept:setCallback(_onClientEventCallback)
             }
         })
+        -- check multi-process
+        netServerWaitPidFn = { in }
+        mproc = config.multiprocess
+        if mproc and typewith("N", mproc.worker_count) and mproc.worker_count > 0 {
+            mgnt_addr = NetCore.parseIpPort(mproc.ipport)
+            if typewith("SN", mgnt_addr.ip, mgnt_addr.port) {
+                worker_tbl = {}
+                Self.svr_udp = NetCore.openChann("udp")
+                Self.svr_udp:listen(mgnt_addr.ip, mgnt_addr.port, 128)
+                Self.svr_udp:setCallback({ chann, event_name, _ in
+                    guard event_name == "event_recv" else {
+                        return
+                    }
+                    raw_data, ip, port = chann:dgramRecv()
+                    guard raw_data != nil else {
+                        return
+                    }
+                    event, data = unpack(raw_data:split(":", 1))
+                    guard data != nil else {
+                        return
+                    }
+                    to_idx, to_event, to_data = nil, nil, nil
+                    if event == 'WORKER_ONLINE' {
+                        worker_tbl[tonumber(data)] = tonumber(port)
+                    }
+                    if event == "WORKER_ROUTE" {
+                        to_idx, to_event, to_data = unpack(data:split(":", 2))
+                        to_idx = tonumber(to_idx)
+                    } else {
+                        to_idx, to_event, to_data = mproc.monitorEventDispatcher(config, 0, event, data)
+                    }
+                    guard typewith("NSS", to_idx, to_event, to_data) else {
+                        --config.logger.err("monitor invalid dispatch \(to_idx):\(to_event):\(to_data) after 0:\(event):\(data)")
+                        return
+                    }
+                    raw_data = "\(to_event):\(to_data)"
+                    if to_idx >= 1 and to_idx <= mproc.worker_count {
+                        chann:dgramSend(raw_data, ip, worker_tbl[to_idx])
+                    } else {
+                        for i = 1, mproc.worker_count, 1 {
+                            if worker_tbl[i] {
+                                chann:dgramSend(raw_data, ip, worker_tbl[i])
+                            }
+                        }
+                    }
+                })
+                mproc.sendEventFn = { to_idx, to_event, to_data in
+                    guard typewith("NSS", to_idx, to_event, to_data) else {
+                        --config.logger.err("invalid sendEventFn \(to_idx):\(to_event)")
+                        return
+                    }
+                    raw_data = "\(to_event):\(to_data)"
+                    if to_idx >= 1 and to_idx <= mproc.worker_count {
+                        Self.svr_udp:dgramSend('WORKER_ROUTE:\(to_idx):\(raw_data)', mgnt_addr.ip, mgnt_addr.port)
+                    } else {
+                        Self.svr_udp:dgramSend(raw_data, mgnt_addr.ip, mgnt_addr.port)
+                    }
+                }
+            }
+            NetServer.serverRegister(Self.svr_tcp:channFd(), mproc.worker_count, mproc.worker_restart_ms)
+            netServerWaitPidFn = { in
+                windex = NetServer.serverWaitPid()
+                guard windex > 0 else {
+                    -- 0: monitor, <0: woker index visit again
+                    return
+                }
+                mproc.worker_index = windex
+                -- worker index after fork()
+                Self.svr_udp:close()
+                Self.svr_udp = NetCore.openChann("udp")
+                Self.svr_udp:setCallback({ chann, event_name, _ in
+                    guard event_name == "event_recv" else {
+                        return
+                    }
+                    raw_data, ip, port = chann:dgramRecv()
+                    guard raw_data != nil else {
+                        return
+                    }
+                    event, data = unpack(raw_data:split(":", 1))
+                    guard data != nil else {
+                        return
+                    }
+                    efn = mproc.workerEventDelegates[event]
+                    if type(efn) == "function" {
+                        efn(data)
+                    }
+                    to_idx, to_event, to_data = mproc.workerEventDispatcher(config, windex, event, data)
+                    guard typewith("NSS", to_idx, to_event, to_data) else {
+                        --config.logger.err("worker invalid dispatch \(to_idx):\(to_event):\(to_data) after \(windex):\(event):\(data)")
+                        return
+                    }
+                    raw_data = "\(to_event):\(to_data)"
+                    if to_idx >= 1 and to_idx <= mproc.worker_count {
+                        chann:dgramSend('WORKER_ROUTE:\(to_idx):\(raw_data)', mgnt_addr.ip, mgnt_addr.port)
+                    } else {
+                        chann:dgramSend(raw_data, mgnt_addr.ip, mgnt_addr.port)
+                    }
+                })
+                Self.svr_udp:dgramSend("WORKER_ONLINE:\(windex)", mgnt_addr.ip, mgnt_addr.port)
+            }
+        }
         -- mnet event loop
         poll_wait = config.poll_wait or 50
-        ssmgnt_outdate = config.session_outdate
+        ssmgnt_outdate = config.session.outdate
         while true {
+            netServerWaitPidFn()
             NetCore.poll(poll_wait)
             Mediator.servLoop()
             SessionMgnt.clearOutdate(ssmgnt_outdate)
