@@ -147,6 +147,10 @@ the bundle provide Redis with [lua-resp](https://github.com/lalawue/lua-resp) or
 
 you can try playground `try 'application/x-www-form-urlencoded' text in db`, default using lua-bitcask, you can uncomment _redis_options in model_playground.lua to use redis.
 
+## Multiprocess
+
+the demo project support multiprocess under MacOS/Linux, in `app/app_config.mooc`'s config.multiprocess section, you can remove this section for running in single process.
+
 # Technical Details
 
 some technical detail about POST method, query DNS, and raise HTTP Request for mnet engine type, for nginx engine type should use other implementation for these.
