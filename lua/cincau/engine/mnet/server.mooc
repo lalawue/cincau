@@ -70,7 +70,7 @@ fn _suffix4(filename) {
     return ".bin"
 }
 
--- store multipart/form-netServerWaitPidFn to tmp/, put random name into multipart_info
+-- store multipart/form-data to tmp/, put random name into multipart_info
 fn _storeMultiPartData(cnt, http_tbl) {
     fd_tbl = cnt.fd_tbl
     method = http_tbl.method
