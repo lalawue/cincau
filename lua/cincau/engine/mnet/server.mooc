@@ -245,10 +245,12 @@ class Serv {
                         return
                     }
                     to_idx, to_event, to_data = nil, nil, nil
-                    if event == 'WORKER_ONLINE' {
+                    if event == "WORKER_SESSION" {
+                        mproc.workerEventDelegates[event](data)
+                        return
+                    } elseif event == 'WORKER_ONLINE' {
                         worker_tbl[tonumber(data)] = tonumber(port)
-                    }
-                    if event == "WORKER_ROUTE" {
+                    } elseif event == "WORKER_ROUTE" {
                         to_idx, to_event, to_data = unpack(data:split(":", 2))
                         to_idx = tonumber(to_idx)
                     } else {
@@ -305,11 +307,17 @@ class Serv {
                     guard data != nil else {
                         return
                     }
-                    efn = mproc.workerEventDelegates[event]
-                    if type(efn) == "function" {
-                        efn(data)
+                    to_idx, to_event, to_data = nil, nil, nil
+                    if event == "WORKER_SESSION" {
+                        mproc.workerEventDelegates[event](data)
+                        to_idx, to_event, to_data = (windex + 1), event, data
+                    } else {
+                        efn = mproc.workerEventDelegates[event]
+                        if type(efn) == "function" {
+                            efn(data)
+                        }
+                        to_idx, to_event, to_data = mproc.workerEventDispatcher(config, windex, event, data)
                     }
-                    to_idx, to_event, to_data = mproc.workerEventDispatcher(config, windex, event, data)
                     guard typewith("NSS", to_idx, to_event, to_data) else {
                         --config.logger.err("worker invalid dispatch \(to_idx):\(to_event):\(to_data) after \(windex):\(event):\(data)")
                         return

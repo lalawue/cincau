@@ -44,7 +44,7 @@ local config = {
         --- monitor event dispatcher, will receive event with windex except [1, worker_count]
         --- @params config: this config
         --- @params windex: as monitor index
-        --- @params event: string, and preserve 'WORKER_ONLINE' and 'WORKER_ROUTE'
+        --- @params event: string, and preserve 'WORKER_ONLINE', 'WORKER_ROUTE', 'WORKER_SESSION'
         --- @return 1) nil: not dispatch, [1, worker_count]: dispatch to one worker, otherwise dispatch to all worker
         ---         2) event: string?
         ---         3) data: string?
@@ -58,7 +58,7 @@ local config = {
         --- worker event dispatcher, will receive event with windex [1, worker_count]
         --- @params config: this config
         --- @params windex: worker index which recv this event, monitor: 0
-        --- @params event: string, and preserve 'WORKER_ONLINE' and 'WORKER_ROUTE'
+        --- @params event: string, and preserve 'WORKER_ONLINE', 'WORKER_ROUTE', 'WORKER_SESSION'
         --- @return 1) nil: not dispatch, [1, worker_count]: dispatch to one worker, otherwise dispatch to monitor
         ---         2) event: string?
         ---         3) data: string?
@@ -66,9 +66,6 @@ local config = {
             config.logger.info("worker dispatcher(\(windex)) '\(event)':\(data)")
             if event == "MEMORY_USAGE_COLLECT" {
                 return (windex + 1), event, "\(tonumber(data) + collectgarbage('count'))"
-            }
-            if event == "SESSION_UPDATE" {
-                return (windex + 1), event, data
             }
         },
 

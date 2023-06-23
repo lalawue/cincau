@@ -28,7 +28,7 @@ struct Session {
         if config.multiprocess and config.multiprocess.worker_count > 0 {
             Self._config = config
             Self._mproc = config.multiprocess
-            Self._mproc.workerEventDelegates["SESSION_UPDATE"] = { data in
+            Self._mproc.workerEventDelegates["WORKER_SESSION"] = { data in
                 uuid, udata = unpack(data:split(":", 1))
                 uu_session = CJson.decode(udata)
                 Self._sessions[uuid] = uu_session
@@ -59,7 +59,7 @@ struct Session {
             tm.sync = now_ti
         } elseif Self._mproc and (now_ti - tm.sync > Self._config.session.sync_time) {
             tm.sync = now_ti
-            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
         }
     }
 
@@ -109,7 +109,7 @@ struct Session {
         Self._sessions[uuid] = uu_session
         Self._lst:pushl(tm)
         if Self._mproc {
-            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
         }
         return uuid
     }
@@ -124,6 +124,9 @@ struct Session {
         if uuid and uu_session {
             Self._lst:remove(uu_session.tm)
             Self._sessions[uuid] = nil
+            if Self._mproc {
+                Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid): ")
+            }
         }
         return true
     }
@@ -167,7 +170,7 @@ struct Session {
         uu_session[hkey] = hval
         Self._updateTime(uuid, uu_session)
         if Self._mproc {
-            Self._mproc.sendEventFn(1, "SESSION_UPDATE", "\(uuid):\(CJson.encode(uu_session))")
+            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
         }
         return true
     }
