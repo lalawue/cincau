@@ -78,6 +78,7 @@ fn fn_code_after(path, code) {
 return {
     {
         name = "luarocks",
+        proj_export = "share/lua/5.1/cincau/base/scratch.mooc",
         proj_dir = "%s",
         proj_out = "%s",
         fn_filter = fn_filter,
@@ -91,7 +92,7 @@ return {
         fn_after = fn_code_after,
     }
 }
-]], dir('/in'), dir('/out'), dir('/out'), dir(), dir())
+]], dir('/in'), dir('/out'), dir('/out'))
 
 write(dir('/proj_config.mooc'), proj_content)
 execute('moocscript -p ' .. dir('/proj_config.mooc'))

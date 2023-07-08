@@ -184,11 +184,11 @@ export fn typewith(type_desc, ...) {
     return true
 }
 
-fn tracebackHandler(msg) {
+fn _tracebackHandler(msg) {
     print("\nPANIC : " .. tostring(msg) .. "\n")
     print(debug.traceback())
 }
 
-return {
-    =tracebackHandler
+export fn cincau_xpcall(f, arg1, ...) {
+    return xpcall(f, _tracebackHandler, arg1, ...)
 }

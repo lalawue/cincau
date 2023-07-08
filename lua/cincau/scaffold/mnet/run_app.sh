@@ -20,11 +20,11 @@ start_server()
         export LUA_CPATH="lib/?.so"
         export LD_LIBRARY_PATH=$PWD/lib
         export DYLD_LIBRARY_PATH=$PWD/lib
-        ./bin/app_main $* & > /dev/null
+        ./bin/app_main $* & >> ./logs/cincau.log
     else
         echo "start cincau web framework [mnet]"
         eval $(luarocks path)
-        luajit $PWD/app/app_main.lua $* & > /dev/null
+        luajit $PWD/app/app_main.lua $* & >> ./logs/cincau.log
     fi
     CINCAU_PID=$!
     sleep 1
@@ -39,9 +39,11 @@ start_server()
 stop_server()
 {
     PID_FILE=$PWD/tmp/cincau-mnet.pid
-    echo "stop cincau web framework [mnet]"
     if [ -f $PID_FILE ]; then
+        echo "stop cincau web framework [mnet]"
         kill $(cat $PWD/tmp/cincau-mnet.pid)
+    else
+        echo "cincau web framework not running [mnet]"
     fi
     rm -f $PID_FILE
 }

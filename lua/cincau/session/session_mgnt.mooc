@@ -30,12 +30,16 @@ struct Session {
             Self._mproc = config.multiprocess
             Self._mproc.workerEventDelegates["WORKER_SESSION"] = { data in
                 uuid, udata = unpack(data:split(":", 1))
-                uu_session = CJson.decode(udata)
-                Self._sessions[uuid] = uu_session
-                if uu_session and uu_session.tm {
-                    Self._updateTime(uuid, uu_session, true)
+                if typewith("S", udata) and udata:len() > 6 {
+                    uu_session = CJson.decode(udata)
+                    Self._sessions[uuid] = uu_session
+                    if uu_session and uu_session.tm {
+                        Self._updateTime(uuid, uu_session, true)
+                    }
+                } else {
+                    Self._sessions[uuid] = nil
                 }
-                config.logger.info("session(\(Self._mproc.worker_index)) recv \(uuid)")
+                config.logger.info("session(\(Self._mproc.worker_index)) recv \(uuid):\(udata:len())")
             }
         }
     }
@@ -103,7 +107,8 @@ struct Session {
         -- create session table
         tm = {
             sync = otime(),
-            time = otime()
+            time = otime(),
+            uuid = uuid,
         }
         uu_session = { =tm }
         Self._sessions[uuid] = uu_session
@@ -119,28 +124,24 @@ struct Session {
         guard req and skey else {
             return false
         }
-        uuid = req.cookies[skey]
-        uu_session = Self._sessions[uuid]
-        if uuid and uu_session {
-            Self._lst:remove(uu_session.tm)
-            Self._sessions[uuid] = nil
-            if Self._mproc {
-                Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid): ")
-            }
-        }
-        return true
+        return Self.clearSessionUUID(req.cookies[skey])
     }
 
     -- clear session with UUID
     static fn clearSessionUUID(uuid) {
         guard uuid else {
-            return
+            return false
         }
         uu_session = Self._sessions[uuid]
         if uu_session {
             Self._lst:remove(uu_session.tm)
             Self._sessions[uuid] = nil
+            if Self._mproc {
+                Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):")
+            }
+            return true
         }
+        return false
     }
 
     -- check in session first, get hval from session with hkey

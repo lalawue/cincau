@@ -16,7 +16,7 @@
 #include <sys/wait.h>
 #include <sys/errno.h>
 #include <dlfcn.h>
-#include <signal.h>
+#include <execinfo.h>
 
 // MARK: - outer definition
 
@@ -33,7 +33,7 @@ void (*mnet_multi_reset_event)(void);
 // MARK: - implemention
 
 #if defined(_WIN32) || defined(_WIN64)
-void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms)
+void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms, int debug_on)
 {
 }
 int mnet_server_waitpid()
@@ -47,7 +47,7 @@ void mnet_server_exit()
 typedef struct
 {
     pid_t pid;        // process pid
-    sem_t *sem;       // process semaphore for require accept locker
+    int debug_on;     // debug on
     int listen_fd;    // listen fd
     int worker_index; // worker_index > 0
     int worker_count;
@@ -76,35 +76,61 @@ _monitor_before_after_ac(void *ac_context, int afd)
 static int
 _worker_before_ac(void *ac_context, int afd)
 {
-    monitor_t *mon = (monitor_t *)ac_context;
-    return (sem_trywait(mon->sem) == 0) ? 1 : 0;
+    return 1;
 }
 
 static int
 _worker_after_ac(void *ac_context, int afd)
 {
-    monitor_t *mon = (monitor_t *)ac_context;
-    sem_post(mon->sem);
     return 0;
 }
 
 static void
-_sig_term(int sig)
+_monitor_term(void)
 {
-    if (mon->worker_index <= 0)
+    if (mon->worker_index > 0)
     {
+        exit(1);
+        return;
+    }
+    {
+        if (mon->debug_on)
+        {
+            printf("[mnet_svr] kill workers: %d\n", mon->worker_count);
+        }
         for (int i = 0; i < mon->worker_count; i++)
         {
             kill(mon->worker_pids[i], SIGTERM);
         }
     }
-    exit(0);
+    if (mon->debug_on)
+    {
+        void *buffer[64];
+        int depth = backtrace(buffer, 64);
+        char **fn_names = backtrace_symbols(buffer, 64);
+        printf("[mnet_svr] monitor backtrace for pid:%d\n", mon->pid);
+        for (int i = 0; i < depth; i++)
+        {
+            printf("[mnet_svr] %s\n", fn_names[i]);
+        }
+    }
+    exit(1);
+}
+
+static void
+_sig_term(int sig)
+{
+    if (mon->debug_on)
+    {
+        printf("[mnet_svr] sig term: %d, pid: %d\n", sig, mon->pid);
+    }
+    exit(sig);
 }
 
 /// @brief load mnet.so then register listen_fd and get worker_count
 /// @param listen_fd
 /// @param worker_count
-void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms)
+void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms, int debug_on)
 {
     {
         char *buf = calloc(1, 4096);
@@ -118,7 +144,10 @@ void mnet_server_register(const char *npath, int listen_fd, int worker_count, in
         dlerror();
         mnet_multi_accept_balancer = dlsym(handle, "mnet_multi_accept_balancer");
         mnet_multi_reset_event = dlsym(handle, "mnet_multi_reset_event");
-        // printf("regiser %p, %p\n", mnet_multi_accept_balancer, mnet_multi_reset_event);
+        if (debug_on)
+        {
+            printf("[mnet_svr] register symbol %p, %p\n", mnet_multi_accept_balancer, mnet_multi_reset_event);
+        }
         free(buf);
     }
     {
@@ -128,11 +157,21 @@ void mnet_server_register(const char *npath, int listen_fd, int worker_count, in
         mon->worker_count = worker_count;
         mon->worker_restart_ms = worker_restart_ms;
         mon->pid = getpid();
-        mon->sem = sem_open("mnet.server.worker", O_RDWR | O_CREAT, 0644, 1);
-        // printf("register pid:%d fd:%d sem:%p\n", mon->pid, mon->listen_fd, mon->sem);
+        mon->debug_on = debug_on;
+        if (debug_on)
+        {
+            printf("[mnet_svr] register resources pid:%d fd:%d\n", mon->pid, mon->listen_fd);
+        }
     }
     {
+
+        signal(SIGQUIT, _sig_term);
         signal(SIGTERM, _sig_term);
+        int ret = atexit(_monitor_term);
+        if (debug_on)
+        {
+            printf("[mnet_svr] register atexit %d, %d\n", ret, errno);
+        }
     }
 }
 
@@ -172,6 +211,10 @@ int mnet_server_waitpid()
                 mon->worker_index = i + 1;
                 mnet_multi_accept_balancer(mon, _worker_before_ac, _worker_after_ac);
                 mnet_multi_reset_event();
+                if (mon->debug_on)
+                {
+                    printf("[mnet_svr] worker(%d) awake, pid:%d\n", mon->worker_index, mon->pid);
+                }
                 return mon->worker_index;
             }
             else if (pid > 0)
@@ -195,6 +238,10 @@ int mnet_server_waitpid()
 
 void mnet_server_exit()
 {
-    _sig_term(SIGTERM);
+    if (mon->debug_on)
+    {
+        printf("[mnet_svr] server exit, pid:%d\n", mon->pid);
+    }
+    exit(0);
 }
 #endif

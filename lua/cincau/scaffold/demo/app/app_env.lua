@@ -24,7 +24,6 @@ if status then
         logger.setLevel(config.debug_on and logger.DEBUG or logger.INFO)
     end
     CincauRouter = require("app.app_router")
-    CincauTracebackHandler = require("cincau.base.scratch").tracebackHandler
     print("version: " .. ver.version)
     if pcall(require, 'app.app_binary') then
         print("  build: " .. require('app.app_version'))

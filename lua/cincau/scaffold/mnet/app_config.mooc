@@ -37,6 +37,7 @@ local config = {
 
     multiprocess = {
         ipport = "127.0.0.1:8090", -- monitor control port
+        debug_on = true,
         worker_count = 2,
         worker_restart_ms = 500 * 1000, -- microseconds
         worker_index = 0, -- will be replaced in server.mooc
@@ -81,5 +82,11 @@ local config = {
         workerEventDelegates = {}
     },
 }
+
+export typewith
+typewith = typewith or { in }
+
+export cincau_xpcall
+cincau_xpcall = cincau_xpcall or { in }
 
 return setmetatable({}, { __index = config })

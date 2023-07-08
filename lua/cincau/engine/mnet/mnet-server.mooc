@@ -9,7 +9,7 @@
 import FFI from "ffi"
 
 FFI.cdef([[
-    void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms);
+    void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms, int debug_on);
     int mnet_server_waitpid(void);
     void mnet_server_exit(void);
 ]])
@@ -38,8 +38,9 @@ class NetServer {
     ---@param listen_fd number
     ---@param worker_count number
     ---@param worker_restart_ms number
-    static fn serverRegister(listen_fd, worker_count, worker_restart_ms) {
-        nserver.mnet_server_register(npath, listen_fd, worker_count, worker_restart_ms)
+    ---@param debug_on boolean
+    static fn serverRegister(listen_fd, worker_count, worker_restart_ms, debug_on) {
+        nserver.mnet_server_register(npath, listen_fd, worker_count, worker_restart_ms, debug_on)
     }
 
     --- waitpid for monitor or worker

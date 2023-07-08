@@ -52,7 +52,7 @@ struct MasterPage {
         ctrl = Self._pages[name]
         if not ctrl {
             libname = "app.pages." .. name
-            ret, lib = xpcall(require, Base.tracebackHandler, libname)
+            ret, lib = cincau_xpcall(require, libname)
             if not ret {
                 response:setStatus(404)
                 response:appendBody([[

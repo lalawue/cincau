@@ -29,4 +29,4 @@ local function runApp()
     Server.run(Config, http_callback)
 end
 
-xpcall(runApp, CincauTracebackHandler)
+cincau_xpcall(runApp)
