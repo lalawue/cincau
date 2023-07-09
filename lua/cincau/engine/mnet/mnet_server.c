@@ -14,7 +14,7 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <dlfcn.h>
 //#include <execinfo.h>
 
