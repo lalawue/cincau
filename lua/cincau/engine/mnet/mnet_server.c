@@ -16,7 +16,7 @@
 #include <sys/wait.h>
 #include <sys/errno.h>
 #include <dlfcn.h>
-#include <execinfo.h>
+//#include <execinfo.h>
 
 // MARK: - outer definition
 
@@ -103,17 +103,17 @@ _monitor_term(void)
             kill(mon->worker_pids[i], SIGTERM);
         }
     }
-    if (mon->debug_on)
-    {
-        void *buffer[64];
-        int depth = backtrace(buffer, 64);
-        char **fn_names = backtrace_symbols(buffer, 64);
-        printf("[mnet_svr] monitor backtrace for pid:%d\n", mon->pid);
-        for (int i = 0; i < depth; i++)
-        {
-            printf("[mnet_svr] %s\n", fn_names[i]);
-        }
-    }
+    // if (mon->debug_on)
+    // {
+    //     void *buffer[64];
+    //     int depth = backtrace(buffer, 64);
+    //     char **fn_names = backtrace_symbols(buffer, 64);
+    //     printf("[mnet_svr] monitor backtrace for pid:%d\n", mon->pid);
+    //     for (int i = 0; i < depth; i++)
+    //     {
+    //         printf("[mnet_svr] %s\n", fn_names[i]);
+    //     }
+    // }
     exit(1);
 }
 
