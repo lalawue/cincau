@@ -22,7 +22,6 @@ dependencies = {
    "lua-bitcask",
    "lua-cjson",
    "ffi-mmkv",
-   "ffi-shm-sorted-dict",
 }
 build = {
    type = "builtin",
