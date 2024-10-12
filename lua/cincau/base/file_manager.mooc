@@ -6,7 +6,7 @@
 --
 
 import FileSystem from "lfs"
-import Zlib from "cincau.base.ffi_zlib"
+import Zlib from "ffi-http1-session.zlib"
 
 local type = type
 local print = print

@@ -43,6 +43,10 @@ int mnet_server_waitpid()
 void mnet_server_exit()
 {
 }
+int mnet_server_worker_index()
+{
+    return 0;
+}
 #else
 typedef struct
 {
@@ -211,6 +215,7 @@ int mnet_server_waitpid()
                 mon->worker_index = i + 1;
                 mnet_multi_accept_balancer(mon, _worker_before_ac, _worker_after_ac);
                 mnet_multi_reset_event();
+                signal(SIGPIPE, SIG_IGN);
                 if (mon->debug_on)
                 {
                     printf("[mnet_svr] worker(%d) awake, pid:%d\n", mon->worker_index, mon->pid);
@@ -243,5 +248,11 @@ void mnet_server_exit()
         printf("[mnet_svr] server exit, pid:%d\n", mon->pid);
     }
     exit(0);
+}
+
+/// @brief return 0 for monitor
+int mnet_server_worker_index()
+{
+    return mon->worker_index;
 }
 #endif

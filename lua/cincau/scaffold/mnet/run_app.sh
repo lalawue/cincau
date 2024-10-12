@@ -13,6 +13,9 @@ start_server()
         exit 0
     fi
 
+    rm -rf $PWD/tmp/shared_dict/
+    rm -rf $PWD/tmp/shared_dict_list/
+
     # running app
     if [ -f 'bin/app_main' ]; then
         echo "start cincau bianry web framework [mnet]"
@@ -42,10 +45,12 @@ stop_server()
     if [ -f $PID_FILE ]; then
         echo "stop cincau web framework [mnet]"
         kill $(cat $PWD/tmp/cincau-mnet.pid)
+        rm -f $PID_FILE
+        rm -rf $PWD/tmp/shared_dict/
+        rm -rf $PWD/tmp/shared_dict_list/
     else
         echo "cincau web framework not running [mnet]"
     fi
-    rm -f $PID_FILE
 }
 
 reload_server()

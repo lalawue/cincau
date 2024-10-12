@@ -1,0 +1,148 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Render from "cincau.view_core"
+import Model from "app.models.model_doc"
+import BasePage from "cincau.page_core" {}
+
+class PageChat : BasePage {
+
+    fn init(config) {
+    }
+
+    -- output param.name defined in router.lua
+    fn process(config, req, response, params) {
+        -- set header before appendBody
+        response:setHeader("Content-Type", "text/html")
+        -- render page content
+        page_content = Render:render(self:templteHTML(), {
+            css_path = "/css/wiki.css",
+            page_title = "Cincau chat room",
+        })
+
+        -- append body as chunked data
+        response:appendBody(page_content)
+    }
+
+    -- using default tags
+    fn templteHTML() {
+        return
+        [[<!DOCTYPE html>
+          <html>
+            {(datas/templates/head.html)}
+            <body>
+                <h1>{{ page_title }}</h1>
+                <hr/>
+                <span id="online_people" style="margin-left: .5in;">online users: 0</span>
+                <hr/>
+                <script type="text/javascript">
+    var ws = new WebSocket("ws://" + window.location.host + "/chatdata")
+
+    ws.onopen = function() {
+        var data = {}
+        data.ti = "0"
+        data.etype = "open"
+        data.ckey = ""
+        data.data = ""
+        ws.send(JSON.stringify(data))
+    }
+
+    var divAppendMsg = function(msg) {
+        var ele = document.getElementById("msg_content")
+        var value = ele.innerHTML
+        if (typeof(value) == "undefined") {
+            value = ""
+        }
+        //console.log(value)
+        ele.innerHTML = value + "<p>" + msg + "</p>"
+    }
+
+    ws.onmessage = function(evt) {
+        console.log(evt.data);
+        if (typeof(evt.data) != "string") {
+            return;
+        }
+        let events = JSON.parse(evt.data)
+        if (typeof(events) != "object") {
+            return;
+        }
+        for (i = 0; i < events.length; i++) {
+            var ev = events[i]
+            switch (ev.etype) {
+            case "enter":
+                var msg = ev.nick + " enter chat room";
+                console.log(msg)
+                divAppendMsg(msg)
+                break;
+            case "msg":
+                var msg = ""
+                if (ws.my_ckey == ev.ckey) {
+                    msg = "<strong>" + ev.nick + "</strong> say: " + ev.data
+                } else {
+                    msg = ev.nick + " say: " + ev.data;
+                }
+                console.log(msg);
+                divAppendMsg(msg);
+                break;
+            case "nick":
+                var msg = ev.nick + " change nick to " + ev.data;
+                console.log(msg)
+                divAppendMsg(msg)
+                break;
+            case "count":
+                var msg = "online users: " + ev.data
+                console.log(msg);
+                var ele = document.getElementById("online_people");
+                ele.innerHTML = msg
+                break;
+            case "cookie":
+                ws.my_ckey = ev.ckey
+                var msg = ev.data + "=" + ev.ckey + ";" + "max-age=86400;"
+                console.log("set cookie " + msg);
+                document.cookie = msg
+            }
+        }
+    }
+
+    ws.onclose = function() {
+        //alert("websocket closing")
+    }
+
+    function sendMsgInput() {
+        var ele = document.getElementById("msg_input")
+        var value = ele.value
+        if (typeof(value) == "undefined") {
+            value = ""
+        }
+        var obj = {}
+        if (value.startsWith("/nick")) {
+            obj.etype = "nick"
+            obj.data = value.substr(6, value.length)
+        } else {
+            obj.etype = "msg"
+            obj.data = value
+        }
+        ws.send(JSON.stringify(obj))
+        ele.value = ""
+    }
+                </script>
+                <div id="msg_content" style="min-height: 128px;">
+                </div>
+                <hr/>
+                <pre>send "/nick nickname" to change your name in chat room</pre>
+                <div style="margin-left: .5in;">
+                <textarea id="msg_input" rows="3" cols="64">/nick nickname</textarea>
+                <br/>
+                <button style="margin-right: 0px;" onclick="sendMsgInput()">Send</button>
+                </div>
+            </body>
+
+        </html>]]
+    }
+}
+
+return PageChat

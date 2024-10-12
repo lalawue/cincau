@@ -13,7 +13,7 @@ local config = {
 
     session = {
         outdate = 300, -- session oudated seconds
-        sync_time = 60, -- every 60s to sync sessions while multiprocess
+        dir = "./tmp/cincau_session"
     },
     resources_max_age = 900, -- resources cache-control max-age
 
@@ -39,47 +39,13 @@ local config = {
         ipport = "127.0.0.1:8090", -- monitor control port
         debug_on = true,
         worker_count = 2,
-        worker_restart_ms = 500 * 1000, -- microseconds
-        worker_index = 0, -- will be replaced in server.mooc
+        worker_restart_ms = 500 * 1000, -- microseconds after restart
+    },
 
-        --- monitor event dispatcher, will receive event with windex except [1, worker_count]
-        --- @params config: this config
-        --- @params windex: as monitor index
-        --- @params event: string, and preserve 'WORKER_ONLINE', 'WORKER_ROUTE', 'WORKER_SESSION'
-        --- @return 1) nil: not dispatch, [1, worker_count]: dispatch to one worker, otherwise dispatch to all worker
-        ---         2) event: string?
-        ---         3) data: string?
-        monitorEventDispatcher = { config, windex, event, data in
-            config.logger.info("monitor dispatcher(\(windex)) '\(event)':\(data)")
-            if event == "MEMORY_USAGE_COLLECT" {
-                return 0, "MEMORY_USAGE_REPORT", data
-            }
-        },
-
-        --- worker event dispatcher, will receive event with windex [1, worker_count]
-        --- @params config: this config
-        --- @params windex: worker index which recv this event, monitor: 0
-        --- @params event: string, and preserve 'WORKER_ONLINE', 'WORKER_ROUTE', 'WORKER_SESSION'
-        --- @return 1) nil: not dispatch, [1, worker_count]: dispatch to one worker, otherwise dispatch to monitor
-        ---         2) event: string?
-        ---         3) data: string?
-        workerEventDispatcher = { config, windex, event, data in
-            config.logger.info("worker dispatcher(\(windex)) '\(event)':\(data)")
-            if event == "MEMORY_USAGE_COLLECT" {
-                return (windex + 1), event, "\(tonumber(data) + collectgarbage('count'))"
-            }
-        },
-
-        --- send event to worker index
-        --- @params windex: worker index which recv this event, monitor: 0
-        --- @params event: string
-        --- @params data: string
-        sendEventFn = { windex, event, data in
-            -- this function will be replace in server.mooc
-        },
-
-        --- worker event delegate as [event] = { data in }
-        workerEventDelegates = {}
+    websocket = {
+        -- seconds for svr ping interval, disconnect if no cnt pong in 2 interval
+        ping_pong_interval = 30,
+        dir = "./tmp/cincau_ws"
     },
 }
 

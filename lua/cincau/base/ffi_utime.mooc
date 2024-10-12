@@ -1,0 +1,118 @@
+--
+-- Copyright (c) 2024 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import FFI from "ffi"
+
+FFI.cdef([[
+    struct timeval {
+        int64_t tv_sec;     /* seconds */
+        int64_t tv_usec;    /* microseconds */
+    };
+    struct timezone {
+        int tz_minuteswest;     /* minutes west of Greenwich */
+        int tz_dsttime;         /* type of DST correction */
+    };
+    int gettimeofday(struct timeval *tv, struct timezone *tz);
+]])
+
+_fnew = FFI.new
+_clib = FFI.C
+_strfmt = string.format
+_type = type
+_tonumber = tonumber
+_tm = _fnew("struct timeval")
+_tzone = _fnew("struct timezone")
+
+--- struct timeval nnd its operation
+class UTime {
+
+    tv_sec = 0
+    tv_usec = 0
+
+    --- gettimeofday()
+    fn init(minutewest, dsttime) {
+        tzone = nil
+        if minutewest or dsttime {
+            _tzone.tz_minuteswest = minutewest or 0
+            _tzone.tz_dsttime = dsttime or 0
+            tzone = _tzone
+        }
+        if 0 ~= _clib.gettimeofday(_tm, tzone) {
+            return false
+        }
+        self.tv_sec = _tm.tv_sec
+        self.tv_usec = _tm.tv_usec
+    }
+
+    --- construct struct timeval from time string
+    static fn new(time_stamp) {
+        guard _type(time_stamp) == "string" else {
+            return
+        }
+        sp, ep = time_stamp:find("_")
+        guard sp and ep else {
+            return
+        }
+        n = UTime()
+        n.tv_sec = _tonumber(time_stamp:sub(1, sp - 1))
+        n.tv_usec = _tonumber(time_stamp:sub(ep + 1, -1))
+        return n
+    }
+
+    --- return time stamp string
+    static fn timeStamp(minutewest, dsttime) {
+        tzone = nil
+        if minutewest or dsttime {
+            _tzone.tz_minuteswest = minutewest or 0
+            _tzone.tz_dsttime = dsttime or 0
+            tzone = _tzone
+        }
+        if 0 ~= _clib.gettimeofday(_tm, tzone) {
+            return
+        }
+        return _strfmt("%d_%d", _tm.tv_sec, _tm.tv_usec)
+    }
+
+    --- time stamp string
+    fn __tostring(t) {
+        return _strfmt("%d_%d", t.tv_sec, t.tv_usec)
+    }
+
+    fn __eq(a, b) {
+        return a.tv_sec == b.tv_sec and a.tv_usec == b.tv_usec
+    }
+
+    fn __lt(a, b) {
+        if a.tv_sec < b.tv_sec {
+            return true
+        }
+        return a.tv_sec == b.tv_sec and a.tv_usec < b.tv_usec
+    }
+
+    fn __le(a, b) {
+        if a.tv_sec < b.tv_sec {
+            return true
+        }
+        return a.tv_sec == b.tv_sec and a.tv_usec <= b.tv_usec
+    }
+
+    fn __gt(a, b) {
+        if a.tv_sec > b.tv_sec {
+            return true
+        }
+        return a.tv_sec == b.tv_sec and a.tv_usec > b.tv_usec
+    }
+
+    fn __ge(a, b) {
+        if a.tv_sec > b.tv_sec {
+            return true
+        }
+        return a.tv_sec == b.tv_sec and a.tv_usec >= b.tv_usec
+    }
+}
+
+return UTime

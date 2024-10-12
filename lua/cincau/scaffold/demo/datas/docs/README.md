@@ -195,7 +195,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [ers35/luastatic](https://github.com/ers35/luastatic), Build a standalone executable from a Lua program.
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
-- [lalawue/linked-list](https://github.com/lalawue/linked-list.lua), doubly linked list for Lua
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
 - [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM), Lua 4Days ORM for sqlite3

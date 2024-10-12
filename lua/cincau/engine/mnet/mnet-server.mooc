@@ -7,11 +7,13 @@
 --
 
 import FFI from "ffi"
+--import 
 
 FFI.cdef([[
     void mnet_server_register(const char *npath, int listen_fd, int worker_count, int worker_restart_ms, int debug_on);
     int mnet_server_waitpid(void);
     void mnet_server_exit(void);
+    int mnet_server_worker_index(void);
 ]])
 
 -- try to load mnet in package.cpath
@@ -44,9 +46,9 @@ class NetServer {
     }
 
     --- waitpid for monitor or worker
-    ---@return 0 for monitor
-    ---@return >0 for worker index first fork()
-    ---@return <0 for worker index visit again
+    ---@return number 0 for monitor
+    ---@return number >0 for worker index first fork()
+    ---@return number <0 for worker index visit again
     static fn serverWaitPid() {
         return nserver.mnet_server_waitpid()
     }
@@ -54,6 +56,11 @@ class NetServer {
     --- exit server and all workers
     static fn serverExit() {
         nserver.mnet_server_exit()
+    }
+
+    --- return 0 for monitor, worker > 0
+    static fn serverWorkerIndex() {
+        return nserver.mnet_server_worker_index()
     }
 }
 

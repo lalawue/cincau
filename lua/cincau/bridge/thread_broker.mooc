@@ -14,7 +14,7 @@ coRuning = coroutine.running
 --[[
     Thread broker for coroutines
 ]]
-struct ThreadBroker {
+class ThreadBroker {
 
     _threads = {}
     _listener = {}
@@ -24,10 +24,10 @@ struct ThreadBroker {
         guard key and type(co) == "thread" else {
             return
         }
-        key = tostring(key)
-        Self._threads[key] = co
+        skey = tostring(key)
+        Self._threads[skey] = co
         for _, func in ipairs(Self._listener) {
-            func(key, 'add')
+            func(skey, 'add')
         }
     }
 
@@ -36,10 +36,10 @@ struct ThreadBroker {
         guard key else {
             return
         }
-        key = tostring(key)
-        Self._threads[key] = nil
+        skey = tostring(key)
+        Self._threads[skey] = nil
         for _, func in ipairs(Self._listener) {
-            func(key, 'remove')
+            func(skey, 'remove')
         }
     }
 

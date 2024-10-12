@@ -8,7 +8,7 @@
 import Base from "cincau.base.scratch"
 import NetCore from "ffi-mnet"
 import DnsCore from "ffi-mdns"
-import HttpParser from "ffi-hyperparser"
+import HSSN from "ffi-http1-session"
 import Request from "cincau.engine.request_core"
 import Response from "cincau.engine.response_core"
 import UrlCore from "cincau.base.url_core"
@@ -18,7 +18,10 @@ import Mediator from "cincau.bridge.mediator"
 import SessionMgnt from "cincau.session.session_mgnt"
 import Version from "cincau.base.version"
 import NetServer from "cincau.engine.mnet.mnet-server"
+import Base64 from "cincau.base.mime_base64"
+import UTime from "cincau.base.ffi_utime"
 
+local type = type
 local pairs = pairs
 local xpcall = xpcall
 local tostring = tostring
@@ -27,26 +30,33 @@ local coCreate = coroutine.create
 local coResume = coroutine.resume
 local mathRandom = math.random
 local tableConcat = table.concat
+local otime = os.time
 
 -- close chann and destroy http parser
-fn _clientDestroy(chann) {
-    cnt = chann._cnt
-    cnt.http_parser:destroy()
-    chann:close()
-    ThreadBroker.removeThread(chann)
+fn _clientDestroy(cnt) {
+    guard cnt else {
+        return
+    }
+    if cnt.hssn_lib ~= nil {
+        cnt.hssn_lib:closeSession()
+        cnt.hssn_lib = nil
+    }
+    ThreadBroker.removeThread(cnt.ckey)
 }
 
 -- client reset
-fn _clientReset(chann) {
-    cnt = chann._cnt
-    cnt.http_parser:reset()
+fn _clientReset(cnt) {
+    guard cnt else {
+        return
+    }
+    cnt.hssn_lib:reclaim()
     for k, _ in pairs(cnt.fd_tbl) {
         cnt.fd_tbl[k] = nil
     }
     for k, _ in pairs(cnt.multipart_info) {
         cnt.multipart_info[k] = nil
     }
-    ThreadBroker.removeThread(chann)
+    ThreadBroker.removeThread(cnt.ckey)
 }
 
 fn _updateRequest(req) {
@@ -70,16 +80,104 @@ fn _suffix4(filename) {
     return ".bin"
 }
 
+-- store all ws cnt
+ws_cnt_trigger_dict = {}
+
+-- add cnt trigger list
+fn _wsSvrIntervalTriggerAdd(cnt, ws_func, ws_params, disconnect_func) {
+    if cnt and cnt.ckey and ws_func and ws_params and disconnect_func {
+        ws_cnt_trigger_dict[cnt.ckey] = { cnt, ws_func, ws_params, disconnect_func }
+    }
+}
+
+-- remove cnt from trigger list
+fn _wsSvrIntervalTriggerRemove(cnt) {
+    guard cnt and cnt.ckey else {
+        return
+    }
+    tbl = ws_cnt_trigger_dict[cnt.ckey]
+    guard typewith("T", tbl) else {
+        return
+    }
+    ws_func, ws_params = tbl[2], tbl[3]
+    if typewith("TFT", cnt, ws_func, ws_params) {
+        cnt._req:markCntDisconnect()
+        cnt._req:markSvrInternal()
+        co = coCreate({ in
+            ret, _ = cincau_xpcall(ws_func, cnt.config, cnt._req, cnt._resp, ws_params)
+            ThreadBroker.removeThread(cnt.ckey)
+        })
+        ThreadBroker.addThread(cnt.ckey, co)
+        coResume(co)
+    }
+    ws_cnt_trigger_dict[cnt.ckey] = nil
+}
+
+-- invoke all active cnt ws_func, and check last ping_ti, pong_ti outside event callback
+fn _wsSvrIntervalTriggerLoopCheck() {
+    now_ti = otime()
+    for _, tbl in pairs(ws_cnt_trigger_dict) {
+        cnt, ws_func, ws_params, disconnect_func = tbl[1], tbl[2], tbl[3], tbl[4]
+        if typewith("TFTF", cnt, ws_func, ws_params, disconnect_func) {
+            -- check ping, pong
+            ws = cnt.config.websocket
+            if (now_ti - cnt.ws_ping_ti) >= ws.ping_pong_interval {
+                cnt.ws_ping_ti = now_ti
+                cnt.option.fn_ws_callback("PING", "")
+            }
+            cnt_disconnect = (now_ti - cnt.ws_pong_ti) >= (2 * ws.ping_pong_interval)
+            if cnt_disconnect {
+                cnt._req:markCntDisconnect()
+            }
+            --
+            cnt._req:markSvrInternal()
+            co = coCreate({ in
+                ret, _ = cincau_xpcall(ws_func, cnt.config, cnt._req, cnt._resp, ws_params)
+                ThreadBroker.removeThread(cnt.ckey)
+            })
+            ThreadBroker.addThread(cnt.ckey, co)
+            coResume(co)
+            --
+            if cnt_disconnect {
+                disconnect_func()
+            }
+        }
+    }
+}
+
+--[[
+fn _hexDump(data) {
+    guard type(data) == "string" else {
+        return ""
+    }
+    out_data = "\ndata_len: " .. tostring(data:len()) .. "\n"
+    i = 1
+    repeat {
+        --io.write(string.format("0x%02x ", data:byte(i, i)))
+        out_data ..= string.format("0x%02x ", data:byte(i, i))
+        if i % 16 == 0 {
+            out_data ..= "\n"
+            --io.write("\n")
+        }
+        i += 1
+    } until i > data:len()
+    if i % 16 != 0 {
+        --io.write("\n")
+        out_data ..= "\n"
+    }
+    return out_data
+}
+--]]
+
 -- store multipart/form-data to tmp/, put random name into multipart_info
-fn _storeMultiPartData(cnt, http_tbl) {
+fn _storeMultiPartData(cnt, http_tbl, fr) {
     fd_tbl = cnt.fd_tbl
     method = http_tbl.method
-    header = http_tbl.header
-    guard Request.isMultiPartFormData(fd_tbl, method, header) else {
+    headers = http_tbl.headers
+    guard fr and Request.isMultiPartFormData(fd_tbl, method, headers) else {
         return false
     }
-    contents = http_tbl.contents
-    raw_data = contents and tableConcat(contents) or ""
+    raw_data = type(fr.data) == "string" and fr.data or ""
     Request.multiPartReadBody(
         fd_tbl,
         raw_data,
@@ -97,7 +195,6 @@ fn _storeMultiPartData(cnt, http_tbl) {
             }
         }
     )
-    http_tbl.contents = nil
     return true
 }
 
@@ -105,54 +202,144 @@ fn _storeMultiPartData(cnt, http_tbl) {
 local response_option = {
     en_chunked_length = true, -- append chunked body length
     fn_chunked_callback = false,
+    fn_ws_callback = false, -- upgrade to ws and build ws frame
     fn_set_header = false, -- construct header
     fn_set_status = false
 }
 
--- receive client data then parse to http method, path, header, content
+-- receive client data
+-- for HTTP: parse http method, path, header, content
+-- for WS: parse frame data
 fn _onClientEventCallback(chann, event_name, _) {
     if event_name == "event_recv" {
         data = chann:recv()
         if data == nil {
-            _clientDestroy(chann)
+            _wsSvrIntervalTriggerRemove(chann._cnt)
+            _clientDestroy(chann._cnt)
+            chann:close()
             return
         }
         cnt = chann._cnt
-        -- parse raw data to http protoco info
-        ret_value, state, http_tbl = cnt.http_parser:process(data)
-        if ret_value < 0 {
+        hssn = cnt.hssn_lib
+        logger = cnt.config.logger
+        guard cnt.http_callback else {
+            logger.err("no http callback function for client data")
             return
         }
-        if state == HttpParser.STATE_BODY_CONTINUE and http_tbl {
-            _storeMultiPartData(cnt, http_tbl)
+        -- parse raw data to session table
+        nread, http_tbl = hssn:process(data)
+        --logger.info("nread \(nread) \(http_tbl.status) \(hssn:state())")
+        guard (nread > 0) and typewith("T", http_tbl.headers) else {
+            logger.err("no header for request")
+            return
         }
-        if state == HttpParser.STATE_BODY_FINISH and http_tbl {
-            content = ""
-            multipart_info = nil -- multipart/form-data
-            if _storeMultiPartData(cnt, http_tbl) {
-                multipart_info = cnt.multipart_info
-            } elseif http_tbl.contents {
-                content = tableConcat(http_tbl.contents)
-                http_tbl.contents = nil
-            }
-            -- create callback info
-            guard cnt.http_callback else {
+        -- gen content
+        content = ""
+        multipart_info = nil
+        --
+        ws_func, ws_params = cnt.ws_callback(http_tbl.path)
+        --logger.info("ws_func \(http_tbl.path), \(ws_func), \(ws_params)")
+        if ws_func and hssn:isUpgrade() {
+            -- want WebSocket
+            -- mark req as websocket and using response to upgrade response to client
+            -- mark req, resp web socket flag for router to check
+            -- parse web socket frames as req, resp in ws_callback
+            -- handle PING, PONG
+            if hssn._sec_accept {
+                -- check ws frame for cnt pong
+                if typewith("T", http_tbl.frames) {
+                    nframes = 0
+                    for _, fr in ipairs(http_tbl.frames) {
+                        --cnt.config.logger.info("recv ftype \(fr.ftype)")
+                        switch fr.ftype {
+                        case "PING":
+                            break
+                        case "PONG":
+                            cnt.ws_pong_ti = otime()
+                        case "CLOSE":
+                            _wsSvrIntervalTriggerRemove(cnt)
+                            _clientDestroy(cnt)
+                            chann:close()
+                        default:
+                            nframes += 1
+                        }
+                    }
+                    if nframes <= 0 {
+                        return
+                    }
+                }
+            } else {
+                -- verify ws key
+                b64_raw = hssn:secWebSocketKeyRaw()
+                b64_enc = Base64.base64_encode(b64_raw)
+                http_resp = hssn:basicSecAcceptHeader(b64_enc) .. "Server: \(Version.version)\r\n\r\n"
+                chann:send(http_resp)
+                hssn._sec_accept = true
                 return
             }
-            -- create req
-            cnt._req = Request(http_tbl.method, http_tbl.url, http_tbl.header, content, multipart_info)
-            cnt._req:updateRemoteIp(chann:addr().ip)
-            _updateRequest(cnt._req)
-            -- create response
-            if not cnt.option {
-                cnt.option = table.clone(response_option)
+        } else {
+            -- want HTTP only
+            -- check multi part data
+            -- normal http callback req, resp
+            fr = http_tbl.frames and http_tbl.frames[1] or nil
+            if fr and hssn:state() == HSSN.STATE_BODY {
+                _storeMultiPartData(cnt, http_tbl, fr)
+                return
+            } elseif hssn:state() == HSSN.STATE_FINISH {
+                if fr and _storeMultiPartData(cnt, http_tbl, fr) {
+                    multipart_info = cnt.multipart_info
+                } elseif fr and type(fr.data) == "string" {
+                    content = fr.data
+                }
+            }
+        }
+
+        -- create req
+        cnt._req = Request(ws_func and 'WS' or http_tbl.method,
+                            http_tbl.path,
+                            http_tbl.headers,
+                            ws_func and http_tbl.frames or content,
+                            multipart_info,
+                            cnt.ckey)
+        cnt._req:updateRemoteIp(chann:addr().ip)
+        _updateRequest(cnt._req)
+        -- create response
+        if not cnt.option {
+            cnt.option = table.clone(response_option)
+            if ws_func {
+                cnt.ws_ping_ti = otime()
+                cnt.ws_pong_ti = cnt.ws_ping_ti
+                ws_data_count = 0
+                cnt.option.fn_ws_callback = { ftype, data in
+                    ret, out_tbl = hssn:build(ftype, 65535, data)
+                    if ret {
+                        for i, v in ipairs(out_tbl) {
+                            --cnt.config.logger.info("send data, ftype:\(ftype) fsize:\(fsize) data:\(data:len())")
+                            chann:send(v)
+                        }
+                    } else {
+                        logger.err("failed to build ws frame")
+                    }
+                }
+            } else {
                 cnt.option.fn_chunked_callback = { data in
                     chann:send(data)
                 }
             }
-            cnt._resp = Response(cnt.option)
-            --
-            co = coCreate({ _ in
+        }
+        cnt._resp = Response(cnt.option)
+        if ws_func {
+            _wsSvrIntervalTriggerAdd(cnt, ws_func, ws_params, { in
+                _clientDestroy(chann._cnt)
+                chann:close()
+            })
+        }
+        --
+        co = coCreate({ _ in
+            if ws_func {
+                ret, _ = cincau_xpcall(ws_func, cnt.config, cnt._req, cnt._resp, ws_params)
+                ThreadBroker.removeThread(chann)
+            } else {
                 ret, _ = cincau_xpcall(cnt.http_callback, cnt.config, cnt._req, cnt._resp)
                 if not ret {
                     cnt._resp:setStatus(500)
@@ -171,17 +358,17 @@ fn _onClientEventCallback(chann, event_name, _) {
                 cnt._resp:finishResponse()
                 cnt._req = nil
                 cnt._resp = nil
-                cnt = nil
                 -- reset resources
-                _clientReset(chann)
-            })
-            -- broker take thread
-            ThreadBroker.addThread(chann, co)
-            coResume(co)
-            co = nil
-        }
+                _clientReset(cnt)
+            }
+        })
+        -- broker take thread
+        ThreadBroker.addThread(cnt.ckey, co)
+        coResume(co)
     } elseif event_name == "event_disconnect" {
-        _clientDestroy(chann)
+        _wsSvrIntervalTriggerRemove(chann._cnt, false)
+        _clientDestroy(chann._cnt)
+        chann:close()
     }
 }
 
@@ -193,15 +380,17 @@ class Serv {
     svr_tcp = false
     svr_udp = false
 
-    -- run server, http_callback(config, req, response)
-    static fn run(config, http_callback) {
+    -- run server
+    -- http_callback(config, req, response)
+    -- ws_callback(config, req, response)
+    static fn run(config, http_callback, ws_callback) {
         logger = config.logger
-        addr = NetCore.parseIpPort(config.ipport)
-        guard type(addr.ip) == "string" and type(addr.port) == "number" else {
+        svr_addr = NetCore.parseIpPort(config.ipport)
+        guard typewith("SN", svr_addr.ip, svr_addr.port) else {
             logger.err("invalid ipport")
             return
         }
-        logger.info("listen on %s:%d", addr.ip, addr.port)
+        logger.info("listen on %s:%d", svr_addr.ip, svr_addr.port)
         -- setup env
         math.randomseed(os.time())
         FileManager.setupSandboxEnv(config)
@@ -210,144 +399,47 @@ class Serv {
         DnsCore.init(config.dns_list) -- ipv4
         SessionMgnt.init(config)
         Self.svr_tcp = NetCore.openChann("tcp")
-        Self.svr_tcp:listen(addr.ip, addr.port, 1024)
+        Self.svr_tcp:listen(svr_addr.ip, svr_addr.port, 1024)
         Self.svr_tcp:setCallback({ _, event_name, accept in
             if event_name == "event_accept" and accept ~= nil {
                 accept._cnt = {
+                    ckey = UTime.timeStamp(),
                     config = config,
                     http_callback = http_callback,
-                    http_parser = HttpParser.createParser("REQUEST"),
+                    ws_callback = ws_callback,
+                    hssn_lib = HSSN(true),
                     fd_tbl = {},
                     multipart_info = {},
+                    ws_ping_ti = 0,
+                    ws_pong_ti = 0,
                 }
                 accept:setCallback(_onClientEventCallback)
             }
         })
-        -- check multi-process
-        netServerWaitPidFn = { in }
+        netSvrWaitPidFn = { in } -- check multi-process
         mproc = config.multiprocess
         if mproc and typewith("N", mproc.worker_count) and mproc.worker_count > 0 {
-            mgnt_addr = NetCore.parseIpPort(mproc.ipport)
-            if typewith("SN", mgnt_addr.ip, mgnt_addr.port) {
-                worker_tbl = {}
-                Self.svr_udp = NetCore.openChann("udp")
-                Self.svr_udp:listen(mgnt_addr.ip, mgnt_addr.port, 128)
-                isWorkerPort = { tbl, port in
-                    for i=1, mproc.worker_count {
-                        if tbl[i] == port {
-                            return true
-                        }
-                    }
-                    return false
-                }
-                Self.svr_udp:setCallback({ chann, event_name, _ in
-                    guard event_name == "event_recv" else {
-                        return
-                    }
-                    raw_data, ip, port = chann:dgramRecv()
-                    guard raw_data != nil else {
-                        return
-                    }
-                    event, data = unpack(raw_data:split(":", 1))
-                    guard data != nil else {
-                        return
-                    }
-                    to_idx, to_event, to_data = nil, nil, nil
-                    if event == "WORKER_SESSION" {
-                        mproc.workerEventDelegates[event](data)
-                        return
-                    } elseif event == 'WORKER_ONLINE' {
-                        worker_tbl[tonumber(data)] = tonumber(port)
-                    } elseif event == "WORKER_ROUTE" {
-                        to_idx, to_event, to_data = unpack(data:split(":", 2))
-                        to_idx = tonumber(to_idx)
-                    } elseif isWorkerPort(worker_tbl, port) {
-                        to_idx, to_event, to_data = mproc.monitorEventDispatcher(config, 0, event, data)
-                    }
-                    guard typewith("NSS", to_idx, to_event, to_data) else {
-                        --config.logger.err("monitor invalid dispatch \(to_idx):\(to_event):\(to_data) after 0:\(event):\(data)")
-                        return
-                    }
-                    raw_data = "\(to_event):\(to_data)"
-                    if to_idx >= 1 and to_idx <= mproc.worker_count {
-                        chann:dgramSend(raw_data, ip, worker_tbl[to_idx])
-                    } else {
-                        for i = 1, mproc.worker_count, 1 {
-                            if worker_tbl[i] {
-                                chann:dgramSend(raw_data, ip, worker_tbl[i])
-                            }
-                        }
-                    }
-                })
-                mproc.sendEventFn = { to_idx, to_event, to_data in
-                    guard typewith("NSS", to_idx, to_event, to_data) else {
-                        --config.logger.err("invalid sendEventFn \(to_idx):\(to_event)")
-                        return
-                    }
-                    raw_data = "\(to_event):\(to_data)"
-                    if to_idx >= 1 and to_idx <= mproc.worker_count {
-                        Self.svr_udp:dgramSend('WORKER_ROUTE:\(to_idx):\(raw_data)', mgnt_addr.ip, mgnt_addr.port)
-                    } else {
-                        Self.svr_udp:dgramSend(raw_data, mgnt_addr.ip, mgnt_addr.port)
-                    }
-                }
-            }
             NetServer.serverRegister(Self.svr_tcp:channFd(), mproc.worker_count, mproc.worker_restart_ms, mproc.debug_on)
-            netServerWaitPidFn = { in
+            netSvrWaitPidFn = { in
+                -- to restart workers in server pid
+                -- 0: monitor, >0: worker index forked, <0: woker index visit again
                 windex = NetServer.serverWaitPid()
-                guard windex > 0 else {
-                    -- 0: monitor, <0: woker index visit again
-                    return
+                if windex > 0 {
+                    mproc.worker_index = windex
                 }
-                mproc.worker_index = windex
-                -- worker index after fork()
-                Self.svr_udp:close()
-                Self.svr_udp = NetCore.openChann("udp")
-                Self.svr_udp:setCallback({ chann, event_name, _ in
-                    guard event_name == "event_recv" else {
-                        return
-                    }
-                    raw_data, ip, port = chann:dgramRecv()
-                    guard raw_data != nil else {
-                        return
-                    }
-                    event, data = unpack(raw_data:split(":", 1))
-                    guard data != nil else {
-                        return
-                    }
-                    to_idx, to_event, to_data = nil, nil, nil
-                    if event == "WORKER_SESSION" {
-                        mproc.workerEventDelegates[event](data)
-                        to_idx, to_event, to_data = (windex + 1), event, data
-                    } else {
-                        efn = mproc.workerEventDelegates[event]
-                        if type(efn) == "function" {
-                            efn(data)
-                        }
-                        to_idx, to_event, to_data = mproc.workerEventDispatcher(config, windex, event, data)
-                    }
-                    guard typewith("NSS", to_idx, to_event, to_data) else {
-                        --config.logger.err("worker invalid dispatch \(to_idx):\(to_event):\(to_data) after \(windex):\(event):\(data)")
-                        return
-                    }
-                    raw_data = "\(to_event):\(to_data)"
-                    if to_idx >= 1 and to_idx <= mproc.worker_count {
-                        chann:dgramSend('WORKER_ROUTE:\(to_idx):\(raw_data)', mgnt_addr.ip, mgnt_addr.port)
-                    } else {
-                        chann:dgramSend(raw_data, mgnt_addr.ip, mgnt_addr.port)
-                    }
-                })
-                Self.svr_udp:dgramSend("WORKER_ONLINE:\(windex)", mgnt_addr.ip, mgnt_addr.port)
             }
         }
         -- mnet event loop
         poll_wait = config.poll_wait or 50
         ssmgnt_outdate = config.session.outdate
         while true {
-            netServerWaitPidFn()
+            netSvrWaitPidFn()
             NetCore.poll(poll_wait)
             Mediator.servLoop()
-            SessionMgnt.clearOutdate(ssmgnt_outdate)
+            _wsSvrIntervalTriggerLoopCheck()
+            if NetServer.serverWorkerIndex() == 0 {
+                SessionMgnt.clearOutdated(ssmgnt_outdate)
+            }
         }
     }
 }

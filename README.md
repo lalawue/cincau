@@ -10,6 +10,7 @@
   - [Server-Side Rendering (SSR)](#server-side-rendering-ssr)
     - [Page Structure (MVC)](#page-structure-mvc)
   - [Single Page Application (SPA)](#single-page-application-spa)
+  - [WebSocket](#websocket)
   - [Database](#database)
     - [Relational ORM](#relational-orm)
     - [NoSQL](#nosql)
@@ -149,9 +150,15 @@ see `app/pages/page_doc.mooc`, and more complicate example is `app/pages/page_pl
 
 ## Single Page Application (SPA)
 
-the demo project also provide a SPA page example, with container `app/pages/page_wiki.lua` and data backend `app/pages/page_wikidata.lua`.
+the demo project also provide a SPA page example, with container `app/pages/wiki/page_wiki.lua` and data backend `app/pages/wiki/page_wikidata.lua`.
 
 you can visit [http://127.0.0.1:8080/wiki](http://127.0.0.1:8080/wiki) to create you own wiki pages, there are some examples in wiki index page.
+
+## WebSocket
+
+the demo project also provide a chat room exmaple, with container `app/pages/chat/page_chat.mooc` and data backend `app/pages/chat/page_chatdata.mooc`.
+
+you can visit [http://127.0.0.1:8080/chat](http://127.0.0.1:8080/chat) to play in chat room.
 
 ## Database
 
@@ -217,7 +224,6 @@ thanks people build useful libraries below, some are MIT License, or with no lic
 - [ers35/luastatic](https://github.com/ers35/luastatic), Build a standalone executable from a Lua program.
 - [lalawue/m_net](https://github.com/lalawue/m_net/), cross platform network library, support LuaJIT's pull style API, using epoll/kqueue/wepoll underlying.
 - [lalawue/lua-resp](https://github.com/lalawue/lua-resp), resp from https://github.com/mah0x211/lua-resp
-- [lalawue/linked-list](https://github.com/lalawue/linked-list.lua), doubly linked list for Lua
 - [lalawue/ffi-hyperparser](https://github.com/lalawue/ffi-hyperparser), LuaJIT HTTP parser with pull-style api
 - [lalawue/mooncake](https://github.com/lalawue/mooncake), A Swift like program language compiles into Lua
 - [lalawue/Lua4DaysORM](https://github.com/lalawue/Lua4DaysORM), Lua 4Days ORM for sqlite3

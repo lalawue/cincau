@@ -6,6 +6,7 @@
 --
 
 import UrlCore from "cincau.base.url_core"
+import UTime from "cincau.base.ffi_utime"
 
 local type = type
 local pairs = pairs
@@ -37,7 +38,7 @@ fn _print(dbg, ...) {
 
 class RequestCore {
 
-    method = false
+    method = false -- 'WS' or HTTP method
     path = false
     query = false
     header = false
@@ -46,8 +47,12 @@ class RequestCore {
     cookies = {}
     remote_ip = false
     post_args = false
+    rtype = "" -- 'PEER' or 'SVR'
+    rtime = false -- creation time
+    cnt_key = "" -- client identity for one TCP connection, if exist
+    cnt_disconnect = false
 
-    fn init(method, path, header, body, multipart_info) {
+    fn init(method, path, header, body, multipart_info, cnt_key) {
         self.method = method
         self.path, self.query = _parsePath(path)
         self.header = header
@@ -65,6 +70,10 @@ class RequestCore {
                 }
             }
         }
+        --
+        self.rtype = "PEER"
+        self.rtime = UTime()
+        self.cnt_key = cnt_key or ""
     }
 
     -- destory all reference
@@ -78,6 +87,9 @@ class RequestCore {
         self.cookies = false
         self.remote_ip = false
         self.post_args = false
+        self.rtype = ""
+        self.rtime = false
+        self.cnt_disconnect = false
     }
 
     -- remote addr
@@ -113,6 +125,26 @@ class RequestCore {
             logger.err("%s\t%s", k, v)
         }
         logger.err("---")
+    }
+
+    -- from peer or svr internal trigger
+    fn isPeer() {
+        return self.rtype == "PEER"
+    }
+
+    -- only for ws when disconnect
+    fn isDisconnect() {
+        return self.method == "WS" and self.cnt_disconnect
+    }
+
+    -- mark from svr internal
+    fn markSvrInternal() {
+        self.rtype = "SVR"
+        self.utime = UTime()
+    }
+
+    fn markCntDisconnect() {
+        self.cnt_disconnect = true
     }
 
     -- application/x-www-form-urlencoded

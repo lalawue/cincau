@@ -13,6 +13,7 @@ local Server = CincauServer
 local Config = CincauConfig
 local Router = CincauRouter
 
+-- resolve http://, func(config, req, response)
 local function http_callback(config, req, response)
     local func, params = Router:resolve(req.method, req.path)
     if func then
@@ -24,9 +25,17 @@ local function http_callback(config, req, response)
     end
 end
 
+-- resolve ws://, func(config, req, response, params)
+local function ws_resolve(ws_path)
+    local func, params = Router:resolve("WS", ws_path)
+    if func then
+        return func, params
+    end
+end
+
 local function runApp()
     Router:loadModel(Config)
-    Server.run(Config, http_callback)
+    Server.run(Config, http_callback, ws_resolve)
 end
 
 cincau_xpcall(runApp)

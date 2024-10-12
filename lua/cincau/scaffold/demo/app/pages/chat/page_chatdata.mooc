@@ -1,0 +1,120 @@
+--
+-- Copyright (c) 2024 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import Model from "app.models.model_chat"
+import BasePage from "cincau.page_core" {}
+import CJson from "cjson"
+
+otime = os.time
+
+-- chat room example
+-- json events: { 'ti' = time, 'etype': type, 'ckey': ckey, 'nick': nickname, 'data': data }
+class PageChatData : BasePage {
+
+    last_svr_ti = {}
+    last_msg_no = {}
+    last_user_count = {}
+    last_ckey = {}
+
+    fn init(config) {
+        self.logger = config.logger
+        Model:loadModel(config)
+    }
+
+    -- check disconnect, from peer or svr
+    fn process(config, req, response, params) {
+
+        ckey = req.cookies["cincau_chat"] or ""
+        if ckey:len() <= 0 {
+            ckey = req.cnt_key
+        }
+
+        if req:isDisconnect() {
+            -- cnt disconnect
+            config.logger.info("cnt disconnect \(ckey)")
+            return
+        } elseif Model:enterChat(ckey)
+                 or (ckey != req.cnt_key and not self.last_ckey[req.cnt_key])
+        {
+            self.last_ckey[req.cnt_key] = true
+            self.last_msg_no[ckey] = 0
+            self.last_svr_ti[ckey] = 0
+            self.last_user_count[ckey] = 0
+            response:wsSendFrame("TEXT", CJson.encode({{
+                ti = otime(),
+                etype = "cookie",
+                ckey = ckey,
+                nick = ckey,
+                data = "cincau_chat",
+            }}))
+            config.logger.info("data enter user \(ckey)")
+            return
+        }
+
+        if req:isPeer() {
+            config.logger.info("data peer \(ckey)")
+            frames = req.body or {}
+            -- from cnt
+            for _, fr in ipairs(frames) {
+                if typewith("S", fr.ftype) and fr.ftype == "TEXT" {
+                    cdata = CJson.decode(fr.data)
+                    if typewith("T", cdata) {
+                        switch cdata.etype {
+                        case "msg":
+                            config.logger.info("data peer msg '\(cdata.data)'")
+                            Model:sendMsg(ckey, cdata.data)
+                        case "nick":
+                            config.logger.info("data peer nick '\(cdata.data)'")
+                            Model:sendNick(ckey, cdata.data)
+                        }
+                    }
+                }
+            }
+            return
+        }
+
+        -- from svr trigger, invoke every seconds
+
+        now_ti = otime()
+        if now_ti <= (self.last_svr_ti[ckey] or 0) {
+            return
+        }
+        self.last_svr_ti[ckey] = now_ti
+
+        -- latest msg
+
+        msg_no = self.last_msg_no[ckey] or 0
+        nmsg = {}
+        for _, it in ipairs(Model:allChats()) {
+            if it.no > msg_no {
+                nmsg[#nmsg + 1] = it
+                self.last_msg_no[ckey] = it.no
+            }
+        }
+
+        if #nmsg > 0 {
+            config.logger.info("update msg count \(#nmsg)")
+            response:wsSendFrame("TEXT", CJson.encode(nmsg))
+        }
+
+        -- online count
+
+        ncount = Model:onlinePeoples()
+        if (self.last_user_count[ckey] or 0) != ncount {
+            self.last_user_count[ckey] = ncount
+            response:wsSendFrame("TEXT", CJson.encode({{
+                ti = now_ti,
+                etype = "count",
+                ckey = ckey,
+                nick = "",
+                data = tostring(ncount)
+            }}))
+        }
+    }
+}
+
+return PageChatData

@@ -16,13 +16,13 @@ description = {
 dependencies = {
    "lua >= 5.1",
    "mooncake",
-   "linked-list",
    "mnet",
    "ffi-hyperparser",
    "sql-orm",
    "lua-resp",
    "lua-bitcask",
    "lua-cjson",
+   "ffi-mmkv",
 }
 build = {
    type = "builtin",

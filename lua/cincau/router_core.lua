@@ -31,7 +31,7 @@ local router = {
 
 local COLON_BYTE = string.byte(':', 1)
 local WILDCARD_BYTE = string.byte('*', 1)
-local HTTP_METHODS = {'get', 'post', 'put', 'patch', 'delete', 'trace', 'connect', 'options', 'head'}
+local HTTP_METHODS = {'get', 'post', 'put', 'patch', 'delete', 'trace', 'connect', 'options', 'head', 'ws'} -- and 'ws' for websocket
 
 local function match_one_path(node, path, f)
   for token in path:gmatch("[^/.]+") do

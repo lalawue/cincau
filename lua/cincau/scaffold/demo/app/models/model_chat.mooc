@@ -1,0 +1,154 @@
+--
+-- Copyright (c) 2020 lalawue
+--
+-- This library is free software; you can redistribute it and/or modify it
+-- under the terms of the MIT license. See LICENSE for details.
+--
+
+import MMKV from "ffi-mmkv"
+
+otime = os.time
+
+--[[
+    1. chat data structure
+    {
+        sequence_no,
+        time,
+        etype,
+        ckey,
+        nick,
+        data
+    }
+
+    2. chat types
+    - enter
+    - nick
+    - msg
+
+    3. mmkv keys
+    - chats: chat event
+    - ckeys: exist ckeys -> [nick | anonymous]
+]]
+-- only keep 60 seconds messages
+class Model {
+
+    config = false
+    mmkv = false
+
+    fn loadModel(config) {
+        self.config = config
+        self.mmkv = MMKV("chat_room", config.websocket.dir, true)
+        config.logger.info("load chat model")
+    }
+
+    fn onlinePeoples() {
+        ncount = 0
+        for _, it in pairs(self:_ckeys()) {
+            ncount += 1
+        }
+        return ncount
+    }
+
+    -- get all chats event, mapping ckey to nick
+    fn allChats() {
+        list = self:_rawChats()
+        return list
+    }
+
+    fn enterChat(ckey) {
+        guard typewith("S", ckey) else {
+            return
+        }
+        now_ti = otime()
+        has_exist = false
+        list, last_no = self:_rawChats(now_ti)
+        ckey_dict = self:_ckeys()
+        if ckey_dict[ckey] {
+            has_exist = true
+        }
+        if not has_exist {
+            ckey_dict[ckey] = { nick = "user_\(ckey)" }
+            self.mmkv:set("ckeys", ckey_dict)
+            --
+            event = {
+                no = last_no + 1,
+                ti = now_ti,
+                etype = "enter",
+                ckey = ckey,
+                nick = ckey_dict[ckey].nick,
+                data = ""
+            }
+            list[#list + 1] = event
+            self.mmkv:set("chats", list)
+            return event
+        }
+    }
+
+    fn sendNick(ckey, nick) {
+        guard typewith("SS", ckey, nick) else {
+            return
+        }
+        now_ti = otime()
+        --
+        ckey_dict = self:_ckeys()
+        old_nick = ckey_dict[ckey] and ckey_dict[ckey].nick or "anonymous"
+        ckey_dict[ckey] = { nick = nick }
+        self.mmkv:set("ckeys", ckey_dict)
+        --
+        list, last_no = self:_rawChats(now_ti)
+        list[#list + 1] = {
+            no = last_no + 1,
+            ti = now_ti,
+            etype = "nick",
+            ckey = ckey,
+            nick = old_nick,
+            data = nick
+        }
+        self.mmkv:set("chats", list)
+    }
+
+    fn sendMsg(ckey, msg) {
+        guard typewith("SS", ckey, msg) else {
+            return
+        }
+        now_ti = otime()
+        --
+        ckey_dict = self:_ckeys()
+        nick = ckey_dict[ckey] and ckey_dict[ckey].nick or "anonymous"
+        --
+        list, last_no = self:_rawChats(now_ti)
+        list[#list + 1] = {
+            no = last_no + 1,
+            ti = now_ti,
+            etype = "msg",
+            ckey = ckey,
+            nick = nick,
+            data = msg
+        }
+        self.mmkv:set("chats", list)
+    }
+
+    -- MARK: internal
+
+    -- latest ckey -> chats
+    fn _rawChats(now_ti) {
+        now_ti = now_ti or otime()
+        nlist = {}
+        list = self.mmkv:get("chats") or {}
+        last_no = 0
+        for _, it in ipairs(list) {
+            if now_ti - it.ti <= 60 {
+                nlist[#nlist + 1] = it
+            }
+            last_no = it.no
+        }
+        return nlist, last_no
+    }
+
+    -- existed ckeys
+    fn _ckeys() {
+        return self.mmkv:get("ckeys") or {}
+    }
+}
+
+return Model

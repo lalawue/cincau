@@ -9,39 +9,31 @@
 --
 
 import Cookie from "cincau.session.cookie_core"
-import UUIDCore from "cincau.base.uuid_core"
-import List from "linked-list"
-import CJson from "cjson"
+import UTime from "cincau.base.ffi_utime"
+import SHA from "cincau.base.sha2"
+import MMKV from "ffi-mmkv"
 
 otime = os.time
+otype = type
+omax = math.max
 
--- session info in cookies
-struct Session {
+-- session info in cookies, uuid = md5(utime)
+class Session {
 
-    _sessions = {}
-    _lst = List.new()
-    _config = false
-    _mproc = false
+    _outdate = false
+    _logger = false
+
+    -- record last clear outdated otime
+    _last_clear_ot = 0
+
+    -- [uuid] = uu_session { tm { =uuid, =utime, other_keys... }}
+    _mmkv_sessions = false
 
     static fn init(config) {
-        UUIDCore.seed()
-        if config.multiprocess and config.multiprocess.worker_count > 0 {
-            Self._config = config
-            Self._mproc = config.multiprocess
-            Self._mproc.workerEventDelegates["WORKER_SESSION"] = { data in
-                uuid, udata = unpack(data:split(":", 1))
-                if typewith("S", udata) and udata:len() > 6 {
-                    uu_session = CJson.decode(udata)
-                    Self._sessions[uuid] = uu_session
-                    if uu_session and uu_session.tm {
-                        Self._updateTime(uuid, uu_session, true)
-                    }
-                } else {
-                    Self._sessions[uuid] = nil
-                }
-                config.logger.info("session(\(Self._mproc.worker_index)) recv \(uuid):\(udata:len())")
-            }
-        }
+        Self._outdate = config.session.outdate
+        Self._logger = config.logger
+        Self._last_clear_ot = otime()
+        Self._mmkv_sessions = MMKV("sessions", config.session.dir, true)
     }
 
     --
@@ -52,28 +44,13 @@ struct Session {
         return req.cookies[skey]
     }
 
-    -- update time struct, push to last
-    static fn _updateTime(uuid, uu_session, not_sync) {
-        now_ti = otime()
-        tm = uu_session.tm
-        tm.time = now_ti
-        Self._lst:remove(tm)
-        Self._lst:pushl(tm)
-        if not_sync {
-            tm.sync = now_ti
-        } elseif Self._mproc and (now_ti - tm.sync > Self._config.session.sync_time) {
-            tm.sync = now_ti
-            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
-        }
-    }
-
     -- check session exist, from req
     static fn inSession(req, skey) {
         guard req and skey else {
             return false
         }
         uuid = req.cookies[skey]
-        uu_session = Self._sessions[uuid]
+        uu_session = Self._mmkv_sessions:get(uuid)
         if uu_session and uu_session.tm {
             Self._updateTime(uuid, uu_session)
         }
@@ -99,23 +76,20 @@ struct Session {
             return
         }
         -- set cookie to respoinse
-        uuid = UUIDCore.new()
+        utime = UTime.timeStamp()
+        uuid = SHA.md5(utime)
         cookie_str = Cookie.build({[skey] = uuid}, options)
         response:setHeader("Set-Cookie", cookie_str)
         -- set cookie to req
         req.cookies[skey] = uuid
         -- create session table
         tm = {
-            sync = otime(),
-            time = otime(),
-            uuid = uuid,
+            =uuid,
+            =utime
         }
         uu_session = { =tm }
-        Self._sessions[uuid] = uu_session
-        Self._lst:pushl(tm)
-        if Self._mproc {
-            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
-        }
+        Self._mmkv_sessions:set(uuid, uu_session, Self._outdate)
+        Self._logger.info("set utime: \(utime)")
         return uuid
     }
 
@@ -132,13 +106,10 @@ struct Session {
         guard uuid else {
             return false
         }
-        uu_session = Self._sessions[uuid]
-        if uu_session {
-            Self._lst:remove(uu_session.tm)
-            Self._sessions[uuid] = nil
-            if Self._mproc {
-                Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):")
-            }
+        uu_session = Self._mmkv_sessions:get(uuid)
+        if typewith("T", uu_session) {
+            Self._mmkv_sessions:rm(uuid)
+            Self._logger.info("rm utime: \(uu_session.tm.utime)")
             return true
         }
         return false
@@ -149,9 +120,9 @@ struct Session {
         guard req and skey and hkey else {
             return
         }
-        uuid = req.cookies[skey]
-        uu_session = Self._sessions[uuid]
-        guard uuid and uu_session else {
+        uuid = req.cookies[skey] or "#"
+        uu_session = Self._mmkv_sessions:get(uuid)
+        guard uu_session else {
             return
         }
         Self._updateTime(uuid, uu_session)
@@ -163,30 +134,39 @@ struct Session {
         guard req and skey and hkey and hval else {
             return false
         }
-        uuid = req.cookies[skey]
-        uu_session = Self._sessions[uuid]
-        guard uuid and uu_session else {
+        uuid = req.cookies[skey] or "#"
+        uu_session = Self._mmkv_sessions:get(uuid)
+        guard uu_session else {
             return false
         }
         uu_session[hkey] = hval
         Self._updateTime(uuid, uu_session)
-        if Self._mproc {
-            Self._mproc.sendEventFn(1, "WORKER_SESSION", "\(uuid):\(CJson.encode(uu_session))")
-        }
         return true
     }
 
-    -- clear outdate session
-    static fn clearOutdate(seconds) {
-        now = otime()
-        repeat {
-            tm = Self._lst:first()
-            if not tm or now - tm.time < seconds {
-                break
-            }
-            Self._lst:popf()
-            Self._sessions[tm.uuid] = nil
-        } until tm == nil
+    -- clear outdated session in monitor process
+    static fn clearOutdated(seconds) {
+        ot = otime()
+        seconds = omax(seconds, 60)
+        guard ot > Self._last_clear_ot + seconds else {
+            return
+        }
+        Self._last_clear_ot = ot
+        Self._mmkv_sessions:trim()
+        Self._logger.info("clear outdated in \(ot), count: \(Self._mmkv_sessions:count())")
+    }
+
+    -- update time struct, push to last
+    static fn _updateTime(uuid, uu_session) {
+        guard typewith("ST", uuid, uu_session) else {
+            Self._logger.warn("invalid uu_session: \(uuid), \(uu_session)")
+            return
+        }
+        tm = uu_session.tm
+        o_utime = tm.utime
+        tm.utime = UTime.timeStamp()
+        Self._mmkv_sessions:set(uuid, uu_session, Self._outdate)
+        Self._logger.info("update utime: \(o_utime) -> \(tm.utime)")
     }
 }
 

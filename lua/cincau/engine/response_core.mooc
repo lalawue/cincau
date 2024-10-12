@@ -31,6 +31,8 @@ local _status_code_msg = {
 fn _validateOption(opt) {
     if type(opt.en_chunked_length) == "boolean" and type(opt.fn_chunked_callback) == "function" {
         return opt
+    } elseif type(opt.fn_ws_callback) == "function" {
+        return opt
     } else {
         return nil
     }
@@ -78,6 +80,7 @@ class ResponseCore {
     option as
     {
         en_chunked_length,
+        en_upgrade_ws,
         fn_chunked_callback,
         fn_set_header, -- overide default
         fn_set_status,
@@ -89,13 +92,18 @@ class ResponseCore {
             return nil
         }
         self.opt = option
-        self.http = { header = {} } -- { header, status_code }
-        self:setStatus(200)
-        self:setHeader("Server", Version.version)
-        self:setHeader("Transfer-Encoding", "chunked")
+        if not option.fn_ws_callback {
+            self.http = { header = {} } -- { header, status_code }
+            self:setStatus(200)
+            self:setHeader("Server", Version.version)
+            self:setHeader("Transfer-Encoding", "chunked")
+        }
     }
 
     fn setStatus(status_code) {
+        if self.opt.fn_ws_callback {
+            return
+        }
         self.http.status_code = status_code
         if self.opt.fn_set_status {
             self.opt.fn_set_status(status_code)
@@ -103,6 +111,9 @@ class ResponseCore {
     }
 
     fn setHeader(key, value) {
+        if self.opt.fn_ws_callback {
+            return
+        }
         if self.opt.fn_set_header {
             self.opt.fn_set_header(key, value)
         } else {
@@ -117,7 +128,7 @@ class ResponseCore {
 
     -- appendBody after makeHeader
     fn appendBody(data) {
-        if type(data) ~= "string" {
+        guard not self.opt.fn_ws_callback and type(data) == "string" else {
             return
         }
         _makeHeader(self)
@@ -131,11 +142,24 @@ class ResponseCore {
         }
     }
 
+    -- send ws frame
+    fn wsSendFrame(ftype, data) {
+        guard typewith('SS', ftype, data) else {
+            return
+        }
+        guard ftype == "TEXT" or ftype == "BINARY" else {
+            return
+        }
+        self.opt.fn_ws_callback(ftype, data)
+    }
+
     -- create new response instance for a new one after finish
     fn finishResponse() {
-        _makeHeader(self)
-        if self.opt.en_chunked_length {
-            self.opt.fn_chunked_callback("0\r\n\r\n")
+        if not self.opt.fn_ws_callback {
+            _makeHeader(self)
+            if self.opt.en_chunked_length {
+                self.opt.fn_chunked_callback("0\r\n\r\n")
+            }
         }
         self.opt = false
         self.http = false

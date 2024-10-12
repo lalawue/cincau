@@ -23,7 +23,9 @@ end
 
 -- process dynamic content
 local function pageProcess(page_name, config, req, response, params)
-    config.logger.info("%s %s %s", req.method, req.path, req.query or '')
+    if req.method ~= "WS" then
+        config.logger.info("%s %s %s", req.method, req.path, req.query or '')
+    end
     MasterPage.process(page_name, config, req, response, params)
     config.logger.flush()
 end
@@ -71,6 +73,16 @@ local function pageWikiData(config, req, response, params)
 end
 Router:get("/wikidata", pageWikiData)
 Router:post("/wikidata", pageWikiData)
+
+-- chat room example
+
+Router:get("/chat", function(config, req, response, params)
+    pageProcess("chat.page_chat", config, req, response, params)
+end)
+
+Router:ws("/chatdata", function(config, req, response, params)
+    pageProcess("chat.page_chatdata", config, req, response, params)
+end)
 
 -- when URL not matched, fall to this function
 function Router:pageNotFound(config, req, response, params)
