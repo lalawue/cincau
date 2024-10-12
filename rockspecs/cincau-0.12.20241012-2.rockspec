@@ -1,5 +1,5 @@
 package = 'cincau'
-version = '0.12.20241012-1'
+version = '0.12.20241012-2'
 source = {
    url = 'git+https://github.com/lalawue/cincau.git',
    tag = '0.12.20241012'
